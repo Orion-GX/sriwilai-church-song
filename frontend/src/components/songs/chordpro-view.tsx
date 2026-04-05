@@ -30,6 +30,7 @@ export function ChordproView({
   return (
     <div
       ref={scrollContainerRef as React.RefObject<HTMLDivElement>}
+      data-testid="chordpro-view"
       className={cn(
         "rounded-lg border bg-card p-4 text-base leading-relaxed",
         scrollContainerRef

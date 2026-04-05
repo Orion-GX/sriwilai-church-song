@@ -18,6 +18,7 @@ export async function clearClientAuth(page: Page): Promise<void> {
   await page.evaluate(() => {
     try {
       localStorage.removeItem("ccp-auth");
+      localStorage.removeItem("ccp-favorites");
     } catch {
       /* ignore */
     }

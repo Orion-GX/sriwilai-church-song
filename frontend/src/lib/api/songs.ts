@@ -37,3 +37,36 @@ export async function fetchSongById(id: string): Promise<SongDetail> {
     retryOn401: false,
   });
 }
+
+export type CreateSongPayload = {
+  title: string;
+  chordproBody: string;
+  isPublished?: boolean;
+};
+
+export async function createSong(payload: CreateSongPayload): Promise<SongDetail> {
+  return apiFetch<SongDetail>("/app/songs", {
+    method: "POST",
+    body: JSON.stringify({
+      title: payload.title,
+      chordproBody: payload.chordproBody,
+      isPublished: payload.isPublished ?? true,
+    }),
+  });
+}
+
+export type UpdateSongPayload = {
+  title?: string;
+  chordproBody?: string;
+  isPublished?: boolean;
+};
+
+export async function updateSong(
+  id: string,
+  payload: UpdateSongPayload,
+): Promise<SongDetail> {
+  return apiFetch<SongDetail>(`/app/songs/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}

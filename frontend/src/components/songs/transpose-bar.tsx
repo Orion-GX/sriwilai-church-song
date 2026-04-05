@@ -29,15 +29,17 @@ export function TransposeBar({
         large && "gap-3 p-4",
         className,
       )}
+      data-testid="transpose-bar"
     >
       <span
         className={cn(
           "min-w-[4rem] text-sm text-muted-foreground",
           large && "min-w-[6rem] text-base",
         )}
+        data-testid="transpose-value-label"
       >
         คีย์{" "}
-        <strong className="text-foreground">
+        <strong className="text-foreground" data-testid="transpose-value">
           {value === 0 ? "ต้นฉบับ" : `${value > 0 ? "+" : ""}${value} เสียง`}
         </strong>
       </span>
@@ -49,6 +51,7 @@ export function TransposeBar({
           className={large ? "h-14 w-14 shrink-0 text-2xl" : ""}
           aria-label="ลดคีย์หนึ่งเสียง"
           onClick={dec}
+          data-testid="transpose-decrement"
         >
           <Minus className={large ? "h-8 w-8" : "h-4 w-4"} />
         </Button>
@@ -58,6 +61,7 @@ export function TransposeBar({
           size={large ? "lg" : "sm"}
           className={cn("px-3", large && "h-14 min-w-[5rem] text-lg")}
           onClick={reset}
+          data-testid="transpose-reset"
         >
           รีเซ็ต
         </Button>
@@ -68,6 +72,7 @@ export function TransposeBar({
           className={large ? "h-14 w-14 shrink-0 text-2xl" : ""}
           aria-label="เพิ่มคีย์หนึ่งเสียง"
           onClick={inc}
+          data-testid="transpose-increment"
         >
           <Plus className={large ? "h-8 w-8" : "h-4 w-4"} />
         </Button>

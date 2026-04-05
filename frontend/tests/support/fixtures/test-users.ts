@@ -7,6 +7,19 @@ export const e2eTestUser = {
   password: process.env.E2E_USER_PASSWORD ?? "Playwright_smoke_1!",
 } as const;
 
+/**
+ * บัญชีที่สร้าง/แก้ไขเพลงผ่าน UI — ต้องมีสิทธิ์ song.create และ song.update
+ * (เช่น system_admin แบบ global) เพราะ role `user` ส่วนตัวมีแค่ song.read
+ */
+export const e2eSongEditor = {
+  email: process.env.E2E_SONG_EDITOR_EMAIL?.trim() ?? "",
+  password: process.env.E2E_SONG_EDITOR_PASSWORD ?? "",
+} as const;
+
+export function hasSongEditorCredentials(): boolean {
+  return Boolean(e2eSongEditor.email && e2eSongEditor.password);
+}
+
 /** Base URL ของ Nest API สำหรับ `apiLogin` — ต้องตรงกับที่ frontend เรียก (ดู NEXT_PUBLIC_API_URL) */
 export function getApiBaseForPlaywright(): string {
   const fromEnv = process.env.E2E_API_BASE_URL?.replace(/\/$/, "");

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ListMusic,
   Music,
+  PlusCircle,
   Radio,
   Settings,
   type LucideIcon,
@@ -17,6 +18,7 @@ const items: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard", label: "ภาพรวม", icon: Home },
   { href: "/dashboard/admin", label: "แอดมิน", icon: LayoutDashboard },
   { href: "/songs", label: "เพลง", icon: Music },
+  { href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle },
   { href: "/dashboard/live", label: "ไลฟ์", icon: Radio },
   { href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic },
   { href: "/dashboard/settings", label: "ตั้งค่า", icon: Settings },
@@ -41,6 +43,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
               ? pathname === "/dashboard"
               : href === "/songs"
                 ? pathname === "/songs" || pathname.startsWith("/songs/")
+              : href === "/dashboard/songs/new"
+                ? pathname.startsWith("/dashboard/songs")
               : href === "/dashboard/admin"
                 ? pathname.startsWith("/dashboard/admin")
                 : pathname === href || pathname.startsWith(`${href}/`);

@@ -37,7 +37,7 @@ export default function SongsListPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col" data-testid="page-songs-list">
       <SiteHeader />
       <main className="container mx-auto max-w-4xl flex-1 px-4 py-8">
         <div className="mb-8">
@@ -50,6 +50,7 @@ export default function SongsListPage() {
         <form
           onSubmit={onSearch}
           className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center"
+          data-testid="song-search-form"
         >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -58,36 +59,43 @@ export default function SongsListPage() {
               placeholder="ค้นหาชื่อเพลง…"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              data-testid="song-search-input"
             />
           </div>
-          <Button type="submit">ค้นหา</Button>
+          <Button type="submit" data-testid="song-search-submit">
+            ค้นหา
+          </Button>
           <Button
             type="button"
             variant={favoritesOnly ? "secondary" : "outline"}
             onClick={() => setFavoritesOnly((v) => !v)}
+            data-testid="song-filter-favorites"
           >
             เฉพาะโปรด ({favoriteIds.length})
           </Button>
         </form>
 
         {isLoading ? (
-          <p className="text-muted-foreground">กำลังโหลด…</p>
+          <p className="text-muted-foreground" data-testid="song-list-loading">
+            กำลังโหลด…
+          </p>
         ) : isError ? (
-          <p className="text-destructive">
+          <p className="text-destructive" data-testid="song-list-error">
             โหลดรายการไม่สำเร็จ:{" "}
             {error instanceof Error ? error.message : String(error)}
           </p>
         ) : (
           <>
-            <ul className="space-y-2">
+            <ul className="space-y-2" data-testid="song-list">
               {items.map((song) => (
-                <li key={song.id}>
+                <li key={song.id} data-testid={`song-row-${song.id}`}>
                   <Card className="transition-colors hover:bg-muted/40">
                     <CardHeader className="flex flex-row items-center gap-3 space-y-0 py-4">
                       <div className="min-w-0 flex-1">
                         <Link
                           href={`/songs/${song.id}`}
                           className="block truncate font-semibold hover:underline"
+                          data-testid={`song-list-link-${song.id}`}
                         >
                           {song.title}
                         </Link>
@@ -106,7 +114,10 @@ export default function SongsListPage() {
             </ul>
 
             {items.length === 0 ? (
-              <p className="mt-6 text-center text-muted-foreground">
+              <p
+                className="mt-6 text-center text-muted-foreground"
+                data-testid="song-list-empty"
+              >
                 {favoritesOnly
                   ? "ไม่มีเพลงโปรดในหน้านี้ ลองปิดตัวกรองหรือเปลี่ยนหน้า"
                   : "ไม่พบเพลง"}

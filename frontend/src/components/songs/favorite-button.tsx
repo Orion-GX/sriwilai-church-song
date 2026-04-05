@@ -34,6 +34,8 @@ export function FavoriteButton({ songId, className, large }: FavoriteButtonProps
       aria-pressed={on}
       aria-label={on ? "เอาออกจากรายการโปรด" : "เพิ่มในรายการโปรด"}
       disabled={pending}
+      data-testid="favorite-button"
+      data-song-id={songId}
       onClick={async () => {
         setPending(true);
         try {
