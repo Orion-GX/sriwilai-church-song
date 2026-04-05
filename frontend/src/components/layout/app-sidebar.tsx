@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Building2,
   Home,
   LayoutDashboard,
   ListMusic,
@@ -10,6 +11,7 @@ import {
   PlusCircle,
   Radio,
   Settings,
+  User,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,6 +43,10 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           const active =
             href === "/dashboard"
               ? pathname === "/dashboard"
+              : href === "/dashboard/profile"
+                ? pathname === "/dashboard/profile"
+              : href === "/dashboard/churches"
+                ? pathname.startsWith("/dashboard/churches")
               : href === "/songs"
                 ? pathname === "/songs" || pathname.startsWith("/songs/")
               : href === "/dashboard/songs/new"
