@@ -76,6 +76,30 @@ export async function waitForLiveSocketConnected(
     .toBe(true);
 }
 
+/** คลิกพื้นที่ห้องไลฟ์เพื่อให้ keyboard shortcut ไปที่เอกสาร (ไม่โฟกัสช่อง input) */
+export async function focusLiveRoomForKeyboard(page: Page): Promise<void> {
+  await page.getByTestId("live-session-title").click();
+}
+
+/** ดัชนีเพลงปัจจุบัน (0-based) จาก `data-testid="live-song-index"` */
+export async function expectLiveSongIndex(
+  page: Page,
+  index: number,
+  total: number,
+  timeoutMs = 20_000,
+): Promise<void> {
+  const loc = page.getByTestId("live-song-index");
+  await expect
+    .poll(
+      async () => ({
+        i: await loc.getAttribute("data-index"),
+        t: await loc.getAttribute("data-total"),
+      }),
+      { timeout: timeoutMs },
+    )
+    .toEqual({ i: String(index), t: String(total) });
+}
+
 export async function openLiveRoomAsUser(
   page: Page,
   request: APIRequestContext,

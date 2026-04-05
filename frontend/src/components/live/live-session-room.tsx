@@ -128,6 +128,58 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
     }
   };
 
+  /** ลัดคีย์ pedal-friendly: เพลงถัดไป/ก่อนหน้า (เทียบเท่าปุ่มใหญ่ด้านล่าง) */
+  const liveKeyboardNavRef = React.useRef({
+    connected,
+    showNav,
+    n,
+    displayIndex,
+    goPrev,
+    goNext,
+  });
+  liveKeyboardNavRef.current = {
+    connected,
+    showNav,
+    n,
+    displayIndex,
+    goPrev,
+    goNext,
+  };
+
+  React.useEffect(() => {
+    const isTypingTarget = (t: EventTarget | null) => {
+      if (!(t instanceof HTMLElement)) return false;
+      const tag = t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+        return true;
+      }
+      return t.isContentEditable;
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const { connected: ok, showNav: nav, n: len, displayIndex: d, goPrev: prev, goNext: next } =
+        liveKeyboardNavRef.current;
+      if (!ok || !nav || len === 0) return;
+      if (isTypingTarget(e.target)) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+      if (e.key === "ArrowRight" || e.key === "PageDown") {
+        if (d < len - 1) {
+          e.preventDefault();
+          next();
+        }
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        if (d > 0) {
+          e.preventDefault();
+          prev();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   React.useEffect(() => {
     if (!isLeader || !connected) return;
     const el = scrollRef.current;
@@ -196,6 +248,14 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
 
   return (
     <div className="space-y-6 pb-36 lg:pb-8" data-testid="live-session-room">
+      <span
+        data-testid="live-song-index"
+        data-index={displayIndex}
+        data-total={n}
+        className="sr-only"
+      >
+        เพลงลำดับที่ {displayIndex + 1} จาก {n}
+      </span>
       <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
