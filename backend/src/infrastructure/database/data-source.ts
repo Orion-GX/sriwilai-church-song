@@ -4,6 +4,7 @@ import './load-env';
 import { AuditLogEntity } from '../../modules/audit/entities/audit-log.entity';
 import { RefreshSessionEntity } from '../../modules/auth/entities/refresh-session.entity';
 import { ChurchEntity } from '../../modules/churches/entities/church.entity';
+import { UserSongFavoriteEntity } from '../../modules/favourites/entities/user-song-favorite.entity';
 import { PermissionEntity } from '../../modules/rbac/entities/permission.entity';
 import { RolePermissionEntity } from '../../modules/rbac/entities/role-permission.entity';
 import { RoleEntity } from '../../modules/rbac/entities/role.entity';
@@ -47,6 +48,7 @@ export const AppDataSource = new DataSource({
     SongTagEntity,
     LiveSessionEntity,
     LiveSessionSongEntity,
+    UserSongFavoriteEntity,
   ],
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],
 });

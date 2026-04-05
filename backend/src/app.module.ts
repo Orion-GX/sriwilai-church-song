@@ -10,6 +10,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChurchesModule } from './modules/churches/churches.module';
+import { FavouritesModule } from './modules/favourites/favourites.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { HealthModule } from './modules/health/health.module';
 import { LiveModule } from './modules/live/live.module';
@@ -34,6 +35,7 @@ import { UsersModule } from './modules/users/users.module';
     UsersModule,
     ChurchesModule,
     SongsModule,
+    FavouritesModule,
     LiveModule,
     SetlistsModule,
   ],
