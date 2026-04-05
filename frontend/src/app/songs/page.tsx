@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { fetchSongList } from "@/lib/api/songs";
-import { useFavoritesStore } from "@/lib/stores/favorites-store";
+import { useFavoriteSongIds } from "@/lib/stores/favorites-store";
 export default function SongsListPage() {
   const [page, setPage] = React.useState(1);
   const [q, setQ] = React.useState("");
   const [draft, setDraft] = React.useState("");
   const [favoritesOnly, setFavoritesOnly] = React.useState(false);
-  const favoriteIds = useFavoritesStore((s) => s.songIds);
+  const favoriteIds = useFavoriteSongIds();
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["songs", page, q],
