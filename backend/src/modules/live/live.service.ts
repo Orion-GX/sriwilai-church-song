@@ -112,7 +112,7 @@ export class LiveService {
       qb.andWhere('s.church_id IS NULL');
     }
 
-    return qb.orderBy('s.created_at', 'DESC').getMany();
+    return qb.orderBy('s.createdAt', 'DESC').getMany();
   }
 
   async getSessionEntityForUser(userId: string, sessionId: string): Promise<LiveSessionEntity> {

@@ -57,7 +57,7 @@ export class SongsService {
     const total = Number(totalRow?.cnt ?? 0);
 
     const rows = await this.buildPublicListQuery(query)
-      .orderBy('s.created_at', 'DESC')
+      .orderBy('s.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
