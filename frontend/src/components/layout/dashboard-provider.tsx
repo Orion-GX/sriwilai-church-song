@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+
+import { DashboardAuthGate } from "@/components/auth/dashboard-auth-gate";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 
 type DashboardContextValue = {
@@ -30,7 +32,9 @@ export function DashboardProvider({
 
   return (
     <DashboardContext.Provider value={value}>
-      <DashboardShell title={title}>{children}</DashboardShell>
+      <DashboardAuthGate>
+        <DashboardShell title={title}>{children}</DashboardShell>
+      </DashboardAuthGate>
     </DashboardContext.Provider>
   );
 }

@@ -17,7 +17,12 @@ import { Label } from "@/components/ui/label";
 import { apiPostAuth, ApiError } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
-export function LoginForm() {
+type LoginFormProps = {
+  /** หลังล็อกอินสำเร็จ — ต้องเป็นพาธภายในเว็บ (เริ่มด้วย / ไม่ใช่ //) */
+  redirectTo?: string;
+};
+
+export function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = React.useState("");
@@ -32,7 +37,11 @@ export function LoginForm() {
     try {
       const data = await apiPostAuth("/app/auth/login", { email, password });
       setAuth(data.accessToken, data.user);
-      router.push("/dashboard");
+      const target =
+        redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+          ? redirectTo
+          : "/dashboard";
+      router.push(target);
       router.refresh();
     } catch (err) {
       const msg =
@@ -46,7 +55,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md" data-testid="login-form">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">เข้าสู่ระบบ</CardTitle>
         <CardDescription>
@@ -70,6 +79,7 @@ export function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              data-testid="login-input-email"
             />
           </div>
           <div className="space-y-2">
@@ -82,9 +92,15 @@ export function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              data-testid="login-input-password"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loading}
+            data-testid="login-submit"
+          >
             {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
           </Button>
         </CardContent>

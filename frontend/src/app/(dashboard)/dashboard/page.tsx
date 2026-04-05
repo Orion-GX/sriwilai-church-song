@@ -8,7 +8,7 @@ import {
 
 export default function DashboardHomePage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6" data-testid="page-dashboard">
       <div>
         <p className="text-sm text-muted-foreground">Welcome back</p>
         <h2 className="text-2xl font-semibold tracking-tight">

@@ -15,7 +15,11 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
+        <Link
+          href="/"
+          className="text-lg font-semibold tracking-tight"
+          data-testid="nav-brand"
+        >
           Sriwilai Song
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
