@@ -8,6 +8,10 @@ export async function gotoLogin(page: Page): Promise<void> {
   await page.goto("/login");
 }
 
+export async function gotoRegister(page: Page): Promise<void> {
+  await page.goto("/register");
+}
+
 export async function clearClientAuth(page: Page): Promise<void> {
   await page.context().clearCookies();
   await page.goto("/");

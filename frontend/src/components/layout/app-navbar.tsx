@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -29,6 +30,7 @@ export function AppNavbar({ title, onMenuClick, showMenu }: AppNavbarProps) {
         <h1 className="truncate text-lg font-semibold tracking-tight">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
+        <LogoutButton />
         <ThemeToggle />
       </div>
     </header>

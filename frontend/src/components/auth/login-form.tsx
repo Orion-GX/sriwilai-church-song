@@ -65,7 +65,10 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           {error ? (
-            <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p
+              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              data-testid="login-error"
+            >
               {error}
             </p>
           ) : null}

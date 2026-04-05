@@ -51,7 +51,7 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md" data-testid="register-form">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">สร้างบัญชี</CardTitle>
         <CardDescription>กรอกข้อมูลเพื่อลงทะเบียนผู้ใช้ใหม่</CardDescription>
@@ -59,7 +59,10 @@ export function RegisterForm() {
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           {error ? (
-            <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p
+              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              data-testid="register-error"
+            >
               {error}
             </p>
           ) : null}
@@ -73,6 +76,7 @@ export function RegisterForm() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
+              data-testid="register-input-name"
             />
           </div>
           <div className="space-y-2">
@@ -85,6 +89,7 @@ export function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              data-testid="register-input-email"
             />
           </div>
           <div className="space-y-2">
@@ -98,9 +103,15 @@ export function RegisterForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
+              data-testid="register-input-password"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loading}
+            data-testid="register-submit"
+          >
             {loading ? "กำลังสร้างบัญชี…" : "ลงทะเบียน"}
           </Button>
         </CardContent>
