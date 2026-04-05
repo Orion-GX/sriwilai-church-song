@@ -50,6 +50,7 @@ export function FollowLeaderToggle({
           !large && "w-full sm:w-auto",
         )}
         disabled={disabled}
+        data-testid="live-follow-toggle"
         onClick={() => (active ? onUnfollow() : onFollow())}
       >
         {active ? (

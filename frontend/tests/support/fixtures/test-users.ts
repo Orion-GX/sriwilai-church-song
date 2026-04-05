@@ -32,6 +32,29 @@ export function hasAdminCredentials(): boolean {
   return Boolean(e2eAdminUser.email && e2eAdminUser.password);
 }
 
+/**
+ * สองบัญชีสำหรับ E2E ไลฟ์ multi-browser — ต้องมี LIVE_READ (+ LIVE_MANAGE สำหรับ leader)
+ * กับเซสชัน churchId = null (ไม่ส่ง X-Church-Id) เช่น system_admin ทั้งคู่
+ */
+export const e2eLiveLeader = {
+  email: process.env.E2E_LIVE_LEADER_EMAIL?.trim() ?? "",
+  password: process.env.E2E_LIVE_LEADER_PASSWORD ?? "",
+} as const;
+
+export const e2eLiveFollower = {
+  email: process.env.E2E_LIVE_FOLLOWER_EMAIL?.trim() ?? "",
+  password: process.env.E2E_LIVE_FOLLOWER_PASSWORD ?? "",
+} as const;
+
+export function hasLiveMultiCredentials(): boolean {
+  return Boolean(
+    e2eLiveLeader.email &&
+      e2eLiveLeader.password &&
+      e2eLiveFollower.email &&
+      e2eLiveFollower.password,
+  );
+}
+
 /** Base URL ของ Nest API สำหรับ `apiLogin` — ต้องตรงกับที่ frontend เรียก (ดู NEXT_PUBLIC_API_URL) */
 export function getApiBaseForPlaywright(): string {
   const fromEnv = process.env.E2E_API_BASE_URL?.replace(/\/$/, "");

@@ -58,7 +58,7 @@ export default function LiveSessionsListPage() {
   return (
     <>
       <SetDashboardTitle title="ไลฟ์" />
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto max-w-3xl space-y-8" data-testid="page-live-list">
         <div className="flex items-center gap-3">
           <Radio className="h-8 w-8 text-primary" />
           <div>
@@ -99,11 +99,13 @@ export default function LiveSessionsListPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="เช่น นมัสการเช้า — 7 เม.ย."
+                  data-testid="live-create-title"
                 />
               </div>
               <Button
                 type="button"
                 disabled={createMut.isPending}
+                data-testid="live-create-submit"
                 onClick={() => createMut.mutate()}
               >
                 {createMut.isPending ? "กำลังสร้าง…" : "สร้างเซสชัน"}

@@ -195,23 +195,32 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
     songDetail?.title ?? currentSongMeta?.title ?? "ยังไม่มีเพลงในลิสต์";
 
   return (
-    <div className="space-y-6 pb-36 lg:pb-8">
+    <div className="space-y-6 pb-36 lg:pb-8" data-testid="live-session-room">
       <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
             href="/dashboard/live"
             className={buttonClassName("ghost", "sm", "mb-1 -ml-2 h-8")}
+            data-testid="live-back-list"
           >
             ← รายการห้อง
           </Link>
-          <h2 className="text-2xl font-bold">{session?.title ?? "Live"}</h2>
+          <h2 className="text-2xl font-bold" data-testid="live-session-title">
+            {session?.title ?? "Live"}
+          </h2>
           <p className="text-sm text-muted-foreground">
             {connected ? (
-              <span className="text-emerald-600 dark:text-emerald-400">
+              <span
+                className="text-emerald-600 dark:text-emerald-400"
+                data-testid="live-ws-status"
+                data-state="connected"
+              >
                 เชื่อมต่อสด
               </span>
             ) : (
-              <span>กำลังเชื่อมต่อ…</span>
+              <span data-testid="live-ws-status" data-state="connecting">
+                กำลังเชื่อมต่อ…
+              </span>
             )}
             {isLeader ? " · คุณคือ leader" : " · โหมดผู้ตาม"}
           </p>
@@ -248,10 +257,11 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
 
       <div className="rounded-lg border bg-card p-4">
         <h3 className="mb-3 font-semibold">ลิสต์เพลงในห้อง</h3>
-        <ol className="mb-4 space-y-2">
+        <ol className="mb-4 space-y-2" data-testid="live-song-queue">
           {songs.map((s, idx) => (
             <li
               key={s.liveSongId}
+              data-testid={`live-queue-item-${idx}`}
               className={`flex items-center justify-between rounded-md border px-3 py-2 text-sm ${
                 idx === displayIndex ? "border-primary bg-primary/5" : ""
               }`}
@@ -282,12 +292,13 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
                 placeholder="วางรหัสเพลงจากหน้ารายการ"
                 value={addSongId}
                 onChange={(e) => setAddSongId(e.target.value)}
+                data-testid="live-add-song-id"
               />
               {addErr ? (
                 <p className="text-xs text-destructive">{addErr}</p>
               ) : null}
             </div>
-            <Button type="button" onClick={onAddSong}>
+            <Button type="button" onClick={onAddSong} data-testid="live-add-song-submit">
               เพิ่ม
             </Button>
             <Link
