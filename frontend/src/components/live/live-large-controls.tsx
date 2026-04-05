@@ -42,6 +42,7 @@ export function LiveLargeControls({
             )}
             disabled={disabled || !canPrev}
             aria-label="เพลงก่อนหน้า"
+            data-testid="live-nav-prev"
             onClick={onPrev}
           >
             <ChevronLeft className="h-10 w-10 sm:h-12 sm:w-12" />
@@ -56,6 +57,7 @@ export function LiveLargeControls({
             )}
             disabled={disabled || !canNext}
             aria-label="เพลงถัดไป"
+            data-testid="live-nav-next"
             onClick={onNext}
           >
             <ChevronRight className="h-10 w-10 sm:h-12 sm:w-12" />

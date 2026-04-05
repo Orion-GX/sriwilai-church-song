@@ -1,0 +1,173 @@
+# Full stack: Postgres + Redis → migrate → seed → Nest + Next → Playwright
+# รันแบบ manual: Actions → "E2E Playwright (full stack)" → Run workflow
+
+name: E2E Playwright (full stack)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "e2e-seed.config.json"
+      - ".github/workflows/e2e-playwright.yml"
+      - "package.json"
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: church_chord_pro
+          POSTGRES_PASSWORD: ci_test
+          POSTGRES_DB: church_chord_pro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: |
+            backend/yarn.lock
+            frontend/yarn.lock
+
+      - name: Install backend deps
+        working-directory: backend
+        run: yarn install --frozen-lockfile
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: yarn install --frozen-lockfile
+
+      - name: Install root dev deps (dev:stack / seed จากราก)
+        run: yarn install --frozen-lockfile
+
+      - name: Write backend/.env.test for CI
+        working-directory: backend
+        run: |
+          cat > .env.test << 'EOF'
+          NODE_ENV=test
+          PORT=3099
+          APP_BASE_PATH=/api
+          CORS_ORIGIN=http://127.0.0.1:3000,http://localhost:3000
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_USER=church_chord_pro
+          DB_PASSWORD=ci_test
+          DB_NAME=church_chord_pro_test
+          DB_SCHEMA=public
+          DB_SSL=false
+          DB_MAX_CONNECTIONS=10
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6379
+          REDIS_PASSWORD=
+          REDIS_DB=1
+          REDIS_TLS=false
+          LOG_LEVEL=error
+          LOG_PRETTY=false
+          AUTH_ACCESS_TOKEN_SECRET=ci-access-secret-minimum-32-characters-long
+          AUTH_REFRESH_TOKEN_SECRET=ci-refresh-secret-minimum-32-characters-long
+          AUTH_ACCESS_TOKEN_EXPIRES_IN=15m
+          AUTH_REFRESH_TOKEN_EXPIRES_IN_DAYS=30
+          AUTH_REFRESH_COOKIE_NAME=ccp_rt_test
+          AUTH_BCRYPT_SALT_ROUNDS=10
+          THROTTLE_USE_REDIS=false
+          THROTTLE_TTL_MS=60000
+          THROTTLE_AUTH_REGISTER_LIMIT=100
+          THROTTLE_AUTH_LOGIN_LIMIT=100
+          THROTTLE_AUTH_REFRESH_LIMIT=100
+          THROTTLE_AUTH_LOGOUT_LIMIT=100
+          LIVE_WS_USE_REDIS_ADAPTER=false
+          TYPEORM_LOGGING=false
+          EOF
+
+      - name: Migrate + seed E2E
+        working-directory: backend
+        run: |
+          yarn migration:run:test
+          yarn seed:e2e
+
+      - name: Build API
+        working-directory: backend
+        run: yarn build
+
+      - name: Start API (background)
+        working-directory: backend
+        run: |
+          cp -f .env.test .env
+          node dist/main.js &
+          for i in $(seq 1 60); do
+            if curl -fsS "http://127.0.0.1:3099/api/v1/health" >/dev/null; then
+              echo "API ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API failed to become healthy"
+          exit 1
+
+      - name: Build Next.js
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:3099/api/v1
+          NEXT_PUBLIC_WS_ORIGIN: http://127.0.0.1:3099
+        run: yarn build
+
+      - name: Write frontend/.env.test for Playwright
+        run: |
+          PW=$(jq -r .sharedPassword e2e-seed.config.json)
+          cat > frontend/.env.test << EOF
+          PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000
+          PLAYWRIGHT_NO_WEB_SERVER=1
+          E2E_API_BASE_URL=http://127.0.0.1:3099/api/v1
+          E2E_SONG_EDITOR_EMAIL=$(jq -r .users.songEditor.email e2e-seed.config.json)
+          E2E_SONG_EDITOR_PASSWORD=${PW}
+          E2E_ADMIN_EMAIL=$(jq -r .users.admin.email e2e-seed.config.json)
+          E2E_ADMIN_PASSWORD=${PW}
+          E2E_LIVE_LEADER_EMAIL=$(jq -r .users.liveLeader.email e2e-seed.config.json)
+          E2E_LIVE_LEADER_PASSWORD=${PW}
+          E2E_LIVE_FOLLOWER_EMAIL=$(jq -r .users.liveFollower.email e2e-seed.config.json)
+          E2E_LIVE_FOLLOWER_PASSWORD=${PW}
+          EOF
+
+      - name: Start Next (background)
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:3099/api/v1
+          NEXT_PUBLIC_WS_ORIGIN: http://127.0.0.1:3099
+        run: |
+          yarn start &
+          for i in $(seq 1 60); do
+            if curl -fsS -o /dev/null "http://127.0.0.1:3000/"; then
+              echo "Next ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Next failed to start"
+          exit 1
+
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: yarn playwright install chromium --with-deps
+
+      - name: Run Playwright
+        working-directory: frontend
+        run: yarn test:e2e

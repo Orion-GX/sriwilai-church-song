@@ -1,4 +1,4 @@
-import type { APIRequestContext, Page } from "@playwright/test";
+import type { APIRequestContext, Locator, Page } from "@playwright/test";
 
 import { apiLogin, zustandAuthLocalStorageScript } from "./api-auth";
 import { e2eSongEditor } from "../fixtures/test-users";
@@ -15,6 +15,13 @@ export async function injectSongEditorSession(
       localStorage.setItem(k, v);
     },
     { k: key, v: value },
+  );
+}
+
+/** ปุ่มโปรดตาม songId — selector เสถียรกว่าการต่อสตริงด้วยมือ */
+export function favoriteButtonForSong(page: Page, songId: string): Locator {
+  return page.locator(
+    `[data-testid="favorite-button"][data-song-id="${songId}"]`,
   );
 }
 

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+import { apiRegister } from "../support/helpers/api-auth";
 import { e2ePasswordValid, uniqueRegisterEmail } from "../support/helpers/auth-ui";
 import { clearClientAuth } from "../support/helpers/navigation";
 import { injectUserSession } from "../support/helpers/songs-e2e";
-import { getApiBaseForPlaywright } from "../support/fixtures/test-users";
 
 test.describe.serial("โปรไฟล์และคริสตจักร", () => {
   let ownerEmail = "";
@@ -13,15 +13,11 @@ test.describe.serial("โปรไฟล์และคริสตจักร"
 
   test("ลงทะเบียน — เปิดหน้าโปรไฟล์", async ({ page, request }, testInfo) => {
     ownerEmail = uniqueRegisterEmail(testInfo.workerIndex + 400);
-    const registerRes = await request.post(`${getApiBaseForPlaywright()}/app/auth/register`, {
-      data: {
-        displayName: "ผู้ใช้ E2E เริ่มต้น",
-        email: ownerEmail,
-        password: e2ePasswordValid,
-      },
-      headers: { "Content-Type": "application/json" },
+    await apiRegister(request, {
+      displayName: "ผู้ใช้ E2E เริ่มต้น",
+      email: ownerEmail,
+      password: e2ePasswordValid,
     });
-    expect(registerRes.ok(), await registerRes.text()).toBeTruthy();
 
     await clearClientAuth(page);
     await injectUserSession(page, request, ownerEmail, e2ePasswordValid);
@@ -87,15 +83,11 @@ test.describe.serial("โปรไฟล์และคริสตจักร"
     request,
   }, testInfo) => {
     const outsiderEmail = uniqueRegisterEmail(testInfo.workerIndex + 500);
-    const outsiderRes = await request.post(`${getApiBaseForPlaywright()}/app/auth/register`, {
-      data: {
-        displayName: "Outsider E2E",
-        email: outsiderEmail,
-        password: e2ePasswordValid,
-      },
-      headers: { "Content-Type": "application/json" },
+    await apiRegister(request, {
+      displayName: "Outsider E2E",
+      email: outsiderEmail,
+      password: e2ePasswordValid,
     });
-    expect(outsiderRes.ok(), await outsiderRes.text()).toBeTruthy();
 
     await clearClientAuth(page);
     await injectUserSession(page, request, outsiderEmail, e2ePasswordValid);

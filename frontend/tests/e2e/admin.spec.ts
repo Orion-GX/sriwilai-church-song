@@ -1,13 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+import { apiRegister } from "../support/helpers/api-auth";
 import { e2ePasswordValid, uniqueRegisterEmail } from "../support/helpers/auth-ui";
 import { clearClientAuth, gotoLogin } from "../support/helpers/navigation";
 import { injectUserSession } from "../support/helpers/songs-e2e";
-import {
-  e2eAdminUser,
-  getApiBaseForPlaywright,
-  hasAdminCredentials,
-} from "../support/fixtures/test-users";
+import { e2eAdminUser, hasAdminCredentials } from "../support/fixtures/test-users";
 
 test.describe("แดชบอร์ดแอดมิน", () => {
   test("แอดมินล็อกอินผ่าน UI แล้วเข้าหน้าแอดมินได้", async ({ page }) => {
@@ -30,15 +27,11 @@ test.describe("แดชบอร์ดแอดมิน", () => {
 
   test("ผู้ใช้ทั่วไปไม่เข้าถึงข้อมูลแอดมิน (403)", async ({ page, request }, testInfo) => {
     const email = uniqueRegisterEmail(testInfo.workerIndex + 700);
-    const reg = await request.post(`${getApiBaseForPlaywright()}/app/auth/register`, {
-      data: {
-        displayName: "Non-Admin E2E",
-        email,
-        password: e2ePasswordValid,
-      },
-      headers: { "Content-Type": "application/json" },
+    await apiRegister(request, {
+      displayName: "Non-Admin E2E",
+      email,
+      password: e2ePasswordValid,
     });
-    expect(reg.ok(), await reg.text()).toBeTruthy();
 
     await clearClientAuth(page);
     await injectUserSession(page, request, email, e2ePasswordValid);
@@ -82,15 +75,11 @@ test.describe("แดชบอร์ดแอดมิน", () => {
     await expect(page.getByTestId("nav-link-admin")).toBeVisible({ timeout: 25_000 });
 
     const email = uniqueRegisterEmail(testInfo.workerIndex + 800);
-    const reg = await request.post(`${getApiBaseForPlaywright()}/app/auth/register`, {
-      data: {
-        displayName: "Sidebar User",
-        email,
-        password: e2ePasswordValid,
-      },
-      headers: { "Content-Type": "application/json" },
+    await apiRegister(request, {
+      displayName: "Sidebar User",
+      email,
+      password: e2ePasswordValid,
     });
-    expect(reg.ok(), await reg.text()).toBeTruthy();
 
     await clearClientAuth(page);
     await injectUserSession(page, request, email, e2ePasswordValid);

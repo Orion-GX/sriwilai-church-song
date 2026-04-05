@@ -6,7 +6,7 @@ test.describe("สโมกพื้นฐาน", () => {
   test("หน้าแรกโหลดได้", async ({ page }) => {
     await gotoHome(page);
     await expect(page.getByTestId("page-home")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(/worship/i);
+    await expect(page.getByTestId("home-marketing-title")).toContainText(/worship/i);
   });
 
   test("หน้าเข้าสู่ระบบโหลดได้", async ({ page }) => {

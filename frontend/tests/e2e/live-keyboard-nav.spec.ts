@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 
 import { apiLogin } from "../support/helpers/api-auth";
 import {
+  addPublishedSongsToLiveQueue,
   createLiveSessionViaApi,
-  endLiveSessionViaApi,
   expectLiveSongIndex,
   fetchPublishedSongs,
   focusLiveRoomForKeyboard,
   openLiveRoomAsUser,
+  safeEndLiveSession,
   waitForLiveSocketConnected,
 } from "../support/helpers/live-e2e";
 import {
@@ -69,16 +70,7 @@ test.describe("ไลฟ์ — ลัดคีย์เปลี่ยนเพ
       await waitForLiveSocketConnected(leaderPage);
       await waitForLiveSocketConnected(followerPage);
 
-      await leaderPage.getByTestId("live-add-song-id").fill(songA.id);
-      await leaderPage.getByTestId("live-add-song-submit").click();
-      await expect(leaderPage.getByTestId("live-queue-item-0")).toContainText(songA.title, {
-        timeout: 20_000,
-      });
-      await leaderPage.getByTestId("live-add-song-id").fill(songB.id);
-      await leaderPage.getByTestId("live-add-song-submit").click();
-      await expect(leaderPage.getByTestId("live-queue-item-1")).toContainText(songB.title, {
-        timeout: 20_000,
-      });
+      await addPublishedSongsToLiveQueue(leaderPage, [songA, songB]);
 
       await expectLiveSongIndex(leaderPage, 0, 2);
       await expect(leaderPage.getByTestId("live-queue-item-0")).toHaveClass(/border-primary/);
@@ -123,18 +115,12 @@ test.describe("ไลฟ์ — ลัดคีย์เปลี่ยนเพ
       await expect(followerPage.getByTestId("live-current-song-label")).toContainText(songB.title);
       await expect(followerPage.getByTestId("live-queue-item-1")).toHaveClass(/border-primary/);
     } finally {
-      if (sessionId) {
-        try {
-          const tok = await apiLogin(
-            leaderContext.request,
-            e2eLiveLeader.email,
-            e2eLiveLeader.password,
-          );
-          await endLiveSessionViaApi(leaderContext.request, tok.accessToken, sessionId);
-        } catch {
-          /* noop */
-        }
-      }
+      await safeEndLiveSession(
+        leaderContext.request,
+        e2eLiveLeader.email,
+        e2eLiveLeader.password,
+        sessionId,
+      );
       await leaderContext.close();
       await followerContext.close();
     }

@@ -2,14 +2,13 @@ import { expect, test } from "@playwright/test";
 
 import { e2ePasswordValid, uniqueRegisterEmail } from "../support/helpers/auth-ui";
 import { clearClientAuth } from "../support/helpers/navigation";
+import { apiRegister } from "../support/helpers/api-auth";
 import {
+  favoriteButtonForSong,
   injectSongEditorSession,
   injectUserSession,
 } from "../support/helpers/songs-e2e";
-import {
-  getApiBaseForPlaywright,
-  hasSongEditorCredentials,
-} from "../support/fixtures/test-users";
+import { hasSongEditorCredentials } from "../support/fixtures/test-users";
 
 const PLACEHOLDER_SONG_ID = "00000000-0000-4000-8000-000000000001";
 
@@ -117,21 +116,17 @@ test.describe.serial("เพลง — UI และ persistence", () => {
     test.skip(!songId, "ต้องมีขั้นตอนสร้างเพลงก่อน");
 
     const email = uniqueRegisterEmail(testInfo.workerIndex + 900);
-    await request.post(`${getApiBaseForPlaywright()}/app/auth/register`, {
-      data: {
-        displayName: "Fav E2E",
-        email,
-        password: e2ePasswordValid,
-      },
-      headers: { "Content-Type": "application/json" },
-      failOnStatusCode: true,
+    await apiRegister(request, {
+      displayName: "Fav E2E",
+      email,
+      password: e2ePasswordValid,
     });
 
     await clearClientAuth(page);
     await injectUserSession(page, request, email, e2ePasswordValid);
 
     await page.goto(`/songs/${songId}`);
-    const fav = page.locator('[data-testid="favorite-button"][data-song-id="' + songId + '"]');
+    const fav = favoriteButtonForSong(page, songId);
     await expect(fav).toBeVisible({ timeout: 20_000 });
     await expect(fav).toHaveAttribute("aria-pressed", "false");
 

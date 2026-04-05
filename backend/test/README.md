@@ -14,6 +14,12 @@
 
 4. **Redis** — จำเป็นต่อบางค่า config (เช่น throttler); ใน `.env.test.example` มักตั้ง `THROTTLE_USE_REDIS=false` และ `LIVE_WS_USE_REDIS_ADAPTER=false` เพื่อลด dependency ตอนรันเครื่องเดียว
 
+### Seed บัญชี + เพลงสำหรับ Playwright (optional)
+
+- แหล่งความจริงเดียว: `e2e-seed.config.json` ที่รากโปรเจกต์  
+- หลัง migrate แล้วรัน **`yarn seed:e2e`** จากรากโปรเจกต์ (ดู `docs/e2e-seed.md`)  
+- คัดลอกบล็อก env ที่สคริปต์พิมพ์ตอนจบไปที่ `frontend/.env.test`
+
 ## คำสั่งรันเทส
 
 ```bash

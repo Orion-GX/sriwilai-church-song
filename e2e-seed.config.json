@@ -1,0 +1,33 @@
+{
+  "sharedPassword": "Playwright_seed_e2e_1!",
+  "users": {
+    "songEditor": {
+      "email": "e2e-song-editor@example.test",
+      "displayName": "E2E Song Editor"
+    },
+    "admin": {
+      "email": "e2e-admin@example.test",
+      "displayName": "E2E Admin"
+    },
+    "liveLeader": {
+      "email": "e2e-live-leader@example.test",
+      "displayName": "E2E Live Leader"
+    },
+    "liveFollower": {
+      "email": "e2e-live-follower@example.test",
+      "displayName": "E2E Live Follower"
+    }
+  },
+  "songs": [
+    {
+      "slug": "e2e-seed-song-a",
+      "title": "E2E Seed Song A",
+      "chordproBody": "{title: E2E Seed A}\n[C] seed line a"
+    },
+    {
+      "slug": "e2e-seed-song-b",
+      "title": "E2E Seed Song B",
+      "chordproBody": "{title: E2E Seed B}\n[D] seed line b"
+    }
+  ]
+}

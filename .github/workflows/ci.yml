@@ -1,0 +1,101 @@
+# CI: backend Jest E2E (DB + Redis) + frontend lint/build
+# Playwright แบบเต็มสแต็ก: workflow `e2e-playwright.yml` (หรือ `workflow_dispatch`)
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend-e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: church_chord_pro
+          POSTGRES_PASSWORD: ci_test
+          POSTGRES_DB: church_chord_pro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: backend/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Write backend/.env.test for CI
+        run: |
+          cat > .env.test << 'EOF'
+          NODE_ENV=test
+          PORT=3099
+          APP_BASE_PATH=/api
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_USER=church_chord_pro
+          DB_PASSWORD=ci_test
+          DB_NAME=church_chord_pro_test
+          DB_SCHEMA=public
+          DB_SSL=false
+          DB_MAX_CONNECTIONS=10
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6379
+          REDIS_PASSWORD=
+          REDIS_DB=1
+          REDIS_TLS=false
+          LOG_LEVEL=error
+          LOG_PRETTY=false
+          AUTH_ACCESS_TOKEN_SECRET=ci-access-secret-minimum-32-characters-long
+          AUTH_REFRESH_TOKEN_SECRET=ci-refresh-secret-minimum-32-characters-long
+          AUTH_ACCESS_TOKEN_EXPIRES_IN=15m
+          AUTH_REFRESH_TOKEN_EXPIRES_IN_DAYS=30
+          AUTH_REFRESH_COOKIE_NAME=ccp_rt_test
+          AUTH_BCRYPT_SALT_ROUNDS=10
+          THROTTLE_USE_REDIS=false
+          THROTTLE_TTL_MS=60000
+          THROTTLE_AUTH_REGISTER_LIMIT=100
+          THROTTLE_AUTH_LOGIN_LIMIT=100
+          THROTTLE_AUTH_REFRESH_LIMIT=100
+          THROTTLE_AUTH_LOGOUT_LIMIT=100
+          LIVE_WS_USE_REDIS_ADAPTER=false
+          TYPEORM_LOGGING=false
+          EOF
+      - run: yarn migration:run:test
+      - run: yarn test --passWithNoTests
+      - run: yarn test:e2e
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - name: Next.js build
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:3099/api/v1
+          NEXT_PUBLIC_WS_ORIGIN: http://127.0.0.1:3099
+        run: yarn build

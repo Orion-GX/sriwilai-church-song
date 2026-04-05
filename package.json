@@ -1,0 +1,13 @@
+{
+  "name": "sriwilai-church-song",
+  "private": true,
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "dev:stack": "concurrently -k -n api,web -c blue,green \"cross-env PORT=3099 yarn --cwd backend start:dev\" \"cross-env NEXT_PUBLIC_API_URL=http://127.0.0.1:3099/api/v1 NEXT_PUBLIC_WS_ORIGIN=http://127.0.0.1:3099 yarn --cwd frontend dev\"",
+    "seed:e2e": "yarn --cwd backend seed:e2e"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3"
+  }
+}

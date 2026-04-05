@@ -7,6 +7,21 @@ export type LoginJsonResponse = {
   user: { id: string; email: string; displayName: string };
 };
 
+/** ลงทะเบียน REST สำหรับจัดข้อมูลทดสอบ (ลดโค้ดซ้ำใน profile/admin/songs E2E) */
+export async function apiRegister(
+  request: APIRequestContext,
+  body: { email: string; password: string; displayName: string },
+): Promise<void> {
+  const base = getApiBaseForPlaywright();
+  const res = await request.post(`${base}/app/auth/register`, {
+    data: body,
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok()) {
+    throw new Error(`apiRegister failed ${res.status()}: ${await res.text()}`);
+  }
+}
+
 /**
  * ล็อกอินผ่าน REST (เร็ว ไม่ต้องกรอกฟอร์ม) — ใช้ request context ของ Playwright
  */

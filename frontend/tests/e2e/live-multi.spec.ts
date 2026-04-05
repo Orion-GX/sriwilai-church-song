@@ -2,10 +2,15 @@ import { expect, test } from "@playwright/test";
 
 import { apiLogin } from "../support/helpers/api-auth";
 import {
+  addPublishedSongsToLiveQueue,
+  clickLiveNavNext,
+  clickLiveNavPrev,
   createLiveSessionViaApi,
   endLiveSessionViaApi,
+  expectLiveCurrentSongLabelIs,
   fetchPublishedSongs,
   openLiveRoomAsUser,
+  safeEndLiveSession,
   waitForLiveSocketConnected,
 } from "../support/helpers/live-e2e";
 import {
@@ -75,61 +80,35 @@ test("ไลฟ์ซิงก์สองเบราว์เซอร์ — 
 
     await expect(leaderPage.getByTestId("live-session-title")).toContainText(sessionTitle);
 
-    await leaderPage.getByTestId("live-add-song-id").fill(songA.id);
-    await leaderPage.getByTestId("live-add-song-submit").click();
-    await expect(leaderPage.getByTestId("live-queue-item-0")).toContainText(songA.title, {
-      timeout: 20_000,
-    });
-
-    await leaderPage.getByTestId("live-add-song-id").fill(songB.id);
-    await leaderPage.getByTestId("live-add-song-submit").click();
-    await expect(leaderPage.getByTestId("live-queue-item-1")).toContainText(songB.title, {
-      timeout: 20_000,
-    });
+    await addPublishedSongsToLiveQueue(leaderPage, [songA, songB]);
 
     await followerPage.getByTestId("live-follow-toggle").click();
     await expect(followerPage.getByTestId("live-follow-toggle")).toContainText("หยุดตาม", {
       timeout: 15_000,
     });
 
-    await leaderPage.getByRole("button", { name: "เพลงถัดไป" }).click();
-    await expect(leaderPage.getByTestId("live-current-song-label")).toContainText(songB.title, {
-      timeout: 20_000,
-    });
-    await expect(followerPage.getByTestId("live-current-song-label")).toContainText(songB.title, {
-      timeout: 25_000,
-    });
+    await clickLiveNavNext(leaderPage);
+    await expectLiveCurrentSongLabelIs(leaderPage, songB.title);
+    await expectLiveCurrentSongLabelIs(followerPage, songB.title);
 
     await followerPage.getByTestId("live-follow-toggle").click();
     await expect(followerPage.getByTestId("live-follow-toggle")).toContainText("เริ่มตาม leader", {
       timeout: 15_000,
     });
 
-    await leaderPage.getByRole("button", { name: "เพลงก่อนหน้า" }).click();
-    await expect(leaderPage.getByTestId("live-current-song-label")).toContainText(songA.title, {
-      timeout: 20_000,
-    });
+    await clickLiveNavPrev(leaderPage);
+    await expectLiveCurrentSongLabelIs(leaderPage, songA.title);
 
-    await leaderPage.getByRole("button", { name: "เพลงถัดไป" }).click();
-    await expect(leaderPage.getByTestId("live-current-song-label")).toContainText(songB.title, {
-      timeout: 20_000,
-    });
+    await clickLiveNavNext(leaderPage);
+    await expectLiveCurrentSongLabelIs(leaderPage, songB.title);
 
-    await expect
-      .poll(
-        async () =>
-          (await followerPage.getByTestId("live-current-song-label").textContent())?.trim() ?? "",
-        { timeout: 8_000 },
-      )
-      .toBe(songA.title);
+    await expectLiveCurrentSongLabelIs(followerPage, songA.title, 22_000);
 
     await followerPage.reload();
     await expect(followerPage.getByTestId("live-session-room")).toBeVisible({ timeout: 25_000 });
     await waitForLiveSocketConnected(followerPage);
     await expect(followerPage.getByTestId("live-follow-toggle")).toContainText("เริ่มตาม leader");
-    await expect(followerPage.getByTestId("live-current-song-label")).toContainText(songB.title, {
-      timeout: 20_000,
-    });
+    await expectLiveCurrentSongLabelIs(followerPage, songB.title);
 
     await followerPage.getByTestId("live-back-list").click();
     await expect(followerPage).toHaveURL(/\/dashboard\/live$/);
@@ -149,28 +128,22 @@ test("ไลฟ์ซิงก์สองเบราว์เซอร์ — 
     await leaderPage.goto("/dashboard/live");
     await expect(leaderPage.getByTestId("page-live-list")).toBeVisible();
     await expect(leaderPage.locator(`a[href="/dashboard/live/${sessionId}"]`)).toHaveCount(0, {
-      timeout: 15_000,
+      timeout: 20_000,
     });
 
     await followerPage.goto("/dashboard/live");
     await expect(
       followerPage.locator(`a[href="/dashboard/live/${sessionId}"]`),
     ).toHaveCount(0, {
-      timeout: 15_000,
+      timeout: 20_000,
     });
   } finally {
-    if (sessionId) {
-      try {
-        const tok = await apiLogin(
-          leaderContext.request,
-          e2eLiveLeader.email,
-          e2eLiveLeader.password,
-        );
-        await endLiveSessionViaApi(leaderContext.request, tok.accessToken, sessionId);
-      } catch {
-        /* ละเว้นหากจบแล้วหรือเซสชันหาย */
-      }
-    }
+    await safeEndLiveSession(
+      leaderContext.request,
+      e2eLiveLeader.email,
+      e2eLiveLeader.password,
+      sessionId,
+    );
     await leaderContext.close();
     await followerContext.close();
   }

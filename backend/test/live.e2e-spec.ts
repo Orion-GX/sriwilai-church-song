@@ -24,6 +24,7 @@ import {
   onceSocketEvent,
   waitForSocketConnect,
 } from './support/live-ws.helper';
+import { waitForLiveSyncSongIndex } from './support/live-rest-sync.helper';
 import { createListeningTestApplication } from './support/test-app.factory';
 
 describe('Live module — REST + WebSocket (e2e)', () => {
@@ -138,28 +139,6 @@ describe('Live module — REST + WebSocket (e2e)', () => {
     };
   }
 
-  /** REST ไม่ใช่ ack ของ WS — รอให้ leaderPublishSync บันทึก JSONB ก่อนยืนยัน */
-  async function waitForLiveSyncSongIndex(
-    sessionId: string,
-    token: string,
-    songIndex: number,
-  ): Promise<void> {
-    const deadline = Date.now() + 10_000;
-    for (;;) {
-      const res = await createHttpServerRequest(app)
-        .get(`/api/v1/app/live/sessions/${sessionId}`)
-        .set(authBearerHeaders(token))
-        .expect(HttpStatus.OK);
-      if (res.body.session?.syncState?.songIndex === songIndex) {
-        return;
-      }
-      if (Date.now() > deadline) {
-        throw new Error(`timeout: syncState.songIndex never became ${songIndex}`);
-      }
-      await new Promise((r) => setTimeout(r, 50));
-    }
-  }
-
   it('1) สร้าง live session ผ่าน REST — leader = ผู้สร้าง, churchId ตรงกับ header', async () => {
     const s = await seedChurchLiveSession();
     const ownerMe = await createHttpServerRequest(app)
@@ -267,7 +246,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
         page: { songIndex: 2, sectionLabel: 'verse', lineIndex: 5 },
       });
 
-      await waitForLiveSyncSongIndex(s.sessionId, s.ownerToken, 2);
+      await waitForLiveSyncSongIndex(app, s.sessionId, s.ownerToken, 2);
 
       const api = await createHttpServerRequest(app)
         .get(`/api/v1/app/live/sessions/${s.sessionId}`)
@@ -293,7 +272,8 @@ describe('Live module — REST + WebSocket (e2e)', () => {
       await joinLiveSession(leader, s.sessionId, 'leader');
       await joinLiveSession(follower, s.sessionId, 'follower');
 
-      const silent = expectNoSocketEvent(follower, LIVE_SERVER_EVENTS.SYNC_BROADCAST, 2500);
+      /* ช่วงเงียบยาวขึ้นเล็กน้อย — ลดโอกาส flaky บนเครื่อง CI ที่คิว event ช้า */
+      const silent = expectNoSocketEvent(follower, LIVE_SERVER_EVENTS.SYNC_BROADCAST, 5_000);
       leader.emit(LIVE_CLIENT_EVENTS.SYNC_PAGE, {
         sessionId: s.sessionId,
         page: { songIndex: 0 },
@@ -332,7 +312,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
         page: { songIndex: 3 },
       });
 
-      await waitForLiveSyncSongIndex(s.sessionId, s.ownerToken, 3);
+      await waitForLiveSyncSongIndex(app, s.sessionId, s.ownerToken, 3);
 
       const viaHttp = await createHttpServerRequest(app)
         .get(`/api/v1/app/live/sessions/${s.sessionId}`)

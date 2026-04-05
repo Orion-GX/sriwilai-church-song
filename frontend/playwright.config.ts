@@ -12,6 +12,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  /** ไลฟ์สองบราว์เซอร์ + เซสชันยาว — ให้เวลาเทสเดียวมากกว่าค่าเริ่มต้น 30s */
+  timeout: 120_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

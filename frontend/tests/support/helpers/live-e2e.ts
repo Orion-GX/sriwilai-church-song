@@ -57,6 +57,22 @@ export async function endLiveSessionViaApi(
   }
 }
 
+/** จบเซสชันแบบกลืน error (cleanup ใน finally — กรณีจบไปแล้วหรือโทเคนไม่มีสิทธิ์) */
+export async function safeEndLiveSession(
+  request: APIRequestContext,
+  leaderEmail: string,
+  leaderPassword: string,
+  sessionId: string,
+): Promise<void> {
+  if (!sessionId) return;
+  try {
+    const tok = await apiLogin(request, leaderEmail, leaderPassword);
+    await endLiveSessionViaApi(request, tok.accessToken, sessionId);
+  } catch {
+    /* noop */
+  }
+}
+
 /** รอจนกว่า UI ไลฟ์จะแสดงสถานะ WebSocket เชื่อมแล้ว (ไม่พึ่ง sleep คงที่) */
 export async function waitForLiveSocketConnected(
   page: Page,
@@ -98,6 +114,43 @@ export async function expectLiveSongIndex(
       { timeout: timeoutMs },
     )
     .toEqual({ i: String(index), t: String(total) });
+}
+
+/** รอข้อความป้ายเพลงปัจจุบันตรงกับชื่อเต็ม (ซิงก์ WebSocket อาจถึงช้ากว่า DOM อื่น) */
+export async function expectLiveCurrentSongLabelIs(
+  page: Page,
+  title: string,
+  timeoutMs = 25_000,
+): Promise<void> {
+  const loc = page.getByTestId("live-current-song-label");
+  await expect
+    .poll(async () => (await loc.textContent())?.trim() ?? "", {
+      timeout: timeoutMs,
+    })
+    .toBe(title);
+}
+
+/** เพิ่มเพลงที่เผยแพร่แล้วเข้าคิวไลฟ์ตามลำดับ (leader อยู่ในห้องแล้ว) */
+export async function addPublishedSongsToLiveQueue(
+  leaderPage: Page,
+  songs: PublishedSongRow[],
+): Promise<void> {
+  for (let i = 0; i < songs.length; i++) {
+    const s = songs[i];
+    await leaderPage.getByTestId("live-add-song-id").fill(s.id);
+    await leaderPage.getByTestId("live-add-song-submit").click();
+    await expect(leaderPage.getByTestId(`live-queue-item-${i}`)).toContainText(s.title, {
+      timeout: 20_000,
+    });
+  }
+}
+
+export async function clickLiveNavNext(page: Page): Promise<void> {
+  await page.getByTestId("live-nav-next").click();
+}
+
+export async function clickLiveNavPrev(page: Page): Promise<void> {
+  await page.getByTestId("live-nav-prev").click();
 }
 
 export async function openLiveRoomAsUser(
