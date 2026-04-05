@@ -5,6 +5,7 @@ type AdminStatCardProps = {
   value: string | number;
   hint?: string;
   className?: string;
+  "data-testid"?: string;
 };
 
 export function AdminStatCard({
@@ -12,9 +13,11 @@ export function AdminStatCard({
   value,
   hint,
   className,
+  "data-testid": dataTestId,
 }: AdminStatCardProps) {
   return (
     <div
+      data-testid={dataTestId}
       className={cn(
         "rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md",
         className,

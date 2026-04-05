@@ -20,6 +20,18 @@ export function hasSongEditorCredentials(): boolean {
   return Boolean(e2eSongEditor.email && e2eSongEditor.password);
 }
 
+/**
+ * system.admin — ใช้ทดสอบแดชบอร์ดแอดมิน (มอบ role system_admin ในฐานข้อมูล)
+ */
+export const e2eAdminUser = {
+  email: process.env.E2E_ADMIN_EMAIL?.trim() ?? "",
+  password: process.env.E2E_ADMIN_PASSWORD ?? "",
+} as const;
+
+export function hasAdminCredentials(): boolean {
+  return Boolean(e2eAdminUser.email && e2eAdminUser.password);
+}
+
 /** Base URL ของ Nest API สำหรับ `apiLogin` — ต้องตรงกับที่ frontend เรียก (ดู NEXT_PUBLIC_API_URL) */
 export function getApiBaseForPlaywright(): string {
   const fromEnv = process.env.E2E_API_BASE_URL?.replace(/\/$/, "");

@@ -36,7 +36,7 @@ export default function AdminDashboardPage() {
   return (
     <>
       <SetDashboardTitle title="แอดมิน" />
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="mx-auto max-w-6xl space-y-8" data-testid="page-admin-dashboard">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">แดชบอร์ดแอดมิน</h2>
@@ -47,6 +47,7 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             className={buttonClassName("outline", "default")}
+            data-testid="admin-dashboard-refresh"
             onClick={() => void refetch()}
           >
             รีเฟรช
@@ -54,9 +55,14 @@ export default function AdminDashboardPage() {
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground">กำลังโหลดข้อมูล…</p>
+          <p className="text-muted-foreground" data-testid="admin-dashboard-loading">
+            กำลังโหลดข้อมูล…
+          </p>
         ) : forbidden ? (
-          <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-amber-800 dark:text-amber-200">
+          <div
+            className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-amber-800 dark:text-amber-200"
+            data-testid="admin-dashboard-forbidden"
+          >
             <p className="font-medium">ไม่มีสิทธิ์เข้าถึง</p>
             <p className="mt-2 text-sm">
               บัญชีของคุณต้องมี permission{" "}
@@ -65,36 +71,43 @@ export default function AdminDashboardPage() {
             </p>
           </div>
         ) : isError ? (
-          <p className="text-destructive">
+          <p className="text-destructive" data-testid="admin-dashboard-error">
             โหลดไม่สำเร็จ:{" "}
             {error instanceof Error ? error.message : String(error)}
           </p>
         ) : data ? (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div data-testid="admin-dashboard-content">
+            <div
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              data-testid="admin-stats-grid"
+            >
               <AdminStatCard
                 title="เพลงทั้งหมด"
                 value={data.songsTotal.toLocaleString()}
+                data-testid="admin-stat-songs-total"
               />
               <AdminStatCard
                 title="เพลงใหม่ (7 วัน)"
                 value={data.songsNewLast7Days.toLocaleString()}
                 hint={`30 วัน: ${data.songsNewLast30Days.toLocaleString()} เพลง`}
+                data-testid="admin-stat-songs-new"
               />
               <AdminStatCard
                 title="ผู้ใช้ทั้งหมด"
                 value={data.usersTotal.toLocaleString()}
                 hint={`ใหม่ 7 วัน: ${data.usersNewLast7Days.toLocaleString()}`}
+                data-testid="admin-stat-users-total"
               />
               <AdminStatCard
                 title="ห้องไลฟ์ที่เปิดอยู่"
                 value={data.liveActiveSessions.toLocaleString()}
                 hint={`ทั้งหมดในประวัติ: ${data.liveSessionsTotal.toLocaleString()}`}
+                data-testid="admin-stat-live-active"
               />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
+            <div className="grid gap-6 lg:grid-cols-2" data-testid="admin-charts-grid">
+              <Card data-testid="admin-chart-songs-by-day">
                 <CardHeader>
                   <CardTitle>เพลงที่สร้างรายวัน (14 วัน)</CardTitle>
                 </CardHeader>
@@ -147,7 +160,7 @@ export default function AdminDashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card data-testid="admin-chart-top-songs">
                 <CardHeader>
                   <CardTitle>เพลงยอดนิยม (เปิดดู)</CardTitle>
                 </CardHeader>
@@ -200,13 +213,13 @@ export default function AdminDashboardPage() {
               </Card>
             </div>
 
-            <Card>
+            <Card data-testid="admin-live-sessions-card">
               <CardHeader>
                 <CardTitle>เซสชันไลฟ์ล่าสุด</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm" data-testid="admin-live-sessions-table">
                     <thead>
                       <tr className="border-b text-left text-muted-foreground">
                         <th className="pb-2 pr-4 font-medium">ชื่อ</th>
@@ -256,13 +269,27 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+            <div
+              className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground"
+              data-testid="admin-dashboard-footnote"
+            >
               <p>
                 <strong className="text-foreground">เพลงยอดนิยม</strong> มาจาก{" "}
                 <code className="rounded bg-muted px-1">view_count</code> ที่เพิ่มทุกครั้งที่มีการเปิดหน้ารายละเอียดเพลง (public API)
               </p>
             </div>
-          </>
+
+            <div
+              className="rounded-lg border border-dashed bg-card p-4 text-sm text-muted-foreground"
+              data-testid="admin-audit-summary"
+            >
+              <p className="font-medium text-foreground">บันทึกตรวจสอบ (audit)</p>
+              <p className="mt-2">
+                ยังไม่มีหน้ารายการ audit log ในเว็บ — ข้อมูลถูกเก็บที่เซิร์ฟเวอร์ (ตาราง audit)
+                หากเปิด API/UI รายการภายหลัง ให้ผูกทดสอบที่นี่
+              </p>
+            </div>
+          </div>
         ) : null}
       </div>
     </>
