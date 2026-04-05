@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sriwilai-church-song-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # โฮสต์ 3001 → คอนเทนเนอร์ 3000 (แยกจาก Next dev ที่ 3000)
+      - "${API_HOST_PORT:-3001}:3000"
+    environment:
+      PORT: "3000"
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   redis:
+    #     condition: service_healthy
+    networks:
+      - sriwilai-church-song-net
+
+networks:
+  sriwilai-church-song-net:
+    driver: bridge

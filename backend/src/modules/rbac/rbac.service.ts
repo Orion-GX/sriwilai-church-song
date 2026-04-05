@@ -1,0 +1,139 @@
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Brackets, IsNull, Repository } from 'typeorm';
+
+import { PermissionEntity } from './entities/permission.entity';
+import { RoleEntity } from './entities/role.entity';
+import { UserRoleEntity } from './entities/user-role.entity';
+import { SYSTEM_ROLE_CODES } from './rbac.constants';
+
+@Injectable()
+export class RbacService {
+  constructor(
+    @InjectRepository(PermissionEntity)
+    private readonly permissionRepository: Repository<PermissionEntity>,
+    @InjectRepository(RoleEntity)
+    private readonly roleRepository: Repository<RoleEntity>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
+  ) {}
+
+  /**
+   * ดึง permission codes ที่ user มีในบริบทนี้
+   * - role แบบ global/personal: นับทุก request
+   * - role แบบ church: นับเมื่อ churchId ตรงกับ scope_id
+   */
+  async getPermissionCodesForUser(userId: string, churchId?: string | null): Promise<Set<string>> {
+    const qb = this.permissionRepository
+      .createQueryBuilder('p')
+      .select('p.code', 'code')
+      .innerJoin('p.rolePermissions', 'rp')
+      .innerJoin('rp.role', 'r')
+      .innerJoin('r.userRoles', 'ur')
+      .where('ur.user_id = :userId', { userId })
+      .andWhere('ur.deleted_at IS NULL')
+      .andWhere('r.deleted_at IS NULL')
+      .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
+      .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
+      .andWhere(
+        new Brackets((sub) => {
+          sub.where('ur.scope_type IN (:...globalLike)', { globalLike: ['global', 'personal'] });
+          if (churchId) {
+            sub.orWhere('(ur.scope_type = :church AND ur.scope_id = :churchId)', {
+              church: 'church',
+              churchId,
+            });
+          }
+        }),
+      );
+
+    const rows = await qb.getRawMany<{ code: string }>();
+    return new Set(rows.map((r) => r.code));
+  }
+
+  async userHasAllPermissions(userId: string, permissionCodes: string[], churchId?: string | null): Promise<boolean> {
+    if (permissionCodes.length === 0) {
+      return true;
+    }
+    const held = await this.getPermissionCodesForUser(userId, churchId ?? null);
+    return permissionCodes.every((code) => held.has(code));
+  }
+
+  async userHasAnyRole(userId: string, roleCodes: string[], churchId?: string | null): Promise<boolean> {
+    if (roleCodes.length === 0) {
+      return true;
+    }
+    const qb = this.userRoleRepository
+      .createQueryBuilder('ur')
+      .innerJoin('ur.role', 'r')
+      .where('ur.user_id = :userId', { userId })
+      .andWhere('ur.deleted_at IS NULL')
+      .andWhere('r.deleted_at IS NULL')
+      .andWhere('r.code IN (:...codes)', { codes: roleCodes })
+      .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
+      .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
+      .andWhere(
+        new Brackets((sub) => {
+          sub.where('ur.scope_type IN (:...globalLike)', { globalLike: ['global', 'personal'] });
+          if (churchId) {
+            sub.orWhere('(ur.scope_type = :church AND ur.scope_id = :churchId)', {
+              church: 'church',
+              churchId,
+            });
+          }
+        }),
+      );
+
+    const count = await qb.getCount();
+    return count > 0;
+  }
+
+  /** มอบ role `user` แบบ personal scope หลังสร้างบัญชี (register / admin create) */
+  async ensureDefaultPersonalUserRole(userId: string): Promise<void> {
+    const userRoleCode = SYSTEM_ROLE_CODES.USER;
+    const role = await this.roleRepository.findOne({
+      where: {
+        code: userRoleCode,
+        deletedAt: IsNull(),
+      },
+      select: {
+        id: true,
+        code: true,
+      },
+    });
+
+    if (!role) {
+      throw new InternalServerErrorException(`Default role '${userRoleCode}' is not configured`);
+    }
+
+    const existed = await this.userRoleRepository.findOne({
+      where: {
+        userId,
+        roleId: role.id,
+        scopeType: 'personal',
+        scopeId: IsNull(),
+        deletedAt: IsNull(),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existed) {
+      return;
+    }
+
+    await this.userRoleRepository.save(
+      this.userRoleRepository.create({
+        userId,
+        roleId: role.id,
+        scopeType: 'personal',
+        scopeId: null,
+        assignedBy: null,
+        effectiveFrom: null,
+        effectiveTo: null,
+        deletedAt: null,
+      }),
+    );
+  }
+}

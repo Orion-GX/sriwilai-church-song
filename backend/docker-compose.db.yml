@@ -1,0 +1,50 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sriwilai-church-song-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-church_chord_pro}
+      POSTGRES_USER: ${DB_USER:-church_chord_pro}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-church_chord_pro} -d ${DB_NAME:-church_chord_pro}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sriwilai-church-song-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: sriwilai-church-song-redis
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-change_me}", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-change_me}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sriwilai-church-song-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  sriwilai-church-song-net:
+    driver: bridge
