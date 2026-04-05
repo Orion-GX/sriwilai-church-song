@@ -3,7 +3,7 @@ module.exports = {
 
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './tsconfig.json',
+    project: ['./tsconfig.json', './tsconfig.spec.json'],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
@@ -20,7 +20,7 @@ module.exports = {
     'plugin:prettier/recommended'
   ],
 
-  ignorePatterns: ['.eslintrc.js', 'dist'],
+  ignorePatterns: ['.eslintrc.js', 'dist', 'jest.config.cjs', 'test/jest-e2e.config.cjs', 'test/setup/jest-env.cjs'],
 
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',

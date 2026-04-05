@@ -141,4 +141,6 @@ vite.config.ts.timestamp-*
 
 # Backend files
 backend/.env.*
+!backend/.env.example
+!backend/.env.test.example
 !.env.example
