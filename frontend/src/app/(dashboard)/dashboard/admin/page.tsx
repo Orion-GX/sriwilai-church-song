@@ -14,11 +14,29 @@ import {
   YAxis,
 } from "recharts";
 import { AdminStatCard } from "@/components/admin/admin-stat-card";
+import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { ApiError } from "@/lib/api/client";
 import { fetchAdminDashboard } from "@/lib/api/admin";
-import { buttonClassName } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 function formatShortDate(iso: string) {
   const d = new Date(iso + "T12:00:00.000Z");
@@ -35,46 +53,62 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      <SetDashboardTitle title="แอดมิน" />
-      <div className="mx-auto max-w-6xl space-y-8" data-testid="page-admin-dashboard">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">แดชบอร์ดแอดมิน</h2>
-            <p className="text-sm text-muted-foreground">
-              สรุปเพลง ผู้ใช้ และเซสชันไลฟ์ (ต้องมีสิทธิ์ system.admin)
-            </p>
-          </div>
-          <button
-            type="button"
-            className={buttonClassName("outline", "default")}
-            data-testid="admin-dashboard-refresh"
-            onClick={() => void refetch()}
-          >
-            รีเฟรช
-          </button>
-        </div>
+      <SetDashboardTitle title="แดชบอร์ดแอดมิน" />
+      <PageContainer
+        constrained={false}
+        className="max-w-6xl"
+        data-testid="page-admin-dashboard"
+      >
+        <SectionHeader
+          title="แดชบอร์ดแอดมิน"
+          description="สรุปเพลง ผู้ใช้ และเซสชันไลฟ์ (ต้องมีสิทธิ์ system.admin)"
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              data-testid="admin-dashboard-refresh"
+              onClick={() => void refetch()}
+            >
+              รีเฟรช
+            </Button>
+          }
+        />
 
         {isLoading ? (
-          <p className="text-muted-foreground" data-testid="admin-dashboard-loading">
-            กำลังโหลดข้อมูล…
-          </p>
+          <Card data-testid="admin-dashboard-loading">
+            <CardContent className="space-y-3 p-6">
+              <Skeleton className="h-8 w-56" />
+              <Skeleton className="h-4 w-full max-w-lg" variant="text" />
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-28 w-full rounded-lg" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         ) : forbidden ? (
-          <div
-            className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-amber-800 dark:text-amber-200"
+          <Card
+            className="border-amber-500/50 bg-amber-500/10 dark:bg-amber-950/40"
             data-testid="admin-dashboard-forbidden"
           >
-            <p className="font-medium">ไม่มีสิทธิ์เข้าถึง</p>
-            <p className="mt-2 text-sm">
-              บัญชีของคุณต้องมี permission{" "}
-              <code className="rounded bg-muted px-1">system.admin</code>{" "}
-              จึงจะดูแดชบอร์ดนี้ได้
-            </p>
-          </div>
+            <CardHeader>
+              <CardTitle className="text-lg text-amber-900 dark:text-amber-100">
+                ไม่มีสิทธิ์เข้าถึง
+              </CardTitle>
+              <CardDescription className="text-amber-900/90 dark:text-amber-100/90">
+                บัญชีของคุณต้องมี permission{" "}
+                <code className="rounded bg-muted px-1 text-foreground">
+                  system.admin
+                </code>{" "}
+                จึงจะดูแดชบอร์ดนี้ได้
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : isError ? (
-          <p className="text-destructive" data-testid="admin-dashboard-error">
+          <FormErrorBanner data-testid="admin-dashboard-error">
             โหลดไม่สำเร็จ:{" "}
             {error instanceof Error ? error.message : String(error)}
-          </p>
+          </FormErrorBanner>
         ) : data ? (
           <div data-testid="admin-dashboard-content">
             <div
@@ -219,27 +253,27 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm" data-testid="admin-live-sessions-table">
-                    <thead>
-                      <tr className="border-b text-left text-muted-foreground">
-                        <th className="pb-2 pr-4 font-medium">ชื่อ</th>
-                        <th className="pb-2 pr-4 font-medium">สถานะ</th>
-                        <th className="pb-2 pr-4 font-medium">Leader</th>
-                        <th className="pb-2 font-medium">สร้างเมื่อ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table data-testid="admin-live-sessions-table">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ชื่อ</TableHead>
+                        <TableHead>สถานะ</TableHead>
+                        <TableHead>Leader</TableHead>
+                        <TableHead>สร้างเมื่อ</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {data.liveRecentSessions.map((s) => (
-                        <tr key={s.id} className="border-b border-border/60">
-                          <td className="py-2 pr-4">
+                        <TableRow key={s.id}>
+                          <TableCell>
                             <Link
                               href={`/dashboard/live/${s.id}`}
                               className="font-medium text-primary hover:underline"
                             >
                               {s.title}
                             </Link>
-                          </td>
-                          <td className="py-2 pr-4">
+                          </TableCell>
+                          <TableCell>
                             <span
                               className={
                                 s.status === "active"
@@ -249,17 +283,17 @@ export default function AdminDashboardPage() {
                             >
                               {s.status}
                             </span>
-                          </td>
-                          <td className="py-2 pr-4 font-mono text-xs">
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
                             {s.leaderUserId.slice(0, 8)}…
-                          </td>
-                          <td className="py-2 text-muted-foreground">
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {new Date(s.createdAt).toLocaleString()}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
                 {data.liveRecentSessions.length === 0 ? (
                   <p className="mt-4 text-sm text-muted-foreground">
@@ -269,29 +303,31 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            <div
-              className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground"
-              data-testid="admin-dashboard-footnote"
-            >
-              <p>
-                <strong className="text-foreground">เพลงยอดนิยม</strong> มาจาก{" "}
-                <code className="rounded bg-muted px-1">view_count</code> ที่เพิ่มทุกครั้งที่มีการเปิดหน้ารายละเอียดเพลง (public API)
-              </p>
-            </div>
+            <Card variant="flat" data-testid="admin-dashboard-footnote">
+              <CardContent className="p-4 text-sm text-muted-foreground">
+                <p>
+                  <strong className="text-foreground">เพลงยอดนิยม</strong> มาจาก{" "}
+                  <code className="rounded bg-muted px-1">view_count</code> ที่เพิ่มทุกครั้งที่มีการเปิดหน้ารายละเอียดเพลง (public API)
+                </p>
+              </CardContent>
+            </Card>
 
-            <div
-              className="rounded-lg border border-dashed bg-card p-4 text-sm text-muted-foreground"
+            <Card
+              variant="flat"
+              className="border-dashed"
               data-testid="admin-audit-summary"
             >
-              <p className="font-medium text-foreground">บันทึกตรวจสอบ (audit)</p>
-              <p className="mt-2">
-                ยังไม่มีหน้ารายการ audit log ในเว็บ — ข้อมูลถูกเก็บที่เซิร์ฟเวอร์ (ตาราง audit)
-                หากเปิด API/UI รายการภายหลัง ให้ผูกทดสอบที่นี่
-              </p>
-            </div>
+              <CardContent className="p-4 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">บันทึกตรวจสอบ (audit)</p>
+                <p className="mt-2">
+                  ยังไม่มีหน้ารายการ audit log ในเว็บ — ข้อมูลถูกเก็บที่เซิร์ฟเวอร์ (ตาราง audit)
+                  หากเปิด API/UI รายการภายหลัง ให้ผูกทดสอบที่นี่
+                </p>
+              </CardContent>
+            </Card>
           </div>
         ) : null}
-      </div>
+      </PageContainer>
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiPostAuth, ApiError } from "@/lib/api/client";
@@ -59,12 +60,7 @@ export function RegisterForm() {
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           {error ? (
-            <p
-              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              data-testid="register-error"
-            >
-              {error}
-            </p>
+            <FormErrorBanner data-testid="register-error">{error}</FormErrorBanner>
           ) : null}
           <div className="space-y-2">
             <Label htmlFor="name">ชื่อที่แสดง</Label>

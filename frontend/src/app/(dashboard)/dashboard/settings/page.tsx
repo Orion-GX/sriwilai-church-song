@@ -1,3 +1,4 @@
+import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import {
   Card,
@@ -6,24 +7,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
 
 export default function DashboardSettingsPage() {
   return (
     <>
-      <SetDashboardTitle title="Settings" />
-      <div className="mx-auto max-w-4xl space-y-6">
+      <SetDashboardTitle title="ตั้งค่า" />
+      <PageContainer data-testid="page-settings">
+        <SectionHeader
+          title="ตั้งค่า"
+          description="โปรไฟล์และการตั้งค่าแอป (ขยายฟอร์มและ API ได้ภายหลัง)"
+        />
         <Card>
           <CardHeader>
-            <CardTitle>Settings</CardTitle>
-            <CardDescription>Profile and app preferences.</CardDescription>
+            <CardTitle>ทั่วไป</CardTitle>
+            <CardDescription>หน้าโครง — เพิ่มฟอร์มและการเรียก API ตามต้องการ</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Scaffold page—add forms and API calls as needed.
+            <p className="text-body text-muted-foreground">
+              Scaffold — เพิ่มฟอร์มและการเชื่อม API ได้ตามต้องการ
             </p>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     </>
   );
 }

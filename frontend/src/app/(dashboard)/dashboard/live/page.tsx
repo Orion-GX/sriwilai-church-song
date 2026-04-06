@@ -3,11 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Radio, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -15,6 +14,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { createLiveSession, fetchLiveSessions } from "@/lib/api/live";
 import { ApiError } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/stores/auth-store";
@@ -57,31 +61,35 @@ export default function LiveSessionsListPage() {
 
   return (
     <>
-      <SetDashboardTitle title="ไลฟ์" />
-      <div className="mx-auto max-w-3xl space-y-8" data-testid="page-live-list">
-        <div className="flex items-center gap-3">
-          <Radio className="h-8 w-8 text-primary" />
-          <div>
-            <h2 className="text-2xl font-semibold">เซสชันไลฟ์</h2>
-            <p className="text-sm text-muted-foreground">
-              สร้างห้องให้วงหรือทีม worship — ต้องมีสิทธิ์ LIVE_MANAGE / LIVE_READ
-            </p>
-          </div>
-        </div>
+      <SetDashboardTitle title="เซสชันไลฟ์" />
+      <PageContainer
+        constrained={false}
+        className="max-w-3xl"
+        data-testid="page-live-list"
+      >
+        <SectionHeader
+          title="เซสชันไลฟ์"
+          description="สร้างห้องให้วงหรือทีม worship — ต้องมีสิทธิ์ LIVE_MANAGE / LIVE_READ"
+        />
 
         {!user ? (
-          <p className="text-muted-foreground">
-            กรุณา{" "}
-            <Link href="/login" className="text-primary underline">
-              เข้าสู่ระบบ
-            </Link>{" "}
-            เพื่อดูเซสชัน
-          </p>
+          <Card variant="flat">
+            <CardContent className="pt-6 text-sm text-muted-foreground">
+              กรุณา{" "}
+              <Link
+                href="/login"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                เข้าสู่ระบบ
+              </Link>{" "}
+              เพื่อดูเซสชัน
+            </CardContent>
+          </Card>
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <Plus className="h-5 w-5 shrink-0" aria-hidden />
                 สร้างเซสชันใหม่
               </CardTitle>
               <CardDescription>
@@ -90,7 +98,7 @@ export default function LiveSessionsListPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {createErr ? (
-                <p className="text-sm text-destructive">{createErr}</p>
+                <FormErrorBanner className="text-sm">{createErr}</FormErrorBanner>
               ) : null}
               <div className="space-y-2">
                 <Label htmlFor="live-title">ชื่อห้อง</Label>
@@ -114,42 +122,68 @@ export default function LiveSessionsListPage() {
           </Card>
         )}
 
-        <div>
-          <h3 className="mb-3 text-lg font-medium">เซสชันที่กำลังเปิด</h3>
+        <section className="space-y-4" aria-labelledby="live-open-heading">
+          <h2 id="live-open-heading" className="text-section-title">
+            เซสชันที่กำลังเปิด
+          </h2>
           {isLoading ? (
-            <p className="text-muted-foreground">กำลังโหลด…</p>
+            <ul className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <li key={i}>
+                  <Card>
+                    <CardContent className="p-4">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="mt-2 h-3 w-32" variant="text" />
+                    </CardContent>
+                  </Card>
+                </li>
+              ))}
+            </ul>
           ) : isError ? (
-            <p className="text-destructive">
+            <FormErrorBanner>
               โหลดไม่สำเร็จ:{" "}
               {error instanceof Error ? error.message : String(error)}
-            </p>
+            </FormErrorBanner>
           ) : !data?.length ? (
-            <p className="text-muted-foreground">ยังไม่มีเซสชันที่ active</p>
+            <p className="text-sm text-muted-foreground">
+              ยังไม่มีเซสชันที่ active
+            </p>
           ) : (
             <ul className="space-y-2">
               {data.map((s) => (
                 <li key={s.id}>
                   <Link
                     href={`/dashboard/live/${s.id}`}
-                    className="block rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+                    className="block rounded-lg border border-border bg-card shadow-card transition-colors hover:bg-muted/50"
                   >
-                    <span className="font-semibold">{s.title}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">
-                      {s.status}
-                      {s.leaderUserId
-                        ? ` · leader ${s.leaderUserId.slice(0, 8)}…`
-                        : ""}
-                    </span>
+                    <Card className="border-0 shadow-none">
+                      <CardContent className="p-4">
+                        <span className="font-semibold text-foreground">
+                          {s.title}
+                        </span>
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          {s.status}
+                          {s.leaderUserId
+                            ? ` · leader ${s.leaderUserId.slice(0, 8)}…`
+                            : ""}
+                        </span>
+                      </CardContent>
+                    </Card>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-          <Button variant="outline" className="mt-4" type="button" onClick={() => refetch()}>
+          <Button
+            variant="outline"
+            className="mt-2"
+            type="button"
+            onClick={() => refetch()}
+          >
             รีเฟรช
           </Button>
-        </div>
-      </div>
+        </section>
+      </PageContainer>
     </>
   );
 }

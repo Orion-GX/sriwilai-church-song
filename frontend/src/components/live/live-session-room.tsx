@@ -4,15 +4,25 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Music, Trash2 } from "lucide-react";
 import { ChordproView } from "@/components/songs/chordpro-view";
 import { FavoriteButton } from "@/components/songs/favorite-button";
 import { FollowLeaderToggle } from "@/components/live/follow-leader-toggle";
 import { LiveLargeControls } from "@/components/live/live-large-controls";
 import { TransposeBar } from "@/components/songs/transpose-bar";
 import { Button, buttonClassName } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { endLiveSession, fetchLiveSessionState } from "@/lib/api/live";
 import { fetchSongById } from "@/lib/api/songs";
 import {
@@ -221,25 +231,38 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
 
   if (!user) {
     return (
-      <p className="text-muted-foreground">
-        กรุณา{" "}
-        <Link href="/login" className="text-primary underline">
-          เข้าสู่ระบบ
-        </Link>
-      </p>
+      <Card variant="flat">
+        <CardContent className="pt-6 text-sm text-muted-foreground">
+          กรุณา{" "}
+          <Link
+            href="/login"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            เข้าสู่ระบบ
+          </Link>
+        </CardContent>
+      </Card>
     );
   }
 
   if (isLoading) {
-    return <p className="text-muted-foreground">กำลังโหลดห้อง…</p>;
+    return (
+      <Card data-testid="live-room-loading">
+        <CardContent className="space-y-3 p-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-full max-w-md" variant="text" />
+          <Skeleton className="min-h-[120px] w-full" />
+        </CardContent>
+      </Card>
+    );
   }
 
   if (isError || !initial) {
     return (
-      <p className="text-destructive">
+      <FormErrorBanner data-testid="live-room-error">
         เข้าห้องไม่สำเร็จ:{" "}
         {error instanceof Error ? error.message : String(error)}
-      </p>
+      </FormErrorBanner>
     );
   }
 
@@ -285,7 +308,7 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
             {isLeader ? " · คุณคือ leader" : " · โหมดผู้ตาม"}
           </p>
           {wsError ? (
-            <p className="mt-1 text-sm text-destructive">{wsError}</p>
+            <FormErrorBanner className="mt-2 text-sm">{wsError}</FormErrorBanner>
           ) : null}
         </div>
         {isLeader ? (
@@ -315,16 +338,20 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
         />
       ) : null}
 
-      <div className="rounded-lg border bg-card p-4">
-        <h3 className="mb-3 font-semibold">ลิสต์เพลงในห้อง</h3>
-        <ol className="mb-4 space-y-2" data-testid="live-song-queue">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">ลิสต์เพลงในห้อง</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+        <ol className="space-y-2" data-testid="live-song-queue">
           {songs.map((s, idx) => (
             <li
               key={s.liveSongId}
               data-testid={`live-queue-item-${idx}`}
-              className={`flex items-center justify-between rounded-md border px-3 py-2 text-sm ${
-                idx === displayIndex ? "border-primary bg-primary/5" : ""
-              }`}
+              className={cn(
+                "flex items-center justify-between rounded-md border px-3 py-2 text-sm",
+                idx === displayIndex && "border-primary bg-primary/5",
+              )}
             >
               <span>
                 {idx + 1}. {s.title}
@@ -355,7 +382,7 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
                 data-testid="live-add-song-id"
               />
               {addErr ? (
-                <p className="text-xs text-destructive">{addErr}</p>
+                <FormErrorBanner className="text-xs">{addErr}</FormErrorBanner>
               ) : null}
             </div>
             <Button type="button" onClick={onAddSong} data-testid="live-add-song-submit">
@@ -369,7 +396,8 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
             </Link>
           </div>
         ) : null}
-      </div>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 space-y-4">
@@ -387,11 +415,15 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
               className="max-h-[55vh] min-h-[200px] lg:max-h-[65vh]"
             />
           ) : (
-            <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-              {n === 0
-                ? "ยังไม่มีเพลง — leader เพิ่มเพลงจากรายการ"
-                : "กำลังโหลดเนื้อเพลง…"}
-            </p>
+            <EmptyState
+              icon={Music}
+              title={n === 0 ? "ยังไม่มีเพลง" : "กำลังโหลดเนื้อเพลง…"}
+              description={
+                n === 0
+                  ? "leader เพิ่มเพลงจากรายการ"
+                  : "รอสักครู่"
+              }
+            />
           )}
         </div>
       </div>

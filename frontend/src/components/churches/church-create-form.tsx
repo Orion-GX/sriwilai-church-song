@@ -15,7 +15,11 @@ import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api/client";
 import { createChurch } from "@/lib/api/churches";
 
-export function ChurchCreateForm() {
+export function ChurchCreateForm({
+  hideCardHeader = false,
+}: {
+  hideCardHeader?: boolean;
+}) {
   const router = useRouter();
   const [name, setName] = React.useState("");
   const [slug, setSlug] = React.useState("");
@@ -43,14 +47,16 @@ export function ChurchCreateForm() {
 
   return (
     <Card data-testid="church-create-form">
-      <CardHeader>
-        <CardTitle>สร้างคริสตจักร</CardTitle>
-        <CardDescription>
-          slug ว่างได้ — ระบบสร้างจากชื่อให้อัตโนมัติ (a-z ตัวเล็กและ -)
-        </CardDescription>
-      </CardHeader>
+      {!hideCardHeader ? (
+        <CardHeader>
+          <CardTitle>สร้างคริสตจักร</CardTitle>
+          <CardDescription>
+            slug ว่างได้ — ระบบสร้างจากชื่อให้อัตโนมัติ (a-z ตัวเล็กและ -)
+          </CardDescription>
+        </CardHeader>
+      ) : null}
       <form onSubmit={onSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}>
           {error ? (
             <p
               className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"

@@ -1,54 +1,28 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   Home,
   LayoutDashboard,
+  LayoutTemplate,
   ListMusic,
   Music,
   PlusCircle,
   Radio,
   Settings,
   User,
-  type LucideIcon,
 } from "lucide-react";
 import { fetchAdminDashboard } from "@/lib/api/admin";
-import { cn } from "@/lib/utils";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  testId?: string;
-};
-
-const coreItems: NavItem[] = [
-  { href: "/dashboard", label: "ภาพรวม", icon: Home },
-  { href: "/dashboard/profile", label: "โปรไฟล์", icon: User },
-  { href: "/dashboard/churches", label: "คริสตจักร", icon: Building2 },
-];
-
-const adminItem: NavItem = {
-  href: "/dashboard/admin",
-  label: "แอดมิน",
-  icon: LayoutDashboard,
-  testId: "nav-link-admin",
-};
-
-const restItems: NavItem[] = [
-  { href: "/songs", label: "เพลง", icon: Music },
-  { href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle },
-  { href: "/dashboard/live", label: "ไลฟ์", icon: Radio },
-  { href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic },
-  { href: "/dashboard/settings", label: "ตั้งค่า", icon: Settings },
-];
+import { Sidebar, type SidebarNavItem } from "@/components/layout/sidebar";
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/dashboard") {
     return pathname === "/dashboard";
+  }
+  if (href === "/dashboard/ui-showcase") {
+    return pathname === "/dashboard/ui-showcase";
   }
   if (href === "/dashboard/profile") {
     return pathname === "/dashboard/profile";
@@ -68,6 +42,28 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const coreItems: SidebarNavItem[] = [
+  { href: "/dashboard", label: "ภาพรวม", icon: Home },
+  { href: "/dashboard/profile", label: "โปรไฟล์", icon: User },
+  { href: "/dashboard/churches", label: "คริสตจักร", icon: Building2 },
+];
+
+const adminItem: SidebarNavItem = {
+  href: "/dashboard/admin",
+  label: "แอดมิน",
+  icon: LayoutDashboard,
+  testId: "nav-link-admin",
+};
+
+const restItems: SidebarNavItem[] = [
+  { href: "/dashboard/ui-showcase", label: "UI อ้างอิง", icon: LayoutTemplate },
+  { href: "/songs", label: "เพลง", icon: Music },
+  { href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle },
+  { href: "/dashboard/live", label: "ไลฟ์", icon: Radio },
+  { href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic },
+  { href: "/dashboard/settings", label: "ตั้งค่า", icon: Settings },
+];
+
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
@@ -77,43 +73,18 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
     retry: false,
   });
 
-  const items: NavItem[] = [
+  const items: SidebarNavItem[] = [
     ...coreItems,
     ...(canAccessAdmin ? [adminItem] : []),
     ...restItems,
   ];
 
   return (
-    <div className="flex h-full flex-col gap-1 border-r bg-card p-3">
-      <Link
-        href="/"
-        onClick={onNavigate}
-        className="mb-4 rounded-md px-3 py-2 text-sm font-semibold hover:bg-accent"
-      >
-        Sriwilai Song
-      </Link>
-      <nav className="flex flex-1 flex-col gap-1" data-testid="dashboard-sidebar-nav">
-        {items.map(({ href, label, icon: Icon, testId }) => {
-          const active = isActive(pathname, href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onNavigate}
-              data-testid={testId}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
+    <Sidebar
+      brand={{ title: "Sriwilai Song", href: "/" }}
+      items={items}
+      isActive={isActive}
+      onNavigate={onNavigate}
+    />
   );
 }

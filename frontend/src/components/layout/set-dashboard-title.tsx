@@ -1,13 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useDashboardTitle } from "@/components/layout/dashboard-provider";
+import {
+  DEFAULT_DASHBOARD_TITLE,
+  useDashboardTitle,
+} from "@/components/layout/dashboard-provider";
 
 export function SetDashboardTitle({ title }: { title: string }) {
   const { setTitle } = useDashboardTitle();
   React.useEffect(() => {
     setTitle(title);
-    return () => setTitle("Dashboard");
+    return () => setTitle(DEFAULT_DASHBOARD_TITLE);
   }, [title, setTitle]);
   return null;
 }

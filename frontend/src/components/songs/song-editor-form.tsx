@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/client";
 import { createSong, updateSong } from "@/lib/api/songs";
@@ -21,6 +22,8 @@ type SongEditorFormProps = {
   songId?: string;
   initialTitle?: string;
   initialChordpro?: string;
+  /** ใช้เมื่อหน้าใส่ SectionHeader แล้ว — ซ่อนหัวการ์ดซ้ำ */
+  hideCardHeader?: boolean;
 };
 
 export function SongEditorForm({
@@ -28,6 +31,7 @@ export function SongEditorForm({
   songId,
   initialTitle = "",
   initialChordpro = "",
+  hideCardHeader = false,
 }: SongEditorFormProps) {
   const router = useRouter();
   const [title, setTitle] = React.useState(initialTitle);
@@ -69,21 +73,18 @@ export function SongEditorForm({
 
   return (
     <Card className="mx-auto w-full max-w-3xl" data-testid="song-editor-form">
-      <CardHeader>
-        <CardTitle>{mode === "create" ? "สร้างเพลงใหม่" : "แก้ไขเพลง"}</CardTitle>
-        <CardDescription>
-          เนื้อ ChordPro — คอร์ดใน [วงเล็บเหลี่ยม]
-        </CardDescription>
-      </CardHeader>
+      {!hideCardHeader ? (
+        <CardHeader>
+          <CardTitle>{mode === "create" ? "สร้างเพลงใหม่" : "แก้ไขเพลง"}</CardTitle>
+          <CardDescription>
+            เนื้อ ChordPro — คอร์ดใน [วงเล็บเหลี่ยม]
+          </CardDescription>
+        </CardHeader>
+      ) : null}
       <form onSubmit={onSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}>
           {error ? (
-            <p
-              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              data-testid="song-editor-error"
-            >
-              {error}
-            </p>
+            <FormErrorBanner data-testid="song-editor-error">{error}</FormErrorBanner>
           ) : null}
           <div className="space-y-2">
             <Label htmlFor="song-title">ชื่อเพลง</Label>

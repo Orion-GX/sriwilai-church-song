@@ -1,18 +1,25 @@
 "use client";
 
+import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { ProfileForm } from "@/components/account/profile-form";
+import { SectionHeader } from "@/components/ui/section-header";
 
 export default function ProfilePage() {
   return (
     <>
       <SetDashboardTitle title="โปรไฟล์" />
-      <div
-        className="mx-auto max-w-xl space-y-6 px-4 py-6 lg:px-0"
+      <PageContainer
+        constrained={false}
+        className="max-w-xl"
         data-testid="page-profile"
       >
-        <ProfileForm />
-      </div>
+        <SectionHeader
+          title="โปรไฟล์"
+          description="แก้ไขชื่อที่แสดง (อีเมลเปลี่ยนผ่านแอดมินเท่านั้น)"
+        />
+        <ProfileForm hideCardHeader />
+      </PageContainer>
     </>
   );
 }

@@ -2,8 +2,15 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
 import { fetchChurchById } from "@/lib/api/churches";
 
@@ -21,10 +28,16 @@ export default function ChurchManagePage() {
   return (
     <>
       <SetDashboardTitle title="จัดการคริสตจักร" />
-      <div
-        className="mx-auto max-w-3xl space-y-6 px-4 py-6 lg:px-0"
+      <PageContainer
+        constrained={false}
+        className="max-w-3xl"
         data-testid="page-church-manage"
       >
+        <SectionHeader
+          title="จัดการคริสตจักร"
+          description="ข้อมูลคริสตจักรและการตั้งค่า (ขยายสมาชิก/บทบาทจาก API ได้ภายหลัง)"
+        />
+
         {isLoading ? (
           <p className="text-muted-foreground" data-testid="church-manage-loading">
             กำลังโหลด…
@@ -48,12 +61,12 @@ export default function ChurchManagePage() {
                 <CardDescription className="font-mono">{data.slug}</CardDescription>
               </CardHeader>
             </Card>
-            <p className="mt-4 text-sm text-muted-foreground">
+            <p className="mt-4 text-body text-muted-foreground">
               หน้าจัดการขั้นพื้นฐาน — สมาชิก/บทบาทขยายจาก API ได้ภายหลัง
             </p>
           </div>
         ) : null}
-      </div>
+      </PageContainer>
     </>
   );
 }

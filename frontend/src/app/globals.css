@@ -2,46 +2,161 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Design system: Celestial-inspired (sidebar + topbar + cards)
+ * อ้างอิงสี/โครงจาก Celestial Admin — แปลงเป็น semantic tokens + Tailwind
+ * https://github.com/BootstrapDash/celestialAdmin-free-admin-template
+ *
+ * หลักการ: ไม่ใช้คลาส Bootstrap — ใช้ token + คอมโพเนนต์ร่วมเท่านั้น
+ */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* —— Layout (จาก _variables.scss: sidebar 255px, navbar 64px, boxed 1200px) —— */
+    --sidebar-width: 15.9375rem; /* 255px */
+    --header-height: 4rem; /* 64px */
+    --container-max-width: 75rem; /* 1200px */
+    --max-width-content: 80rem;
+
+    --spacing-card-y: 1.875rem;
+    --spacing-card-x: 1.875rem;
+
+    /* —— Radius: ปรับให้นุ่มกว่า Bootstrap เดิม (card เดิม ~0) —— */
+    --radius: 0.75rem; /* การ์ด / วิดเจ็ตหลัก */
+    --radius-xl: 0.875rem;
+    --radius-2xl: 1rem;
+
+    /* —— Typography scale (Roboto ใน Celestial → ใช้ Inter ผ่าน --font-sans) —— */
+    --font-size-heading-xl: 2rem;
+    --font-size-heading-lg: 1.5rem;
+    --font-size-heading-md: 1.25rem;
+    --font-size-heading-sm: 1.125rem;
+    --font-size-body: 0.875rem; /* Celestial $default-font-size */
+    --font-size-body-sm: 0.8125rem;
+    --font-size-label: 0.75rem;
+    --font-size-stat-sm: 1.5rem;
+    --font-size-stat: 1.875rem;
+    --font-size-stat-lg: 2.25rem;
+
+    --line-height-heading: 1.2;
+    --line-height-heading-tight: 1.25;
+    --line-height-body: 1.5;
+    --line-height-label: 1.25;
+    --line-height-stat: 1.1;
+
+    --font-weight-heading: 600;
+    --font-weight-label: 500;
+    --font-weight-stat: 600;
+
+    --letter-spacing-heading: -0.025em;
+    --letter-spacing-label: 0.04em;
+    --letter-spacing-stat: -0.02em;
+
+    /* —— สีหลัก Celestial: primary #f2125e, body #001737, canvas #e8eff9 —— */
+    --background: 218 45% 95%; /* #e8eff9 $content-bg */
+    --foreground: 214 100% 11%; /* #001737 $body-color */
+
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --card-foreground: 214 100% 11%;
+
+    --navbar: 0 0% 100%;
+    --navbar-foreground: 214 100% 11%;
+
+    /* ไซด์บาร์โหมดสว่าง: พื้นขาว เมนูเข้ม (เทียบ $sidebar-light-*) */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 214 100% 11%;
+    --sidebar-accent: 218 35% 96%;
+    --sidebar-accent-foreground: 214 100% 11%;
+    --sidebar-border: 220 14% 91%;
+
+    /* primary / secondary จาก $theme-colors */
+    --primary: 340 89% 51%; /* #f2125e */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 248 68% 48%; /* #392ccd */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 192 33% 97%; /* #f2f7f8 $white-smoke */
+    --muted-foreground: 210 5% 62%; /* #9a9ea2 $text-muted */
+
+    --accent: 228 20% 93%; /* hover ใกล้ #eaeaf1 */
+    --accent-foreground: 214 100% 11%;
+
+    --destructive: 0 100% 50%; /* #ff0000 theme danger */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 145 79% 42%; /* #17c964 */
+    --success-foreground: 144 61% 12%;
+
+    --warning: 31 100% 50%; /* #ff8300 */
+    --warning-foreground: 26 83% 14%;
+
+    --info: 217 100% 58%; /* #2b80ff — ไอคอน active ใน Celestial */
+    --info-foreground: 210 40% 98%;
+
+    --border: 218 40% 92%; /* แยกจากพื้นหลังเล็กน้อย */
+    --input: 218 40% 92%;
+    --ring: 340 89% 51%;
+
+    /* —— เงา: sidebar จาก template + elevation สมัยใหม่สำหรับการ์ด —— */
+    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.05),
+      0 0 0 1px rgb(15 23 42 / 0.04);
+    --shadow-soft: 0 4px 14px -4px rgb(15 23 42 / 0.08);
+    --shadow-sidebar: 6px 16px 31px -18px rgb(183 188 209 / 0.55);
+    --shadow-elevated: 0 12px 40px -12px rgb(15 23 42 / 0.12);
+    --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 228 35% 8%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+
+    --card: 228 28% 12%;
     --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+
+    --navbar: 228 30% 10%;
+    --navbar-foreground: 210 40% 98%;
+
+    --sidebar: 240 6% 10%; /* ใกล้ #1b1b29 */
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-accent: 240 5% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 240 5% 20%;
+
+    --primary: 340 82% 58%;
+    --primary-foreground: 228 35% 8%;
+
+    --secondary: 248 62% 58%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+
+    --muted: 228 22% 18%;
+    --muted-foreground: 215 16% 62%;
+
+    --accent: 228 22% 20%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+
+    --destructive: 0 62% 50%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+
+    --success: 145 65% 45%;
+    --success-foreground: 144 61% 12%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 26 83% 14%;
+
+    --info: 217 90% 62%;
+    --info-foreground: 210 40% 98%;
+
+    --border: 228 22% 22%;
+    --input: 228 22% 22%;
+    --ring: 340 82% 58%;
+
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.35),
+      0 0 0 1px rgb(255 255 255 / 0.04);
+    --shadow-soft: 0 8px 24px -8px rgb(0 0 0 / 0.45);
+    --shadow-sidebar: 6px 16px 31px -18px rgb(0 0 0 / 0.5);
+    --shadow-elevated: 0 20px 50px -15px rgb(0 0 0 / 0.55);
+    --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
   }
 
   * {
@@ -50,5 +165,84 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+  }
+}
+
+/**
+ * Utilities มาตรฐาน — ใช้แทนการเขียน style สุ่มในหน้า
+ */
+@layer utilities {
+  .text-page-title {
+    @apply font-semibold tracking-tight text-foreground;
+    font-size: var(--font-size-heading-lg);
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-heading);
+  }
+
+  @screen md {
+    .text-page-title {
+      font-size: var(--font-size-heading-xl);
+    }
+  }
+
+  .text-section-title {
+    @apply font-semibold tracking-tight text-foreground;
+    font-size: var(--font-size-heading-md);
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-heading);
+  }
+
+  @screen md {
+    .text-section-title {
+      font-size: var(--font-size-heading-lg);
+    }
+  }
+
+  .text-card-title {
+    @apply font-semibold leading-none tracking-tight text-card-foreground;
+    font-size: var(--font-size-heading-sm);
+  }
+
+  /** หัวข้อย่อย / ป้ายฟอร์ม — uppercase แบบ admin สมัยใหม่ */
+  .text-label {
+    @apply text-form-label uppercase text-muted-foreground;
+  }
+
+  .text-stat {
+    @apply font-semibold tabular-nums tracking-tight text-foreground;
+    font-size: var(--font-size-stat);
+    line-height: var(--line-height-stat);
+    font-weight: var(--font-weight-stat);
+    letter-spacing: var(--letter-spacing-stat);
+  }
+
+  .text-body {
+    @apply text-foreground;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+  }
+
+  .text-helper {
+    @apply text-muted-foreground;
+    font-size: var(--font-size-body-sm);
+    line-height: var(--line-height-body);
+  }
+
+  .ui-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  .ui-page-padding {
+    @apply px-4 py-6 md:px-6;
+  }
+
+  .ui-section-gap {
+    @apply space-y-8;
+  }
+
+  .ui-widget-gap {
+    @apply gap-4;
   }
 }

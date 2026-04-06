@@ -9,6 +9,9 @@ type DashboardContextValue = {
   setTitle: (title: string) => void;
 };
 
+/** ชื่อหน้าเริ่มต้นในแถบบน — ตรงกับหน้า `/dashboard` (ภาพรวม) */
+export const DEFAULT_DASHBOARD_TITLE = "ภาพรวม";
+
 const DashboardContext = React.createContext<DashboardContextValue | null>(
   null,
 );
@@ -26,7 +29,7 @@ export function DashboardProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [title, setTitle] = React.useState("Dashboard");
+  const [title, setTitle] = React.useState(DEFAULT_DASHBOARD_TITLE);
 
   const value = React.useMemo(() => ({ setTitle }), []);
 

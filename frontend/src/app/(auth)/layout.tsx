@@ -7,7 +7,7 @@ export default function AuthLayout({
 }) {
   return (
     <div
-      className="relative flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4"
+      className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8"
       data-testid="page-auth-shell"
     >
       <Link

@@ -2,8 +2,13 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { SongEditorForm } from "@/components/songs/song-editor-form";
+import { Card, CardContent } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { fetchSongById } from "@/lib/api/songs";
 
 export default function EditSongPage() {
@@ -19,28 +24,37 @@ export default function EditSongPage() {
   return (
     <>
       <SetDashboardTitle title="แก้ไขเพลง" />
-      <div
-        className="mx-auto max-w-4xl space-y-6 px-4 py-6 lg:px-0"
+      <PageContainer
+        constrained={false}
+        className="max-w-4xl"
         data-testid="page-song-edit"
       >
+        <SectionHeader
+          title="แก้ไขเพลง"
+          description="เนื้อ ChordPro — คอร์ดใน [วงเล็บเหลี่ยม]"
+        />
         {isLoading ? (
-          <p className="text-muted-foreground" data-testid="song-edit-loading">
-            กำลังโหลดเพลง…
-          </p>
+          <Card data-testid="song-edit-loading">
+            <CardContent className="space-y-4 p-6">
+              <Skeleton className="h-10 w-full max-w-md" />
+              <Skeleton className="min-h-[280px] w-full" />
+            </CardContent>
+          </Card>
         ) : isError ? (
-          <p className="text-destructive" data-testid="song-edit-error">
+          <FormErrorBanner data-testid="song-edit-error">
             โหลดไม่สำเร็จ:{" "}
             {error instanceof Error ? error.message : String(error)}
-          </p>
+          </FormErrorBanner>
         ) : data ? (
           <SongEditorForm
             mode="edit"
             songId={data.id}
             initialTitle={data.title}
             initialChordpro={data.chordproBody}
+            hideCardHeader
           />
         ) : null}
-      </div>
+      </PageContainer>
     </>
   );
 }

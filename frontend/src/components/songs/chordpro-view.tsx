@@ -111,8 +111,7 @@ function LyricLine({ line }: { line: string }) {
           return (
             <span
               key={j}
-              className="font-semibold text-primary"
-              style={{ marginRight: "0.15em" }}
+              className="mr-[0.15em] font-semibold text-primary"
             >
               {part}
             </span>

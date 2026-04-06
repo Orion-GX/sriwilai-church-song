@@ -15,7 +15,7 @@ import { ApiError } from "@/lib/api/client";
 import { fetchMyProfile, updateMyProfile } from "@/lib/api/users";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
-export function ProfileForm() {
+export function ProfileForm({ hideCardHeader = false }: { hideCardHeader?: boolean }) {
   const setAuth = useAuthStore((s) => s.setAuth);
   const token = useAuthStore((s) => s.accessToken);
   const storeUser = useAuthStore((s) => s.user);
@@ -79,12 +79,16 @@ export function ProfileForm() {
 
   return (
     <Card data-testid="profile-form">
-      <CardHeader>
-        <CardTitle>โปรไฟล์</CardTitle>
-        <CardDescription>แก้ไขชื่อที่แสดง (อีเมลเปลี่ยนผ่านแอดมินเท่านั้น)</CardDescription>
-      </CardHeader>
+      {!hideCardHeader ? (
+        <CardHeader>
+          <CardTitle>โปรไฟล์</CardTitle>
+          <CardDescription>
+            แก้ไขชื่อที่แสดง (อีเมลเปลี่ยนผ่านแอดมินเท่านั้น)
+          </CardDescription>
+        </CardHeader>
+      ) : null}
       <form onSubmit={onSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}>
           {error ? (
             <p
               className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
