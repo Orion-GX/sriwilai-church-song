@@ -6,8 +6,10 @@ import {
   SectionHeader,
   SideMenu,
   SongList,
-} from "@/components/landing";
-import { TitleSearchBar } from "@/components/landing/title-search-bar";
+  WeeklyPopularChordsSection,
+  type WeeklyPopularChordItem,
+} from "@/components/homepage";
+import { TitleSearchBar } from "@/components/homepage/title-search-bar";
 
 const VERSE_LINES = [
   "ความรักนั้นอดทน ความรักนั้นแสดงเมตตา ความรักไม่ริษยา ความรักไม่โอ้อวด ไม่หยิ่งยโส",
@@ -30,6 +32,76 @@ const SIDE_LINKS = [
   { label: "ป้ายบอกหมดเวลา", href: "#" },
 ];
 
+/** mock ตามเลย์เอาต์สกรีนช็อต (9 การ์ด — 3 อันดับแรกมีป้ายสี) */
+const WEEKLY_POPULAR_CHORDS_MOCK: WeeklyPopularChordItem[] = [
+  {
+    id: "w1",
+    rank: 1,
+    title: "เล่นของสูง",
+    artist: "KLEAR",
+    coverSrc: "https://picsum.photos/seed/wpc1/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w2",
+    rank: 2,
+    title: "ซ่อน(ไม่)หา",
+    artist: "JEFF SATUR",
+    coverSrc: "https://picsum.photos/seed/wpc2/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w3",
+    rank: 3,
+    title: "จีบ",
+    artist: "Q",
+    coverSrc: "https://picsum.photos/seed/wpc3/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w4",
+    title: "ใจฉันตามเธอไป",
+    artist: "YOUNGOHM",
+    coverSrc: "https://picsum.photos/seed/wpc4/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w5",
+    title: "หวานขื่น",
+    artist: "สิงโต นำโชค",
+    coverSrc: "https://picsum.photos/seed/wpc5/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w6",
+    title: "โตกว่านี้",
+    artist: "GOOD MOOD",
+    coverSrc: "https://picsum.photos/seed/wpc6/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w7",
+    title: "ฝนตกไหม",
+    artist: "Three Man Down",
+    coverSrc: "https://picsum.photos/seed/wpc7/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w8",
+    title: "คิดถึงฉันไหมเวลาที่เธอ",
+    artist: "MEAN",
+    coverSrc: "https://picsum.photos/seed/wpc8/128/128",
+    href: "/songs",
+  },
+  {
+    id: "w9",
+    title: "วันนี้",
+    artist: "Wan Thanakrit",
+    coverSrc: "https://picsum.photos/seed/wpc9/128/128",
+    href: "/songs",
+  },
+];
+
 export default function HomePage() {
   return (
     <Layout>
@@ -37,6 +109,7 @@ export default function HomePage() {
         <TitleSearchBar />
         <SearchBar />
         <BibleVerse lines={VERSE_LINES} reference="1 คร 13:4-7" />
+        <WeeklyPopularChordsSection items={WEEKLY_POPULAR_CHORDS_MOCK} />
         <SectionHeader title="ชีทเพลงทั้งหมด" />
 
         <Container className="pb-16 pt-8 sm:pt-10">

@@ -17,6 +17,12 @@ const publicWsOrigin =
 const nextConfig = {
   output: "standalone",
 
+  async redirects() {
+    return [
+      { source: "/homepage", destination: "/", permanent: true },
+    ];
+  },
+
   /** reverse proxy (dev): ตั้ง BACKEND_INTERNAL_URL ไป Nest */
   async rewrites() {
     if (!backendInternal) {

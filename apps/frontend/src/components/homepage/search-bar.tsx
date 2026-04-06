@@ -1,4 +1,4 @@
-import { Container } from "@/components/landing/container";
+import { Container } from "@/components/homepage/container";
 import { Input } from "@/components/ui/input";
 
 type SearchBarProps = {

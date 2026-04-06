@@ -1,7 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 
-import { Container } from "@/components/landing/container";
+import { Container } from "@/components/homepage/container";
 import { cn } from "@/lib/utils";
 
 const navLinkClass =

@@ -1,4 +1,4 @@
-import { SongItem, type SongItemProps } from "@/components/landing/song-item";
+import { SongItem, type SongItemProps } from "@/components/homepage/song-item";
 
 type SongListProps = {
   heading: string;

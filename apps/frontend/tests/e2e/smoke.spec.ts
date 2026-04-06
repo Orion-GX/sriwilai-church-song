@@ -7,7 +7,7 @@ test.describe("สโมกพื้นฐาน", () => {
     await gotoHome(page);
     await expect(page.getByTestId("page-home")).toBeVisible();
     await expect(page.getByTestId("home-marketing-title")).toContainText(
-      /Deforever/i,
+      /Sriwilai/i,
     );
   });
 

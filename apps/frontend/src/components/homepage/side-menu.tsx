@@ -1,7 +1,7 @@
 import {
   SideMenuItem,
   type SideMenuItemProps,
-} from "@/components/landing/side-menu-item";
+} from "@/components/homepage/side-menu-item";
 
 type SideMenuProps = {
   items: SideMenuItemProps[];
