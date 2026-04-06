@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { FavoritesBootstrap } from "@/components/providers/favorites-bootstrap";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sriwilai Song",
-  description: "Church song and setlist app",
+  title: "Sriwilai Church",
+  description: "Sriwilai Church and song app",
 };
 
 export default function RootLayout({

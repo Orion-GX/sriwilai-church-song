@@ -7,20 +7,18 @@ import type { Config } from "tailwindcss";
  */
 const config: Config = {
   darkMode: "class",
+  // Paths relative to apps/frontend. App + shadcn under src/. (Avoid block comments with **/ inside globs.)
+  // Monorepo shared UI: add e.g. "../../packages/ui/src/**/*.tsx" as another entry.
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          "var(--font-sans)",
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif",
-        ],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       fontSize: {
         /** หัวหน้า H1 / ชื่อหน้า */
