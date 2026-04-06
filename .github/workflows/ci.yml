@@ -29,18 +29,16 @@ jobs:
         image: redis:7-alpine
         ports:
           - 6379:6379
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: yarn
-          cache-dependency-path: backend/yarn.lock
+          cache-dependency-path: yarn.lock
       - run: yarn install --frozen-lockfile
-      - name: Write backend/.env.test for CI
+      - name: Write apps/backend/.env.test for CI
+        working-directory: apps/backend
         run: |
           cat > .env.test << 'EOF'
           NODE_ENV=test
@@ -76,26 +74,23 @@ jobs:
           LIVE_WS_USE_REDIS_ADAPTER=false
           TYPEORM_LOGGING=false
           EOF
-      - run: yarn migration:run:test
-      - run: yarn test --passWithNoTests
-      - run: yarn test:e2e
+      - run: yarn workspace @app/backend migration:run:test
+      - run: yarn workspace @app/backend test --passWithNoTests
+      - run: yarn workspace @app/backend test:e2e
 
   frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: yarn
-          cache-dependency-path: frontend/yarn.lock
+          cache-dependency-path: yarn.lock
       - run: yarn install --frozen-lockfile
-      - run: yarn lint
+      - run: yarn workspace @app/frontend lint
       - name: Next.js build
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:3099/api/v1
           NEXT_PUBLIC_WS_ORIGIN: http://127.0.0.1:3099
-        run: yarn build
+        run: yarn workspace @app/frontend build

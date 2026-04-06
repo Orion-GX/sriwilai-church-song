@@ -1,26 +1,58 @@
 # sriwilai-church-song
 
-## Backend
+โมโนด้วย **Yarn Workspaces** — รากโปรเจกต์เป็นจุดรันหลัก (`yarn install`, `yarn dev`, …)
 
-โค้ด backend อยู่ที่ `backend`
+## โครงสร้าง
 
-### ติดตั้ง dependencies
+- `apps/backend` — NestJS API (`@app/backend`)
+- `apps/frontend` — Next.js (`@app/frontend`)
+
+## ติดตั้ง (ครั้งเดียวที่ราก)
 
 ```bash
-cd backend
 yarn install
 ```
 
-### รันโหมดพัฒนา
+## รันพร้อมกัน (API + Next ใน dev)
 
 ```bash
-yarn start:dev
+yarn dev
+```
+
+หรือแยกเทอร์มินัล:
+
+```bash
+yarn dev:backend
+yarn dev:frontend
+```
+
+## คำสั่งรากอื่น ๆ
+
+| คำสั่ง | ความหมาย |
+|--------|-----------|
+| `yarn build` | build backend แล้วตามด้วย frontend |
+| `yarn build:backend` / `yarn build:frontend` | build แอปเดียว |
+| `yarn start` | รัน production build ทั้งคู่ (ต้อง `yarn build` ก่อน) |
+| `yarn lint` | lint ทั้งสองแอป |
+| `yarn test` | เทส backend (Jest) แล้วตามด้วย frontend (Playwright) |
+| `yarn seed:e2e` | seed ข้อมูล E2E (รันที่ backend workspace) |
+
+## Backend
+
+โค้ด backend อยู่ที่ `apps/backend`
+
+### รันโหมดพัฒนา (แยก)
+
+```bash
+yarn dev:backend
+# หรือ
+cd apps/backend && yarn start:dev
 ```
 
 ### Build production
 
 ```bash
-yarn build
+yarn build:backend
 ```
 
 ### Rate limiting (หลาย instance)
@@ -41,7 +73,7 @@ yarn build
 ### Database migrations (TypeORM)
 
 ```bash
-cd backend
+cd apps/backend
 cp .env.example .env   # ถ้ายังไม่มี
 yarn migration:run
 # yarn migration:revert
@@ -51,7 +83,9 @@ yarn migration:run
 ### Docker Compose (api + postgres + redis)
 
 ```bash
-cd backend
+cd apps/backend
 cp .env.example .env
 docker compose up -d --build
 ```
+
+บิลด์ API ใช้ context ที่รากโปรเจกต์ (ดู `apps/backend/docker-compose.yml` และ `apps/backend/Dockerfile`)

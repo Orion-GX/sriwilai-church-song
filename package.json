@@ -2,9 +2,27 @@
   "name": "sriwilai-church-song",
   "private": true,
   "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev:stack": "concurrently -k -n api,web -c blue,green \"cross-env PORT=3099 yarn --cwd backend start:dev\" \"cross-env NEXT_PUBLIC_API_URL=http://127.0.0.1:3099/api/v1 NEXT_PUBLIC_WS_ORIGIN=http://127.0.0.1:3099 yarn --cwd frontend dev\"",
-    "seed:e2e": "yarn --cwd backend seed:e2e"
+    "dev": "concurrently -k -n api,web -c blue,green \"cross-env PORT=3099 yarn workspace @app/backend start:dev\" \"cross-env NEXT_PUBLIC_API_URL=http://127.0.0.1:3099/api/v1 NEXT_PUBLIC_WS_ORIGIN=http://127.0.0.1:3099 yarn workspace @app/frontend dev\"",
+    "dev:backend": "cross-env PORT=3099 yarn workspace @app/backend start:dev",
+    "dev:frontend": "cross-env NEXT_PUBLIC_API_URL=http://127.0.0.1:3099/api/v1 NEXT_PUBLIC_WS_ORIGIN=http://127.0.0.1:3099 yarn workspace @app/frontend dev",
+    "build": "yarn build:backend && yarn build:frontend",
+    "build:backend": "yarn workspace @app/backend build",
+    "build:frontend": "yarn workspace @app/frontend build",
+    "start": "concurrently -k -n api,web -c blue,green \"yarn workspace @app/backend start\" \"yarn workspace @app/frontend start\"",
+    "start:backend": "yarn workspace @app/backend start",
+    "start:frontend": "yarn workspace @app/frontend start",
+    "lint": "yarn lint:backend && yarn lint:frontend",
+    "lint:backend": "yarn workspace @app/backend lint",
+    "lint:frontend": "yarn workspace @app/frontend lint",
+    "test": "yarn test:backend && yarn test:frontend",
+    "test:backend": "yarn workspace @app/backend test",
+    "test:frontend": "yarn workspace @app/frontend test",
+    "seed:e2e": "yarn workspace @app/backend seed:e2e",
+    "dev:stack": "yarn dev"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

@@ -8,11 +8,12 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "frontend/**"
-      - "backend/**"
+      - "apps/frontend/**"
+      - "apps/backend/**"
       - "e2e-seed.config.json"
       - ".github/workflows/e2e-playwright.yml"
       - "package.json"
+      - "yarn.lock"
 
 jobs:
   playwright:
@@ -44,23 +45,13 @@ jobs:
         with:
           node-version: "20"
           cache: yarn
-          cache-dependency-path: |
-            backend/yarn.lock
-            frontend/yarn.lock
+          cache-dependency-path: yarn.lock
 
-      - name: Install backend deps
-        working-directory: backend
+      - name: Install workspace dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Install frontend deps
-        working-directory: frontend
-        run: yarn install --frozen-lockfile
-
-      - name: Install root dev deps (dev:stack / seed จากราก)
-        run: yarn install --frozen-lockfile
-
-      - name: Write backend/.env.test for CI
-        working-directory: backend
+      - name: Write apps/backend/.env.test for CI
+        working-directory: apps/backend
         run: |
           cat > .env.test << 'EOF'
           NODE_ENV=test
@@ -99,17 +90,15 @@ jobs:
           EOF
 
       - name: Migrate + seed E2E
-        working-directory: backend
         run: |
-          yarn migration:run:test
-          yarn seed:e2e
+          yarn workspace @app/backend migration:run:test
+          yarn workspace @app/backend seed:e2e
 
       - name: Build API
-        working-directory: backend
-        run: yarn build
+        run: yarn workspace @app/backend build
 
       - name: Start API (background)
-        working-directory: backend
+        working-directory: apps/backend
         run: |
           cp -f .env.test .env
           node dist/main.js &
@@ -124,16 +113,15 @@ jobs:
           exit 1
 
       - name: Build Next.js
-        working-directory: frontend
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:3099/api/v1
           NEXT_PUBLIC_WS_ORIGIN: http://127.0.0.1:3099
-        run: yarn build
+        run: yarn workspace @app/frontend build
 
-      - name: Write frontend/.env.test for Playwright
+      - name: Write apps/frontend/.env.test for Playwright
         run: |
           PW=$(jq -r .sharedPassword e2e-seed.config.json)
-          cat > frontend/.env.test << EOF
+          cat > apps/frontend/.env.test << EOF
           PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000
           PLAYWRIGHT_NO_WEB_SERVER=1
           E2E_API_BASE_URL=http://127.0.0.1:3099/api/v1
@@ -148,7 +136,7 @@ jobs:
           EOF
 
       - name: Start Next (background)
-        working-directory: frontend
+        working-directory: apps/frontend
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:3099/api/v1
           NEXT_PUBLIC_WS_ORIGIN: http://127.0.0.1:3099
@@ -165,9 +153,9 @@ jobs:
           exit 1
 
       - name: Install Playwright Chromium
-        working-directory: frontend
+        working-directory: apps/frontend
         run: yarn playwright install chromium --with-deps
 
       - name: Run Playwright
-        working-directory: frontend
+        working-directory: apps/frontend
         run: yarn test:e2e

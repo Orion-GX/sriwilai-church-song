@@ -69,8 +69,8 @@ web_modules/
 .env
 .env.*
 !.env.example
-!frontend/.env.example
-!frontend/.env.test.example
+!apps/frontend/.env.example
+!apps/frontend/.env.test.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -81,9 +81,9 @@ web_modules/
 out
 
 # Playwright (frontend)
-frontend/test-results/
-frontend/playwright-report/
-frontend/blob-report/
+apps/frontend/test-results/
+apps/frontend/playwright-report/
+apps/frontend/blob-report/
 
 # Nuxt.js build / generate output
 .nuxt
@@ -146,7 +146,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Backend files
-backend/.env.*
-!backend/.env.example
-!backend/.env.test.example
+apps/backend/.env.*
+!apps/backend/.env.example
+!apps/backend/.env.test.example
 !.env.example
