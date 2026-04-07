@@ -13,9 +13,12 @@ import {
 } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 import { fetchMyChurches } from "@/lib/api/churches";
 
 export default function ChurchesListPage() {
+  const canCreateChurch = useCan(PERMISSIONS.CHURCH_CREATE);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["myChurches"],
     queryFn: fetchMyChurches,
@@ -33,13 +36,15 @@ export default function ChurchesListPage() {
           title="คริสตจักรของฉัน"
           description="รายการที่คุณเป็นสมาชิกหรือเจ้าของ"
           action={
-            <Link
-              href="/dashboard/churches/new"
-              className={buttonClassName("default", "default")}
-              data-testid="church-link-create"
-            >
-              สร้างคริสตจักร
-            </Link>
+            canCreateChurch ? (
+              <Link
+                href="/dashboard/churches/new"
+                className={buttonClassName("default", "default")}
+                data-testid="church-link-create"
+              >
+                สร้างคริสตจักร
+              </Link>
+            ) : null
           }
         />
 

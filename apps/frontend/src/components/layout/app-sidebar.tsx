@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   Home,
@@ -14,8 +13,10 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { fetchAdminDashboard } from "@/lib/api/admin";
+import { ChurchSwitcher } from "@/components/layout/church-switcher";
 import { Sidebar, type SidebarNavItem } from "@/components/layout/sidebar";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/dashboard") {
@@ -61,25 +62,30 @@ const adminItem: SidebarNavItem = {
 const restItems: SidebarNavItem[] = [
   { href: "/dashboard/ui-showcase", label: "UI อ้างอิง", icon: LayoutTemplate },
   { href: "/songs", label: "เพลง", icon: Music },
-  { href: "/dashboard/songs", label: "จัดการเพลง", icon: ListMusic },
-  { href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle },
-  { href: "/dashboard/live", label: "ไลฟ์", icon: Radio },
-  { href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic },
   { href: "/dashboard/settings", label: "ตั้งค่า", icon: Settings },
 ];
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-
-  const { isSuccess: canAccessAdmin } = useQuery({
-    queryKey: ["adminDashboard"],
-    queryFn: fetchAdminDashboard,
-    retry: false,
-  });
+  const canAccessAdmin = useCan(PERMISSIONS.SYSTEM_ADMIN);
+  const canManageSongs = useCan(PERMISSIONS.SONG_UPDATE);
+  const canCreateSongs = useCan(PERMISSIONS.SONG_CREATE);
+  const canAccessLive = useCan(PERMISSIONS.LIVE_READ);
+  const canAccessSetlists = useCan(PERMISSIONS.SETLIST_READ);
 
   const items: SidebarNavItem[] = [
     ...coreItems,
     ...(canAccessAdmin ? [adminItem] : []),
+    ...(canManageSongs
+      ? [{ href: "/dashboard/songs", label: "จัดการเพลง", icon: ListMusic }]
+      : []),
+    ...(canCreateSongs
+      ? [{ href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle }]
+      : []),
+    ...(canAccessLive ? [{ href: "/dashboard/live", label: "ไลฟ์", icon: Radio }] : []),
+    ...(canAccessSetlists
+      ? [{ href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic }]
+      : []),
     ...restItems,
   ];
 
@@ -89,6 +95,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       items={items}
       isActive={isActive}
       onNavigate={onNavigate}
+      beforeNav={<ChurchSwitcher />}
     />
   );
 }

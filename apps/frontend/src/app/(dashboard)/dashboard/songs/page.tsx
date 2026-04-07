@@ -9,8 +9,11 @@ import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { SongManagementTable } from "@/components/songs/song-management-table";
 import { SongTableToolbar } from "@/components/songs/song-table-toolbar";
 import { buttonClassName } from "@/components/ui/button";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 import {
   deleteSong,
   fetchSongAdminList,
@@ -21,6 +24,8 @@ import type { SongListItem } from "@/lib/api/types";
 const PAGE_LIMIT = 20;
 
 export default function SongManagementPage() {
+  const canManageSongs = useCan(PERMISSIONS.SONG_UPDATE);
+  const canCreateSong = useCan(PERMISSIONS.SONG_CREATE);
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
   const [searchDraft, setSearchDraft] = React.useState("");
@@ -44,6 +49,7 @@ export default function SongManagementPage() {
         limit: PAGE_LIMIT,
         q: search || undefined,
       }),
+    enabled: canManageSongs,
   });
 
   const statusMutation = useMutation({
@@ -116,72 +122,81 @@ export default function SongManagementPage() {
           title="จัดการเพลง"
           description="จัดการรายการเพลงทั้งหมดในระบบ"
           action={
-            <Link
-              href="/dashboard/songs/new"
-              className={buttonClassName("default", "default")}
-              data-testid="song-admin-link-create"
-            >
-              เพิ่มเพลง
-            </Link>
+            canCreateSong ? (
+              <Link
+                href="/dashboard/songs/new"
+                className={buttonClassName("default", "default")}
+                data-testid="song-admin-link-create"
+              >
+                เพิ่มเพลง
+              </Link>
+            ) : null
           }
         />
+        {!canManageSongs ? (
+          <FormErrorBanner data-testid="song-management-forbidden">
+            บัญชีนี้ไม่มีสิทธิ์จัดการเพลง
+          </FormErrorBanner>
+        ) : null}
 
-        <DataTableCard
-          title="รายการเพลง"
-          description={`ทั้งหมด ${total.toLocaleString()} เพลง`}
-          className="w-full"
-          tableContainerProps={{ className: "overflow-x-auto" }}
-        >
-          <SongTableToolbar
-            searchDraft={searchDraft}
-            onSearchDraftChange={setSearchDraft}
-            onSearchSubmit={onSubmitSearch}
-            statusFilter={statusFilter}
-            onStatusFilterChange={(next) => {
-              setStatusFilter(next);
-              setPage(1);
-            }}
-            isSearching={isFetching}
-          />
+        {canManageSongs ? (
+          <DataTableCard
+            title="รายการเพลง"
+            description={`ทั้งหมด ${total.toLocaleString()} เพลง`}
+            className="w-full"
+            tableContainerProps={{ className: "overflow-x-auto" }}
+          >
+            <SongTableToolbar
+              searchDraft={searchDraft}
+              onSearchDraftChange={setSearchDraft}
+              onSearchSubmit={onSubmitSearch}
+              statusFilter={statusFilter}
+              onStatusFilterChange={(next) => {
+                setStatusFilter(next);
+                setPage(1);
+              }}
+              isSearching={isFetching}
+            />
 
-          <SongManagementTable
-            items={items}
-            isLoading={isLoading}
-            errorMessage={errorMessage}
-            statusPendingSongId={statusPendingSongId}
-            deletePendingSongId={deletePendingSongId}
-            onToggleStatus={handleToggleStatus}
-            onDelete={handleDelete}
-          />
+            <SongManagementTable
+              items={items}
+              isLoading={isLoading}
+              errorMessage={errorMessage}
+              statusPendingSongId={statusPendingSongId}
+              deletePendingSongId={deletePendingSongId}
+              onToggleStatus={handleToggleStatus}
+              onDelete={handleDelete}
+            />
 
-          {!isLoading && !isError ? (
-            <div className="flex items-center justify-between border-t border-border p-4">
-              <p className="text-sm text-muted-foreground">
-                หน้า {page} จาก {totalPages}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className={buttonClassName("outline", "sm")}
-                  disabled={page <= 1 || isFetching}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  data-testid="song-admin-pagination-prev"
-                >
-                  ก่อนหน้า
-                </button>
-                <button
-                  type="button"
-                  className={buttonClassName("outline", "sm")}
-                  disabled={page >= totalPages || isFetching}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  data-testid="song-admin-pagination-next"
-                >
-                  ถัดไป
-                </button>
+            {!isLoading && !isError ? (
+              <div className="flex items-center justify-between border-t border-border p-4">
+                <p className="text-sm text-muted-foreground">
+                  หน้า {page} จาก {totalPages}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className={buttonClassName("outline", "sm")}
+                    disabled={page <= 1 || isFetching}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    data-testid="song-admin-pagination-prev"
+                  >
+                    ก่อนหน้า
+                  </button>
+                  <button
+                    type="button"
+                    className={buttonClassName("outline", "sm")}
+                    disabled={page >= totalPages || isFetching}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    data-testid="song-admin-pagination-next"
+                  >
+                    ถัดไป
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : null}
-        </DataTableCard>
+            ) : null}
+          </DataTableCard>
+        ) : null}
       </PageContainer>
     </>
   );

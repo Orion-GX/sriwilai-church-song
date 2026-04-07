@@ -23,6 +23,7 @@ type SidebarProps = {
   isActive: (pathname: string, href: string) => boolean;
   /** เรียกเมื่อคลิกลิงก์ (เช่น ปิด drawer มือถือ) */
   onNavigate?: () => void;
+  beforeNav?: React.ReactNode;
   className?: string;
 };
 
@@ -36,6 +37,7 @@ export function Sidebar({
   items,
   isActive,
   onNavigate,
+  beforeNav,
   className,
 }: SidebarProps) {
   const pathname = usePathname();
@@ -65,6 +67,8 @@ export function Sidebar({
         ) : null}
         <span className={cn(collapsed && "sr-only")}>{brand.title}</span>
       </Link>
+
+      {beforeNav}
 
       <nav
         className="flex flex-1 flex-col gap-1 overflow-y-auto"

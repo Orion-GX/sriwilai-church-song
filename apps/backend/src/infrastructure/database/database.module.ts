@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 
 import { AppConfiguration } from '../../config/configuration';
 
@@ -21,6 +22,8 @@ import { AppConfiguration } from '../../config/configuration';
           ssl: db.ssl ? { rejectUnauthorized: false } : false,
           autoLoadEntities: true,
           synchronize: false,
+          migrations: [join(__dirname, 'migrations/*{.ts,.js}')],
+          migrationsRun: process.env.NODE_ENV === 'test',
           logging: false,
           extra: {
             max: db.maxConnections,

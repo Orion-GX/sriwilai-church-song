@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 import { AuditLogEntity } from '../src/modules/audit/entities/audit-log.entity';
@@ -28,7 +29,7 @@ describe('Auth API (e2e)', () => {
 
   beforeAll(async () => {
     app = await createConfiguredTestApplication();
-    dataSource = app.get(DataSource);
+    dataSource = app.get<DataSource>(getDataSourceToken());
     refreshCookieName = process.env.AUTH_REFRESH_COOKIE_NAME ?? 'ccp_rt';
   });
 

@@ -21,10 +21,14 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createLiveSession, fetchLiveSessions } from "@/lib/api/live";
 import { ApiError } from "@/lib/api/client";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function LiveSessionsListPage() {
   const queryClient = useQueryClient();
+  const canReadLive = useCan(PERMISSIONS.LIVE_READ);
+  const canManageLive = useCan(PERMISSIONS.LIVE_MANAGE);
   const user = useAuthStore((s) => s.user);
   const [title, setTitle] = React.useState("");
   const [createErr, setCreateErr] = React.useState<string | null>(null);
@@ -32,7 +36,7 @@ export default function LiveSessionsListPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["liveSessions"],
     queryFn: () => fetchLiveSessions(),
-    enabled: !!user,
+    enabled: !!user && canReadLive,
   });
 
   const createMut = useMutation({
@@ -85,7 +89,7 @@ export default function LiveSessionsListPage() {
               เพื่อดูเซสชัน
             </CardContent>
           </Card>
-        ) : (
+        ) : canManageLive ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base md:text-lg">
@@ -120,9 +124,16 @@ export default function LiveSessionsListPage() {
               </Button>
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
-        <section className="space-y-4" aria-labelledby="live-open-heading">
+        {!canReadLive && user ? (
+          <FormErrorBanner data-testid="live-list-forbidden">
+            บัญชีนี้ไม่มีสิทธิ์เข้าถึงเซสชันไลฟ์
+          </FormErrorBanner>
+        ) : null}
+
+        {canReadLive ? (
+          <section className="space-y-4" aria-labelledby="live-open-heading">
           <h2 id="live-open-heading" className="text-section-title">
             เซสชันที่กำลังเปิด
           </h2>
@@ -182,7 +193,8 @@ export default function LiveSessionsListPage() {
           >
             รีเฟรช
           </Button>
-        </section>
+          </section>
+        ) : null}
       </PageContainer>
     </>
   );

@@ -1,4 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 import { authBearerHeaders, createHttpServerRequest } from './support/auth-test.helper';
@@ -14,7 +15,7 @@ describe('Favourites API (e2e)', () => {
 
   beforeAll(async () => {
     app = await createConfiguredTestApplication();
-    dataSource = app.get(DataSource);
+    dataSource = app.get<DataSource>(getDataSourceToken());
   });
 
   beforeEach(async () => {
@@ -49,7 +50,7 @@ describe('Favourites API (e2e)', () => {
     title: string,
   ): Promise<{ id: string }> {
     const res = await createHttpServerRequest(app)
-      .post('/api/v1/app/songs')
+      .post('/api/v1/app/admin/songs')
       .set(authBearerHeaders(adminTok))
       .send({
         title,

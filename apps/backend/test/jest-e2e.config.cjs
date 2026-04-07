@@ -16,6 +16,7 @@ module.exports = {
     ],
   },
   setupFiles: ['<rootDir>/test/setup/jest-env.cjs'],
+  globalSetup: '<rootDir>/test/setup/global-setup.cjs',
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   maxWorkers: 1,
   testTimeout: 60_000,

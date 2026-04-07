@@ -71,9 +71,12 @@ export async function apiFetch<T>(
   }
 
   if (auth) {
-    const token = useAuthStore.getState().accessToken;
+    const { accessToken: token, currentChurchId } = useAuthStore.getState();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
+    }
+    if (currentChurchId && !headers.has("x-church-id")) {
+      headers.set("x-church-id", currentChurchId);
     }
   }
 
@@ -88,10 +91,14 @@ export async function apiFetch<T>(
     const newToken = await refreshAccessToken();
     if (newToken) {
       const h2 = new Headers(init.headers);
+      const { currentChurchId } = useAuthStore.getState();
       if (!h2.has("Content-Type") && init.body) {
         h2.set("Content-Type", "application/json");
       }
       h2.set("Authorization", `Bearer ${newToken}`);
+      if (currentChurchId && !h2.has("x-church-id")) {
+        h2.set("x-church-id", currentChurchId);
+      }
       const retry = await fetch(url, {
         ...init,
         headers: h2,

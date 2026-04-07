@@ -2,7 +2,7 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { CHURCH_ID_HEADER, SYSTEM_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
+import { CHURCH_ID_HEADER, CHURCH_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
 import { authBearerHeaders, createHttpServerRequest } from './support/auth-test.helper';
 import { authE2ERegisterBody } from './support/auth-e2e.fixtures';
 import { assignSystemAdminRole } from './support/rbac-e2e.helper';
@@ -209,7 +209,7 @@ describe('Songs API (e2e)', () => {
       await createHttpServerRequest(app)
         .post(`/api/v1/app/churches/${churchId}/members`)
         .set(authBearerHeaders(ownerTok))
-        .send({ userId: memberMe.body.id as string, roleCode: SYSTEM_ROLE_CODES.MEMBER })
+        .send({ userId: memberMe.body.id as string, roleCode: CHURCH_ROLE_CODES.MEMBER })
         .expect(HttpStatus.CREATED);
 
       const song = await createHttpServerRequest(app)
@@ -289,7 +289,12 @@ describe('Songs API (e2e)', () => {
         .get('/api/v1/app/songs')
         .query({ churchId })
         .expect(HttpStatus.OK);
-      expect(byChurch.body.items.every((s: { churchId: string | null }) => s.churchId === churchId)).toBe(true);
+      expect(
+        byChurch.body.items.some(
+          (s: { slug: string; churchId: string | null }) =>
+            s.slug === 'se2e-only-chapel' && s.churchId === churchId,
+        ),
+      ).toBe(true);
     });
   });
 

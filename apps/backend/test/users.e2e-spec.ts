@@ -1,4 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 import { AuditLogEntity } from '../src/modules/audit/entities/audit-log.entity';
@@ -17,7 +18,7 @@ describe('Users & profile API (e2e)', () => {
 
   beforeAll(async () => {
     app = await createConfiguredTestApplication();
-    dataSource = app.get(DataSource);
+    dataSource = app.get<DataSource>(getDataSourceToken());
   });
 
   beforeEach(async () => {

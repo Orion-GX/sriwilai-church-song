@@ -18,6 +18,8 @@ import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { ApiError } from "@/lib/api/client";
 import { fetchAdminDashboard } from "@/lib/api/admin";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,12 +46,14 @@ function formatShortDate(iso: string) {
 }
 
 export default function AdminDashboardPage() {
+  const canAccessAdmin = useCan(PERMISSIONS.SYSTEM_ADMIN);
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["adminDashboard"],
     queryFn: fetchAdminDashboard,
+    enabled: canAccessAdmin,
   });
 
-  const forbidden = error instanceof ApiError && error.status === 403;
+  const forbidden = !canAccessAdmin || (error instanceof ApiError && error.status === 403);
 
   return (
     <>
@@ -96,11 +100,11 @@ export default function AdminDashboardPage() {
                 ไม่มีสิทธิ์เข้าถึง
               </CardTitle>
               <CardDescription className="text-amber-900/90 dark:text-amber-100/90">
-                บัญชีของคุณต้องมี permission{" "}
+                บัญชีนี้ไม่มีสิทธิ์เข้าถึงแดชบอร์ดแอดมิน (ต้องมี permission{" "}
                 <code className="rounded bg-muted px-1 text-foreground">
                   system.admin
-                </code>{" "}
-                จึงจะดูแดชบอร์ดนี้ได้
+                </code>
+                )
               </CardDescription>
             </CardHeader>
           </Card>

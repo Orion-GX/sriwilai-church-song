@@ -1,7 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { CHURCH_ID_HEADER, SYSTEM_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
+import { CHURCH_ID_HEADER, CHURCH_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
 import { authBearerHeaders, createHttpServerRequest } from './support/auth-test.helper';
 import { authE2ERegisterBody } from './support/auth-e2e.fixtures';
 import {
@@ -36,7 +37,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
     const ctx = await createListeningTestApplication();
     app = ctx.app;
     baseUrl = ctx.baseUrl;
-    dataSource = app.get(DataSource);
+    dataSource = app.get<DataSource>(getDataSourceToken());
   });
 
   beforeEach(async () => {
@@ -94,11 +95,11 @@ describe('Live module — REST + WebSocket (e2e)', () => {
     await createHttpServerRequest(app)
       .post(`/api/v1/app/churches/${churchId}/members`)
       .set(authBearerHeaders(ownerToken))
-      .send({ userId: memberMe.body.id as string, roleCode: SYSTEM_ROLE_CODES.MEMBER })
+      .send({ userId: memberMe.body.id as string, roleCode: CHURCH_ROLE_CODES.MEMBER })
       .expect(HttpStatus.CREATED);
 
     const songA = await createHttpServerRequest(app)
-      .post('/api/v1/app/songs')
+      .post('/api/v1/app/admin/songs')
       .set(authBearerHeaders(ownerToken))
       .set(CHURCH_ID_HEADER, churchId)
       .send({
@@ -110,7 +111,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
       .expect(HttpStatus.CREATED);
 
     const songB = await createHttpServerRequest(app)
-      .post('/api/v1/app/songs')
+      .post('/api/v1/app/admin/songs')
       .set(authBearerHeaders(ownerToken))
       .set(CHURCH_ID_HEADER, churchId)
       .send({
@@ -145,10 +146,11 @@ describe('Live module — REST + WebSocket (e2e)', () => {
       .get('/api/v1/app/users/me')
       .set(authBearerHeaders(s.ownerToken))
       .expect(HttpStatus.OK);
+    const schema = process.env.DB_SCHEMA ?? 'public';
 
     expect(s.sessionId).toMatch(/^[0-9a-f-]{36}$/i);
     const row = await dataSource.query(
-      `SELECT leader_user_id, church_id, title, status FROM live_sessions WHERE id = $1`,
+      `SELECT leader_user_id, church_id, title, status FROM "${schema}"."live_sessions" WHERE id = $1`,
       [s.sessionId],
     );
     expect(row[0].leader_user_id).toBe(ownerMe.body.id);

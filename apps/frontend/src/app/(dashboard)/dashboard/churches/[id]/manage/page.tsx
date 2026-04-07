@@ -10,18 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 import { fetchChurchById } from "@/lib/api/churches";
 
 export default function ChurchManagePage() {
+  const canManageChurch = useCan(PERMISSIONS.CHURCH_UPDATE);
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : "";
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["church", id, "manage"],
     queryFn: () => fetchChurchById(id),
-    enabled: !!id,
+    enabled: !!id && canManageChurch,
     retry: false,
   });
 
@@ -38,7 +42,11 @@ export default function ChurchManagePage() {
           description="ข้อมูลคริสตจักรและการตั้งค่า (ขยายสมาชิก/บทบาทจาก API ได้ภายหลัง)"
         />
 
-        {isLoading ? (
+        {!canManageChurch ? (
+          <FormErrorBanner data-testid="church-manage-forbidden">
+            บัญชีนี้ไม่มีสิทธิ์จัดการคริสตจักร
+          </FormErrorBanner>
+        ) : isLoading ? (
           <p className="text-muted-foreground" data-testid="church-manage-loading">
             กำลังโหลด…
           </p>

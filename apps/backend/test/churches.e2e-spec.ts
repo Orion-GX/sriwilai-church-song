@@ -1,9 +1,10 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 import { AuditLogEntity } from '../src/modules/audit/entities/audit-log.entity';
 import { CHURCH_AUDIT_ACTIONS } from '../src/modules/churches/constants/audit-actions';
-import { SYSTEM_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
+import { CHURCH_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
 import { authBearerHeaders, createHttpServerRequest } from './support/auth-test.helper';
 import { authE2ERegisterBody } from './support/auth-e2e.fixtures';
 import { cleanupChurchesE2EFixtures } from './support/churches-e2e-cleanup';
@@ -19,7 +20,7 @@ describe('Churches API (e2e)', () => {
 
   beforeAll(async () => {
     app = await createConfiguredTestApplication();
-    dataSource = app.get(DataSource);
+    dataSource = app.get<DataSource>(getDataSourceToken());
   });
 
   beforeEach(async () => {
@@ -178,13 +179,13 @@ describe('Churches API (e2e)', () => {
       await createHttpServerRequest(app)
         .post(`/api/v1/app/churches/${churchId}/members`)
         .set(authBearerHeaders(ownerToken))
-        .send({ userId: adminJoinerId, roleCode: SYSTEM_ROLE_CODES.CHURCH_ADMIN })
+        .send({ userId: adminJoinerId, roleCode: CHURCH_ROLE_CODES.CHURCH_ADMIN })
         .expect(HttpStatus.CREATED);
 
       await createHttpServerRequest(app)
         .post(`/api/v1/app/churches/${churchId}/members`)
         .set(authBearerHeaders(ownerToken))
-        .send({ userId: plainMemberId, roleCode: SYSTEM_ROLE_CODES.MEMBER })
+        .send({ userId: plainMemberId, roleCode: CHURCH_ROLE_CODES.MEMBER })
         .expect(HttpStatus.CREATED);
 
       await createHttpServerRequest(app)
@@ -234,7 +235,7 @@ describe('Churches API (e2e)', () => {
       await createHttpServerRequest(app)
         .post(`/api/v1/app/churches/${churchId}/members`)
         .set(authBearerHeaders(ownerToken))
-        .send({ userId: adminId, roleCode: SYSTEM_ROLE_CODES.CHURCH_ADMIN })
+        .send({ userId: adminId, roleCode: CHURCH_ROLE_CODES.CHURCH_ADMIN })
         .expect(HttpStatus.CREATED);
 
       await createHttpServerRequest(app)
