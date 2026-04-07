@@ -45,9 +45,14 @@ export const buildPinoHttpConfig = (prettyPrint: boolean, level: string): Params
       ? {
           target: 'pino-pretty',
           options: {
-            singleLine: true,
             colorize: true,
-            translateTime: 'SYS:standard',
+            translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l',
+            ignore: 'pid,hostname',
+            errorLikeObjectKeys: ['err', 'error'],
+            messageKey: 'msg',
+            hideObject: false,
+            singleLine: true,
+            destination: 1,
           },
         }
       : undefined,

@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .valid('development', 'test', 'staging', 'production')
+    .valid('development', 'test', 'staging', 'uat', 'production')
     .default('development'),
   PORT: Joi.number().port().default(3001),
   APP_NAME: Joi.string().default('sriwilai-church-song-api'),
@@ -30,7 +30,8 @@ export const envValidationSchema = Joi.object({
   LOG_LEVEL: Joi.string()
     .valid('fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent')
     .default('info'),
-  LOG_PRETTY: Joi.boolean().truthy('true').falsy('false').default(true),
+  /** ไม่ตั้ง = อัตโนมัติ: pretty เฉพาะ NODE_ENV=development, นอกนั้น JSON */
+  LOG_PRETTY: Joi.boolean().truthy('true').falsy('false').optional(),
 
   AUTH_ACCESS_TOKEN_SECRET: Joi.string().min(32).required(),
   AUTH_ACCESS_TOKEN_EXPIRES_IN: Joi.string().default('15m'),

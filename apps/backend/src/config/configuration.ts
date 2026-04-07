@@ -27,6 +27,10 @@ export interface RedisConfig {
 
 export interface LoggingConfig {
   level: string;
+  /**
+   * true = pino-pretty ที่ terminal (development)
+   * false = JSON บน stdout (production / uat / staging — เหมาะกับ log aggregator)
+   */
   prettyPrint: boolean;
 }
 
@@ -94,6 +98,15 @@ const parseCorsOrigins = (): string[] => {
   return ['http://localhost:3000', 'http://127.0.0.1:3000'];
 };
 
+/** pretty เฉพาะ dev โดยค่าเริ่มต้น; ตั้ง LOG_PRETTY เพื่อบังคับ true/false */
+const resolvePrettyPrint = (nodeEnv: string): boolean => {
+  const raw = process.env.LOG_PRETTY;
+  if (raw !== undefined && raw !== '') {
+    return parseBoolean(raw, false);
+  }
+  return nodeEnv === 'development';
+};
+
 export default (): AppConfiguration => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -124,7 +137,7 @@ export default (): AppConfiguration => ({
   },
   logging: {
     level: process.env.LOG_LEVEL ?? 'info',
-    prettyPrint: parseBoolean(process.env.LOG_PRETTY, true),
+    prettyPrint: resolvePrettyPrint(process.env.NODE_ENV ?? 'development'),
   },
   auth: {
     accessTokenSecret:
