@@ -78,7 +78,7 @@ yarn test:e2e --testPathPattern=live.e2e-spec
 | กลุ่ม | สิ่งที่ Covered |
 |--------|------------------|
 | Guest | list เพลง published; อ่าน detail + ChordPro; draft ไม่โผล่ list และ detail 404; สร้างเพลง 401 |
-| Church scope | owner สร้างเพลงด้วย `x-church-id`; ไม่มี header แต่มี JWT → 403; owner patch; member ไม่มี song.update → 403 |
+| Church scope | owner สร้างเพลงด้วย `x-church-id` แล้วผูก `churchId`; ไม่มี header แต่มี JWT ยังสร้างได้ (ค่า `churchId = null`); owner patch; member ไม่มี song.update → 403 |
 | ค้นหา | `q`, `categorySlug`, `tagSlugs`, `churchId` |
 | หมวด/แท็ก | categoryId + tagSlugs บันทึกและแสดงใน detail |
 | Soft delete | ลบแล้ว public ไม่เห็น |

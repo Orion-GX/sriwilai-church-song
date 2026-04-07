@@ -1,7 +1,17 @@
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
-export class ListPublicSongsQueryDto {
+export class ListAdminSongsQueryDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -48,7 +58,26 @@ export class ListPublicSongsQueryDto {
   @IsString()
   @MaxLength(200)
   q?: string;
-}
 
-// Backward compatible alias for existing imports.
-export { ListPublicSongsQueryDto as ListSongsQueryDto };
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'true') {
+        return true;
+      }
+      if (normalized === 'false') {
+        return false;
+      }
+    }
+    return value;
+  })
+  @IsBoolean()
+  isPublished?: boolean;
+}

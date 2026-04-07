@@ -36,6 +36,9 @@ function isActive(pathname: string, href: string): boolean {
   if (href === "/songs") {
     return pathname === "/songs" || pathname.startsWith("/songs/");
   }
+  if (href === "/dashboard/songs") {
+    return pathname === "/dashboard/songs" || pathname.startsWith("/dashboard/songs/");
+  }
   if (href === "/dashboard/songs/new") {
     return pathname.startsWith("/dashboard/songs");
   }
@@ -58,6 +61,7 @@ const adminItem: SidebarNavItem = {
 const restItems: SidebarNavItem[] = [
   { href: "/dashboard/ui-showcase", label: "UI อ้างอิง", icon: LayoutTemplate },
   { href: "/songs", label: "เพลง", icon: Music },
+  { href: "/dashboard/songs", label: "จัดการเพลง", icon: ListMusic },
   { href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle },
   { href: "/dashboard/live", label: "ไลฟ์", icon: Radio },
   { href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic },

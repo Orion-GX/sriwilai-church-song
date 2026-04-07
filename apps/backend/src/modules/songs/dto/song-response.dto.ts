@@ -12,7 +12,7 @@ export class SongTagSnippetDto {
   name!: string;
 }
 
-export class SongListItemDto {
+export class SongPublicListItemDto {
   id!: string;
   title!: string;
   slug!: string;
@@ -24,8 +24,8 @@ export class SongListItemDto {
   createdAt!: Date;
   updatedAt!: Date;
 
-  static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongListItemDto {
-    const dto = new SongListItemDto();
+  static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongPublicListItemDto {
+    const dto = new SongPublicListItemDto();
     dto.id = row.id;
     dto.title = row.title;
     dto.slug = row.slug;
@@ -42,14 +42,52 @@ export class SongListItemDto {
   }
 }
 
-export class SongDetailDto extends SongListItemDto {
+export class SongPublicDetailDto extends SongPublicListItemDto {
+  chordproBody!: string;
+
+  static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongPublicDetailDto {
+    const list = SongPublicListItemDto.fromEntity(row, opts);
+    const dto = new SongPublicDetailDto();
+    dto.id = list.id;
+    dto.title = list.title;
+    dto.slug = list.slug;
+    dto.churchId = list.churchId;
+    dto.isPublished = list.isPublished;
+    dto.category = list.category;
+    dto.tags = list.tags;
+    dto.viewCount = list.viewCount;
+    dto.createdAt = list.createdAt;
+    dto.updatedAt = list.updatedAt;
+    dto.chordproBody = row.chordproBody;
+    return dto;
+  }
+}
+
+export class SongAdminListItemDto extends SongPublicListItemDto {
+  static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongAdminListItemDto {
+    const list = SongPublicListItemDto.fromEntity(row, opts);
+    const dto = new SongAdminListItemDto();
+    dto.id = list.id;
+    dto.title = list.title;
+    dto.slug = list.slug;
+    dto.churchId = list.churchId;
+    dto.category = list.category;
+    dto.tags = list.tags;
+    dto.viewCount = list.viewCount;
+    dto.createdAt = list.createdAt;
+    dto.updatedAt = list.updatedAt;
+    return dto;
+  }
+}
+
+export class SongAdminDetailDto extends SongAdminListItemDto {
   chordproBody!: string;
   createdBy!: string | null;
   updatedBy!: string | null;
 
-  static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongDetailDto {
-    const list = SongListItemDto.fromEntity(row, opts);
-    const dto = new SongDetailDto();
+  static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongAdminDetailDto {
+    const list = SongAdminListItemDto.fromEntity(row, opts);
+    const dto = new SongAdminDetailDto();
     dto.id = list.id;
     dto.title = list.title;
     dto.slug = list.slug;
@@ -66,6 +104,10 @@ export class SongDetailDto extends SongListItemDto {
     return dto;
   }
 }
+
+// Backward compatible aliases for existing consumers.
+export { SongPublicListItemDto as SongListItemDto };
+export { SongAdminDetailDto as SongDetailDto };
 
 export class SongCategoryResponseDto {
   id!: string;

@@ -17,7 +17,6 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 
-import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { resolveRequestId } from '../auth/utils/request-id.util';
@@ -26,10 +25,10 @@ import { PermissionsGuard } from '../rbac/guards/permissions.guard';
 import { CHURCH_ID_HEADER, SYSTEM_PERMISSION_CODES } from '../rbac/rbac.constants';
 
 import { CreateSongDto } from './dto/create-song.dto';
-import { ListSongsQueryDto } from './dto/list-songs-query.dto';
+import { ListAdminSongsQueryDto } from './dto/list-admin-songs-query.dto';
 import { CreateSongCategoryDto, UpdateSongCategoryDto } from './dto/song-category.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
-import { SongsService } from './songs.service';
+import { SongsAdminService } from './songs-admin.service';
 
 const APP_THROTTLE = { default: { limit: 120, ttl: 60_000 } } as const;
 
@@ -46,12 +45,12 @@ function parseChurchIdHeader(req: Request): string | null {
 }
 
 @Controller({
-  path: 'app/songs',
+  path: 'app/admin/songs',
   version: '1',
 })
 @UseGuards(JwtAuthGuard, PermissionsGuard)
-export class SongsController {
-  constructor(private readonly songsService: SongsService) {}
+export class SongsAdminController {
+  constructor(private readonly songsAdminService: SongsAdminService) {}
 
   private meta(req: Request, ip?: string) {
     return {
@@ -61,25 +60,18 @@ export class SongsController {
     };
   }
 
-  @Public()
   @Get()
   @Throttle(APP_THROTTLE)
-  list(@Query() query: ListSongsQueryDto) {
-    return this.songsService.listPublic(query);
+  @Permissions(SYSTEM_PERMISSION_CODES.SONG_READ)
+  list(@Query() query: ListAdminSongsQueryDto) {
+    return this.songsAdminService.listSongs(query);
   }
 
-  @Public()
-  @Get('categories')
+  @Get(':id')
   @Throttle(APP_THROTTLE)
-  listCategories() {
-    return this.songsService.listCategoriesPublic();
-  }
-
-  @Public()
-  @Get('tags')
-  @Throttle(APP_THROTTLE)
-  listTags() {
-    return this.songsService.listTagsPublic();
+  @Permissions(SYSTEM_PERMISSION_CODES.SONG_READ)
+  getOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.songsAdminService.getSongDetail(id);
   }
 
   @Post('categories')
@@ -91,7 +83,7 @@ export class SongsController {
     @Req() req: Request,
     @Ip() ip: string | undefined,
   ) {
-    return this.songsService.createCategory(userId, body, this.meta(req, ip));
+    return this.songsAdminService.createCategory(userId, body, this.meta(req, ip));
   }
 
   @Patch('categories/:categoryId')
@@ -104,7 +96,7 @@ export class SongsController {
     @Req() req: Request,
     @Ip() ip: string | undefined,
   ) {
-    return this.songsService.updateCategory(userId, categoryId, body, this.meta(req, ip));
+    return this.songsAdminService.updateCategory(userId, categoryId, body, this.meta(req, ip));
   }
 
   @Delete('categories/:categoryId')
@@ -117,7 +109,7 @@ export class SongsController {
     @Req() req: Request,
     @Ip() ip: string | undefined,
   ): Promise<void> {
-    await this.songsService.softDeleteCategory(userId, categoryId, this.meta(req, ip));
+    await this.songsAdminService.deleteCategory(userId, categoryId, this.meta(req, ip));
   }
 
   @Post()
@@ -130,7 +122,7 @@ export class SongsController {
     @Ip() ip: string | undefined,
   ) {
     const scopeChurchId = parseChurchIdHeader(req);
-    return this.songsService.createSong(userId, scopeChurchId, body, this.meta(req, ip));
+    return this.songsAdminService.createSong(userId, scopeChurchId, body, this.meta(req, ip));
   }
 
   @Patch(':id')
@@ -143,7 +135,7 @@ export class SongsController {
     @Req() req: Request,
     @Ip() ip: string | undefined,
   ) {
-    return this.songsService.updateSong(userId, id, body, this.meta(req, ip));
+    return this.songsAdminService.updateSong(userId, id, body, this.meta(req, ip));
   }
 
   @Delete(':id')
@@ -156,13 +148,6 @@ export class SongsController {
     @Req() req: Request,
     @Ip() ip: string | undefined,
   ): Promise<void> {
-    await this.songsService.softDeleteSong(userId, id, this.meta(req, ip));
-  }
-
-  @Public()
-  @Get(':id')
-  @Throttle(APP_THROTTLE)
-  getOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.songsService.findOnePublic(id);
+    await this.songsAdminService.deleteSong(userId, id, this.meta(req, ip));
   }
 }

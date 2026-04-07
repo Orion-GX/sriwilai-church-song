@@ -1,4 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 import { CHURCH_ID_HEADER, SYSTEM_ROLE_CODES } from '../src/modules/rbac/rbac.constants';
@@ -20,7 +21,7 @@ describe('Songs API (e2e)', () => {
 
   beforeAll(async () => {
     app = await createConfiguredTestApplication();
-    dataSource = app.get(DataSource);
+    dataSource = app.get<DataSource>(getDataSourceToken());
   });
 
   beforeEach(async () => {
@@ -71,7 +72,7 @@ describe('Songs API (e2e)', () => {
     it('guest ดูรายการเพลงที่เผยแพร่ได้ — GET /songs ไม่ต้องมี JWT', async () => {
       const adminTok = await systemAdminToken();
       await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E เพลงสาธารณะ',
@@ -88,7 +89,7 @@ describe('Songs API (e2e)', () => {
     it('guest อ่านรายละเอียดเพลงที่เผยแพร่ได้ — chordpro อยู่ใน body', async () => {
       const adminTok = await systemAdminToken();
       const created = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E Detail',
@@ -107,7 +108,7 @@ describe('Songs API (e2e)', () => {
     it('guest เห็นเพลง unpublished ไม่ได้ — list ไม่รวม และ GET detail 404', async () => {
       const adminTok = await systemAdminToken();
       const created = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E Draft Only',
@@ -126,7 +127,7 @@ describe('Songs API (e2e)', () => {
 
     it('guest สร้างเพลงไม่ได้ — 401', async () => {
       await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .send({
           title: 'x',
           chordproBody: 'x',
@@ -136,12 +137,12 @@ describe('Songs API (e2e)', () => {
   });
 
   describe('ผู้ใช้ที่ login แล้ว + ขอบเขตคริสตจักร', () => {
-    it('เจ้าของคริสตจักรสร้างเพลงได้ — ต้องส่ง x-church-id และมีสิทธิ์ song.create แบบ church-scoped', async () => {
+    it('เจ้าของคริสตจักรสร้างเพลงได้ — เมื่อส่ง x-church-id จะบันทึก churchId ตาม header', async () => {
       const ownerTok = await registerToken(SONGS_E2E_EMAILS.owner);
       const churchId = await createSongsChapel(ownerTok);
 
       const res = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({
@@ -155,10 +156,11 @@ describe('Songs API (e2e)', () => {
       expect(res.body.churchId).toBe(churchId);
     });
 
-    it('ผู้ใช้มี JWT แต่ไม่มีสิทธิ์สร้างเพลง (ไม่มี church header) — 403', async () => {
+    it('ผู้ใช้มี JWT แต่ไม่มี church header จะใช้สิทธิ์ church-scoped ไม่ได้ — 403', async () => {
       const tok = await registerToken(SONGS_E2E_EMAILS.owner);
+      await createSongsChapel(tok);
       await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(tok))
         .send({
           title: 'ไม่ควรสำเร็จ',
@@ -172,7 +174,7 @@ describe('Songs API (e2e)', () => {
       const ownerTok = await registerToken(SONGS_E2E_EMAILS.owner);
       const churchId = await createSongsChapel(ownerTok);
       const created = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({
@@ -184,7 +186,7 @@ describe('Songs API (e2e)', () => {
         .expect(HttpStatus.CREATED);
 
       const updated = await createHttpServerRequest(app)
-        .patch(`/api/v1/app/songs/${created.body.id as string}`)
+        .patch(`/api/v1/app/admin/songs/${created.body.id as string}`)
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({ title: 'หลังแก้', chordproBody: '{title: new}' })
@@ -211,7 +213,7 @@ describe('Songs API (e2e)', () => {
         .expect(HttpStatus.CREATED);
 
       const song = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({
@@ -223,7 +225,7 @@ describe('Songs API (e2e)', () => {
         .expect(HttpStatus.CREATED);
 
       const res = await createHttpServerRequest(app)
-        .patch(`/api/v1/app/songs/${song.body.id as string}`)
+        .patch(`/api/v1/app/admin/songs/${song.body.id as string}`)
         .set(authBearerHeaders(memberTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({ title: 'member แก้' })
@@ -241,7 +243,7 @@ describe('Songs API (e2e)', () => {
       const catId = await worshipCategoryId();
 
       await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E filter unique title XYZ 123',
@@ -272,7 +274,7 @@ describe('Songs API (e2e)', () => {
       expect(byTag.body.items.some((s: { slug: string }) => s.slug === SONGS_E2E_SLUGS.filterUnique)).toBe(true);
 
       await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({
@@ -291,13 +293,55 @@ describe('Songs API (e2e)', () => {
     });
   });
 
+  describe('Admin list visibility', () => {
+    it('admin list เห็นทั้ง published และ unpublished ผ่าน /app/admin/songs', async () => {
+      const ownerTok = await registerToken(SONGS_E2E_EMAILS.owner);
+      const churchId = await createSongsChapel(ownerTok);
+
+      await createHttpServerRequest(app)
+        .post('/api/v1/app/admin/songs')
+        .set(authBearerHeaders(ownerTok))
+        .set(CHURCH_ID_HEADER, churchId)
+        .send({
+          title: 'published song',
+          slug: 'se2e-admin-list-published',
+          chordproBody: 'x',
+          isPublished: true,
+        })
+        .expect(HttpStatus.CREATED);
+
+      await createHttpServerRequest(app)
+        .post('/api/v1/app/admin/songs')
+        .set(authBearerHeaders(ownerTok))
+        .set(CHURCH_ID_HEADER, churchId)
+        .send({
+          title: 'draft song',
+          slug: 'se2e-admin-list-draft',
+          chordproBody: 'x',
+          isPublished: false,
+        })
+        .expect(HttpStatus.CREATED);
+
+      const list = await createHttpServerRequest(app)
+        .get('/api/v1/app/admin/songs')
+        .set(authBearerHeaders(ownerTok))
+        .set(CHURCH_ID_HEADER, churchId)
+        .query({ churchId })
+        .expect(HttpStatus.OK);
+
+      const slugs = (list.body.items as { slug: string }[]).map((x) => x.slug);
+      expect(slugs).toContain('se2e-admin-list-published');
+      expect(slugs).toContain('se2e-admin-list-draft');
+    });
+  });
+
   describe('หมวดหมู่ / แท็ก (ความสัมพันธ์)', () => {
     it('บันทึก categoryId และ tagSlugs — GET detail แสดง category + tags', async () => {
       const adminTok = await systemAdminToken();
       const catId = await worshipCategoryId();
 
       const created = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E Meta',
@@ -324,7 +368,7 @@ describe('Songs API (e2e)', () => {
       const churchId = await createSongsChapel(ownerTok);
 
       const created = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .send({
@@ -339,7 +383,7 @@ describe('Songs API (e2e)', () => {
       await createHttpServerRequest(app).get(`/api/v1/app/songs/${id}`).expect(HttpStatus.OK);
 
       await createHttpServerRequest(app)
-        .delete(`/api/v1/app/songs/${id}`)
+        .delete(`/api/v1/app/admin/songs/${id}`)
         .set(authBearerHeaders(ownerTok))
         .set(CHURCH_ID_HEADER, churchId)
         .expect(HttpStatus.NO_CONTENT);
@@ -355,7 +399,7 @@ describe('Songs API (e2e)', () => {
     it('แต่ละครั้งที่ guest เปิด GET /songs/:id จะ increment viewCount (ค่าในตอบสนอง)', async () => {
       const adminTok = await systemAdminToken();
       const created = await createHttpServerRequest(app)
-        .post('/api/v1/app/songs')
+        .post('/api/v1/app/admin/songs')
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E View',

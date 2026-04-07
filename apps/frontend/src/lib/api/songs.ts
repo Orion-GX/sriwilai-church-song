@@ -8,6 +8,7 @@ export type ListSongsParams = {
   categorySlug?: string;
   tagSlugs?: string[];
   q?: string;
+  isPublished?: boolean;
 };
 
 function toQuery(p: ListSongsParams): string {
@@ -18,6 +19,7 @@ function toQuery(p: ListSongsParams): string {
   if (p.categorySlug) q.set("categorySlug", p.categorySlug);
   if (p.tagSlugs?.length) q.set("tagSlugs", p.tagSlugs.join(","));
   if (p.q) q.set("q", p.q);
+  if (p.isPublished != null) q.set("isPublished", String(p.isPublished));
   const s = q.toString();
   return s ? `?${s}` : "";
 }
@@ -29,6 +31,12 @@ export async function fetchSongList(
     auth: false,
     retryOn401: false,
   });
+}
+
+export async function fetchSongAdminList(
+  params: ListSongsParams = {},
+): Promise<PaginatedSongs> {
+  return apiFetch<PaginatedSongs>(`/app/admin/songs${toQuery(params)}`);
 }
 
 export async function fetchSongById(id: string): Promise<SongDetail> {
@@ -45,7 +53,7 @@ export type CreateSongPayload = {
 };
 
 export async function createSong(payload: CreateSongPayload): Promise<SongDetail> {
-  return apiFetch<SongDetail>("/app/songs", {
+  return apiFetch<SongDetail>("/app/admin/songs", {
     method: "POST",
     body: JSON.stringify({
       title: payload.title,
@@ -65,8 +73,21 @@ export async function updateSong(
   id: string,
   payload: UpdateSongPayload,
 ): Promise<SongDetail> {
-  return apiFetch<SongDetail>(`/app/songs/${id}`, {
+  return apiFetch<SongDetail>(`/app/admin/songs/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function updateSongStatus(
+  id: string,
+  isPublished: boolean,
+): Promise<SongDetail> {
+  return updateSong(id, { isPublished });
+}
+
+export async function deleteSong(id: string): Promise<void> {
+  await apiFetch<void>(`/app/admin/songs/${id}`, {
+    method: "DELETE",
   });
 }

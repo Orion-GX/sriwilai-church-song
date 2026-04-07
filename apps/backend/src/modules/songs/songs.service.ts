@@ -13,12 +13,15 @@ import { SYSTEM_PERMISSION_CODES } from '../rbac/rbac.constants';
 
 import { SONG_AUDIT_ACTIONS } from './constants/audit-actions';
 import { CreateSongDto } from './dto/create-song.dto';
-import { ListSongsQueryDto } from './dto/list-songs-query.dto';
+import { ListAdminSongsQueryDto } from './dto/list-admin-songs-query.dto';
+import { ListPublicSongsQueryDto } from './dto/list-songs-query.dto';
 import { CreateSongCategoryDto, UpdateSongCategoryDto } from './dto/song-category.dto';
 import {
+  SongAdminDetailDto,
+  SongAdminListItemDto,
   SongCategoryResponseDto,
-  SongDetailDto,
-  SongListItemDto,
+  SongPublicDetailDto,
+  SongPublicListItemDto,
   SongTagResponseDto,
 } from './dto/song-response.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
@@ -28,7 +31,7 @@ import { SongEntity } from './entities/song.entity';
 import { SongRequestMeta } from './types/song-request-meta.type';
 
 export interface PaginatedSongsDto {
-  items: SongListItemDto[];
+  items: SongPublicListItemDto[] | SongAdminListItemDto[];
   total: number;
   page: number;
   limit: number;
@@ -47,7 +50,7 @@ export class SongsService {
     private readonly auditLogService: AuditLogService,
   ) {}
 
-  async listPublic(query: ListSongsQueryDto): Promise<PaginatedSongsDto> {
+  async listPublicSongs(query: ListPublicSongsQueryDto): Promise<PaginatedSongsDto> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
@@ -63,14 +66,37 @@ export class SongsService {
       .getMany();
 
     return {
-      items: rows.map((r) => SongListItemDto.fromEntity(r)),
+      items: rows.map((r) => SongPublicListItemDto.fromEntity(r)),
       total,
       page,
       limit,
     };
   }
 
-  async findOnePublic(id: string): Promise<SongDetailDto> {
+  async listAdminSongs(query: ListAdminSongsQueryDto): Promise<PaginatedSongsDto> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const totalRow = await this.buildAdminListQuery(query)
+      .select('COUNT(DISTINCT s.id)', 'cnt')
+      .getRawOne<{ cnt: string }>();
+    const total = Number(totalRow?.cnt ?? 0);
+
+    const rows = await this.buildAdminListQuery(query)
+      .orderBy('s.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return {
+      items: rows.map((r) => SongAdminListItemDto.fromEntity(r)),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async findOnePublicSong(id: string): Promise<SongPublicDetailDto> {
     const row = await this.songRepo.findOne({
       where: {
         id,
@@ -84,7 +110,18 @@ export class SongsService {
     }
     await this.songRepo.increment({ id: row.id }, 'viewCount', 1);
     const viewCountAfter = (row.viewCount ?? 0) + 1;
-    return SongDetailDto.fromEntity(row, { viewCount: viewCountAfter });
+    return SongPublicDetailDto.fromEntity(row, { viewCount: viewCountAfter });
+  }
+
+  async findOneAdminSong(id: string): Promise<SongAdminDetailDto> {
+    const row = await this.songRepo.findOne({
+      where: { id, deletedAt: IsNull() },
+      relations: { category: true, tags: true },
+    });
+    if (!row) {
+      throw new NotFoundException('Song not found');
+    }
+    return SongAdminDetailDto.fromEntity(row);
   }
 
   async listCategoriesPublic(): Promise<SongCategoryResponseDto[]> {
@@ -113,7 +150,7 @@ export class SongsService {
     scopeChurchId: string | null,
     dto: CreateSongDto,
     meta?: SongRequestMeta,
-  ): Promise<SongDetailDto> {
+  ): Promise<SongAdminDetailDto> {
     const ok = await this.rbacService.userHasAllPermissions(
       actorUserId,
       [SYSTEM_PERMISSION_CODES.SONG_CREATE],
@@ -170,7 +207,7 @@ export class SongsService {
       },
     });
 
-    return this.findOneAuthoring(saved.id);
+    return this.findOneAdminAuthoring(saved.id);
   }
 
   async updateSong(
@@ -178,7 +215,7 @@ export class SongsService {
     id: string,
     dto: UpdateSongDto,
     meta?: SongRequestMeta,
-  ): Promise<SongDetailDto> {
+  ): Promise<SongAdminDetailDto> {
     const song = await this.songRepo.findOne({
       where: { id, deletedAt: IsNull() },
       relations: { category: true, tags: true },
@@ -232,7 +269,7 @@ export class SongsService {
       afterData: this.snapshotSongAudit(saved),
     });
 
-    return this.findOneAuthoring(saved.id);
+    return this.findOneAdminAuthoring(saved.id);
   }
 
   async softDeleteSong(actorUserId: string, id: string, meta?: SongRequestMeta): Promise<void> {
@@ -388,7 +425,9 @@ export class SongsService {
     });
   }
 
-  private buildPublicListQuery(query: ListSongsQueryDto) {
+  private buildPublicListQuery(query: ListPublicSongsQueryDto) {
+    const junctionTable = this.qualifiedTableName('song_song_tags');
+    const tagsTable = this.qualifiedTableName('song_tags');
     const qb = this.songRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.category', 'category', 'category.deleted_at IS NULL')
@@ -415,8 +454,8 @@ export class SongsService {
         const ph = `tagSlug_${i}`;
         qb.andWhere(
           `EXISTS (
-            SELECT 1 FROM song_song_tags sst
-            INNER JOIN song_tags st ON st.id = sst.tag_id
+            SELECT 1 FROM ${junctionTable} sst
+            INNER JOIN ${tagsTable} st ON st.id = sst.tag_id
             AND st.slug = :${ph}
             AND st.deleted_at IS NULL
             WHERE sst.song_id = s.id
@@ -429,7 +468,61 @@ export class SongsService {
     return qb;
   }
 
-  private async findOneAuthoring(id: string): Promise<SongDetailDto> {
+  private buildAdminListQuery(query: ListAdminSongsQueryDto) {
+    const junctionTable = this.qualifiedTableName('song_song_tags');
+    const tagsTable = this.qualifiedTableName('song_tags');
+    const qb = this.songRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.category', 'category', 'category.deleted_at IS NULL')
+      .leftJoinAndSelect('s.tags', 'tags', 'tags.deleted_at IS NULL')
+      .where('s.deleted_at IS NULL');
+
+    if (query.churchId) {
+      qb.andWhere('s.church_id = :churchId', { churchId: query.churchId });
+    }
+
+    if (query.categorySlug) {
+      qb.andWhere('category.id IS NOT NULL AND category.slug = :catSlug', {
+        catSlug: query.categorySlug,
+      });
+    }
+
+    if (query.q?.trim()) {
+      qb.andWhere('s.title ILIKE :q', { q: `%${query.q.trim()}%` });
+    }
+
+    if (query.isPublished !== undefined) {
+      qb.andWhere('s.is_published = :isPublished', { isPublished: query.isPublished });
+    }
+
+    if (query.tagSlugs?.length) {
+      for (let i = 0; i < query.tagSlugs.length; i += 1) {
+        const ph = `tagSlug_${i}`;
+        qb.andWhere(
+          `EXISTS (
+            SELECT 1 FROM ${junctionTable} sst
+            INNER JOIN ${tagsTable} st ON st.id = sst.tag_id
+            AND st.slug = :${ph}
+            AND st.deleted_at IS NULL
+            WHERE sst.song_id = s.id
+          )`,
+          { [ph]: query.tagSlugs[i] },
+        );
+      }
+    }
+
+    return qb;
+  }
+
+  private qualifiedTableName(table: string): string {
+    const schema = this.songRepo.metadata.schema;
+    if (!schema) {
+      return `"${table}"`;
+    }
+    return `"${schema}"."${table}"`;
+  }
+
+  private async findOneAdminAuthoring(id: string): Promise<SongAdminDetailDto> {
     const row = await this.songRepo.findOne({
       where: { id, deletedAt: IsNull() },
       relations: { category: true, tags: true },
@@ -437,7 +530,7 @@ export class SongsService {
     if (!row) {
       throw new NotFoundException('Song not found');
     }
-    return SongDetailDto.fromEntity(row);
+    return SongAdminDetailDto.fromEntity(row);
   }
 
   private async assertSongMutation(userId: string, song: SongEntity, permission: string): Promise<void> {

@@ -18,7 +18,22 @@ export async function cleanupSongsE2EFixtures(dataSource: DataSource): Promise<v
     [songSlugPattern],
   );
 
+  await dataSource.query(
+    `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'song' AND "resource_id" IN (
+       SELECT "id" FROM "${schema}"."songs" WHERE "church_id" IN (
+         SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+       )
+     )`,
+    [SONGS_E2E_CHURCH_SLUG],
+  );
+
   await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "slug" LIKE $1`, [songSlugPattern]);
+  await dataSource.query(
+    `DELETE FROM "${schema}"."songs" WHERE "church_id" IN (
+       SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+     )`,
+    [SONGS_E2E_CHURCH_SLUG],
+  );
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "scope_church_id" IN (

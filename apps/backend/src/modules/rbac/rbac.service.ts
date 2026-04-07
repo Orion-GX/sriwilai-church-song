@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 import { PermissionEntity } from './entities/permission.entity';
 import { RoleEntity } from './entities/role.entity';
@@ -21,7 +21,7 @@ export class RbacService {
   /**
    * ดึง permission codes ที่ user มีในบริบทนี้
    * - role แบบ global/personal: นับทุก request
-   * - role แบบ church: นับเมื่อ churchId ตรงกับ scope_id
+   * - role แบบ church: นับเฉพาะเมื่อ churchId ตรงกับ scope_id
    */
   async getPermissionCodesForUser(userId: string, churchId?: string | null): Promise<Set<string>> {
     const qb = this.permissionRepository
@@ -36,15 +36,18 @@ export class RbacService {
       .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
       .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
       .andWhere(
-        new Brackets((sub) => {
-          sub.where('ur.scope_type IN (:...globalLike)', { globalLike: ['global', 'personal'] });
-          if (churchId) {
-            sub.orWhere('(ur.scope_type = :church AND ur.scope_id = :churchId)', {
-              church: 'church',
+        churchId
+          ? '(ur.scope_type IN (:...baseScopes) OR (ur.scope_type = :churchScope AND ur.scope_id = :churchId))'
+          : 'ur.scope_type IN (:...baseScopes)',
+        churchId
+          ? {
+              baseScopes: ['global', 'personal'],
+              churchScope: 'church',
               churchId,
-            });
-          }
-        }),
+            }
+          : {
+              baseScopes: ['global', 'personal'],
+            },
       );
 
     const rows = await qb.getRawMany<{ code: string }>();
@@ -73,15 +76,18 @@ export class RbacService {
       .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
       .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
       .andWhere(
-        new Brackets((sub) => {
-          sub.where('ur.scope_type IN (:...globalLike)', { globalLike: ['global', 'personal'] });
-          if (churchId) {
-            sub.orWhere('(ur.scope_type = :church AND ur.scope_id = :churchId)', {
-              church: 'church',
+        churchId
+          ? '(ur.scope_type IN (:...baseScopes) OR (ur.scope_type = :churchScope AND ur.scope_id = :churchId))'
+          : 'ur.scope_type IN (:...baseScopes)',
+        churchId
+          ? {
+              baseScopes: ['global', 'personal'],
+              churchScope: 'church',
               churchId,
-            });
-          }
-        }),
+            }
+          : {
+              baseScopes: ['global', 'personal'],
+            },
       );
 
     const count = await qb.getCount();

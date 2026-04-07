@@ -13,6 +13,7 @@ import { configureApplication } from '../../src/bootstrap/configure-application'
 export async function createConfiguredTestApplication(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
+    abortOnError: false,
   });
   await configureApplication(app);
   await app.init();
