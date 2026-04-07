@@ -9,6 +9,10 @@ export class PersonalSetlistEntity {
   @Column({ name: 'owner_user_id', type: 'uuid' })
   ownerUserId!: string;
 
+  @Index('idx_personal_setlists_church_id')
+  @Column({ name: 'church_id', type: 'uuid', nullable: true })
+  churchId!: string | null;
+
   @Column({ type: 'varchar', length: 180 })
   title!: string;
 

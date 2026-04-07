@@ -48,11 +48,7 @@ export class LiveService {
     dto: CreateLiveSessionDto,
     meta?: LiveRequestMeta,
   ): Promise<LiveSessionEntity> {
-    const ok = await this.rbacService.userHasAllPermissions(
-      actorUserId,
-      [SYSTEM_PERMISSION_CODES.LIVE_MANAGE],
-      churchScopeId,
-    );
+    const ok = await this.hasLiveControlPermission(actorUserId, churchScopeId);
     if (!ok) {
       throw new ForbiddenException('Insufficient permission');
     }
@@ -160,11 +156,7 @@ export class LiveService {
 
     const canEnd =
       session.leaderUserId === actorUserId ||
-      (await this.rbacService.userHasAllPermissions(
-        actorUserId,
-        [SYSTEM_PERMISSION_CODES.LIVE_MANAGE],
-        session.churchId,
-      ));
+      (await this.hasLiveControlPermission(actorUserId, session.churchId));
 
     if (!canEnd) {
       throw new ForbiddenException('Insufficient permission');
@@ -427,13 +419,17 @@ export class LiveService {
     if (session.leaderUserId === userId) {
       return;
     }
-    const ok = await this.rbacService.userHasAllPermissions(
-      userId,
-      [SYSTEM_PERMISSION_CODES.LIVE_MANAGE],
-      session.churchId,
-    );
+    const ok = await this.hasLiveControlPermission(userId, session.churchId);
     if (!ok) {
       throw new ForbiddenException('Insufficient permission');
     }
+  }
+
+  private hasLiveControlPermission(userId: string, churchId: string | null): Promise<boolean> {
+    return this.rbacService.userHasAnyPermissions(
+      userId,
+      [SYSTEM_PERMISSION_CODES.LIVE_CONTROL, SYSTEM_PERMISSION_CODES.LIVE_MANAGE],
+      churchId,
+    );
   }
 }

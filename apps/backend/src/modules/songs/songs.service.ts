@@ -9,7 +9,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 
 import { AuditLogService } from '../audit/audit-log.service';
 import { RbacService } from '../rbac/rbac.service';
-import { SYSTEM_PERMISSION_CODES } from '../rbac/rbac.constants';
+import { SONG_VISIBILITY, SYSTEM_PERMISSION_CODES } from '../rbac/rbac.constants';
 
 import { SONG_AUDIT_ACTIONS } from './constants/audit-actions';
 import { CreateSongDto } from './dto/create-song.dto';
@@ -171,6 +171,7 @@ export class SongsService {
 
     const created = this.songRepo.create({
       churchId: scopeChurchId,
+      visibility: scopeChurchId ? SONG_VISIBILITY.CHURCH : SONG_VISIBILITY.PUBLIC,
       title: dto.title,
       slug,
       chordproBody: dto.chordproBody,
@@ -201,6 +202,7 @@ export class SongsService {
         title: saved.title,
         slug: saved.slug,
         churchId: saved.churchId,
+        visibility: saved.visibility,
         categoryId: saved.categoryId,
         tagSlugs: tags.map((t) => t.slug),
         isPublished: saved.isPublished,
@@ -433,10 +435,17 @@ export class SongsService {
       .leftJoinAndSelect('s.category', 'category', 'category.deleted_at IS NULL')
       .leftJoinAndSelect('s.tags', 'tags', 'tags.deleted_at IS NULL')
       .where('s.deleted_at IS NULL')
-      .andWhere('s.is_published = TRUE');
+      .andWhere('s.is_published = TRUE')
+      .andWhere('s.visibility != :privateVisibility', { privateVisibility: SONG_VISIBILITY.PRIVATE });
 
     if (query.churchId) {
-      qb.andWhere('s.church_id = :churchId', { churchId: query.churchId });
+      qb.andWhere('(s.visibility = :publicVisibility OR (s.visibility = :churchVisibility AND s.church_id = :churchId))', {
+        publicVisibility: SONG_VISIBILITY.PUBLIC,
+        churchVisibility: SONG_VISIBILITY.CHURCH,
+        churchId: query.churchId,
+      });
+    } else {
+      qb.andWhere('s.visibility = :publicVisibility', { publicVisibility: SONG_VISIBILITY.PUBLIC });
     }
 
     if (query.categorySlug) {
@@ -578,6 +587,7 @@ export class SongsService {
       title: song.title,
       slug: song.slug,
       churchId: song.churchId,
+      visibility: song.visibility,
       categoryId: song.categoryId,
       tagSlugs: (song.tags ?? []).map((t) => t.slug),
       isPublished: song.isPublished,

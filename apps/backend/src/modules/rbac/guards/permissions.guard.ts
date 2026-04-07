@@ -15,11 +15,16 @@ import { CHURCH_ID_HEADER, PERMISSIONS_KEY, REQUIRE_CHURCH_ID_KEY } from '../rba
 import { RbacService } from '../rbac.service';
 
 function extractChurchId(request: Request): string | null {
-  const raw = request.headers[CHURCH_ID_HEADER];
-  if (typeof raw !== 'string' || !raw.trim()) {
+  const header = request.headers[CHURCH_ID_HEADER];
+  const candidate =
+    (typeof header === 'string' && header.trim()) ||
+    (typeof request.query.churchId === 'string' && request.query.churchId.trim()) ||
+    (typeof request.params.churchId === 'string' && request.params.churchId.trim()) ||
+    null;
+  if (!candidate) {
     return null;
   }
-  const v = raw.trim();
+  const v = candidate;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v)) {
     return null;
   }

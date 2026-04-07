@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
+import { ChurchMemberEntity } from '../churches/entities/church-member.entity';
 
 import { PermissionEntity } from './entities/permission.entity';
 import { RoleEntity } from './entities/role.entity';
@@ -16,6 +17,8 @@ export class RbacService {
     private readonly roleRepository: Repository<RoleEntity>,
     @InjectRepository(UserRoleEntity)
     private readonly userRoleRepository: Repository<UserRoleEntity>,
+    @InjectRepository(ChurchMemberEntity)
+    private readonly churchMemberRepository: Repository<ChurchMemberEntity>,
   ) {}
 
   /**
@@ -24,7 +27,7 @@ export class RbacService {
    * - role แบบ church: นับเฉพาะเมื่อ churchId ตรงกับ scope_id
    */
   async getPermissionCodesForUser(userId: string, churchId?: string | null): Promise<Set<string>> {
-    const qb = this.permissionRepository
+    const baseQb = this.permissionRepository
       .createQueryBuilder('p')
       .select('p.code', 'code')
       .innerJoin('p.rolePermissions', 'rp')
@@ -50,8 +53,25 @@ export class RbacService {
             },
       );
 
-    const rows = await qb.getRawMany<{ code: string }>();
-    return new Set(rows.map((r) => r.code));
+    const baseRows = await baseQb.getRawMany<{ code: string }>();
+
+    if (!churchId) {
+      return new Set(baseRows.map((r) => r.code));
+    }
+
+    const churchRows = await this.permissionRepository
+      .createQueryBuilder('p')
+      .select('p.code', 'code')
+      .innerJoin('p.rolePermissions', 'rp')
+      .innerJoin('rp.role', 'r')
+      .innerJoin(ChurchMemberEntity, 'cm', 'cm.role_id = r.id')
+      .where('cm.user_id = :userId', { userId })
+      .andWhere('cm.church_id = :churchId', { churchId })
+      .andWhere('cm.deleted_at IS NULL')
+      .andWhere('r.deleted_at IS NULL')
+      .getRawMany<{ code: string }>();
+
+    return new Set([...baseRows, ...churchRows].map((r) => r.code));
   }
 
   async userHasAllPermissions(userId: string, permissionCodes: string[], churchId?: string | null): Promise<boolean> {
@@ -60,6 +80,14 @@ export class RbacService {
     }
     const held = await this.getPermissionCodesForUser(userId, churchId ?? null);
     return permissionCodes.every((code) => held.has(code));
+  }
+
+  async userHasAnyPermissions(userId: string, permissionCodes: string[], churchId?: string | null): Promise<boolean> {
+    if (permissionCodes.length === 0) {
+      return true;
+    }
+    const held = await this.getPermissionCodesForUser(userId, churchId ?? null);
+    return permissionCodes.some((code) => held.has(code));
   }
 
   async userHasAnyRole(userId: string, roleCodes: string[], churchId?: string | null): Promise<boolean> {
@@ -91,7 +119,22 @@ export class RbacService {
       );
 
     const count = await qb.getCount();
-    return count > 0;
+    if (count > 0) {
+      return true;
+    }
+    if (!churchId) {
+      return false;
+    }
+    const cmCount = await this.churchMemberRepository
+      .createQueryBuilder('cm')
+      .innerJoin('cm.role', 'r')
+      .where('cm.user_id = :userId', { userId })
+      .andWhere('cm.church_id = :churchId', { churchId })
+      .andWhere('cm.deleted_at IS NULL')
+      .andWhere('r.deleted_at IS NULL')
+      .andWhere('r.code IN (:...codes)', { codes: roleCodes })
+      .getCount();
+    return cmCount > 0;
   }
 
   /** มอบ role `user` แบบ personal scope หลังสร้างบัญชี (register / admin create) */

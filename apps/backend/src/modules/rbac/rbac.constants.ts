@@ -5,10 +5,14 @@ export const REQUIRE_CHURCH_ID_KEY = 'rbac_require_church_id';
 
 export const CHURCH_ID_HEADER = 'x-church-id';
 
-/** รหัส role ระบบ (สอดคล้องกับ seed migration) */
+/** รหัส system roles (global/personal) */
 export const SYSTEM_ROLE_CODES = {
   SYSTEM_ADMIN: 'system_admin',
   USER: 'user',
+} as const;
+
+/** รหัส church roles */
+export const CHURCH_ROLE_CODES = {
   CHURCH_OWNER: 'church_owner',
   CHURCH_ADMIN: 'church_admin',
   WORSHIP_LEADER: 'worship_leader',
@@ -16,8 +20,14 @@ export const SYSTEM_ROLE_CODES = {
   VIEWER: 'viewer',
 } as const;
 
-/** รหัส permission ระบบ (สอดคล้องกับ seed migration) */
-export const SYSTEM_PERMISSION_CODES = {
+export const SONG_VISIBILITY = {
+  PUBLIC: 'public',
+  CHURCH: 'church',
+  PRIVATE: 'private',
+} as const;
+
+/** ชุด permission เป้าหมายใหม่ */
+export const PERMISSIONS = {
   SYSTEM_ADMIN: 'system.admin',
   USER_READ: 'user.read',
   USER_CREATE: 'user.create',
@@ -40,4 +50,8 @@ export const SYSTEM_PERMISSION_CODES = {
   SETLIST_PERSONAL_SHARE: 'setlist.personal.share',
   LIVE_READ: 'live.read',
   LIVE_MANAGE: 'live.manage',
+  LIVE_CONTROL: 'live.control',
 } as const;
+
+/** backward-compatible alias */
+export const SYSTEM_PERMISSION_CODES = PERMISSIONS;

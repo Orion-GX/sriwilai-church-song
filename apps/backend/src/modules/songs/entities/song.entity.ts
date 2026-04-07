@@ -17,6 +17,8 @@ import { UserEntity } from '../../users/entities/user.entity';
 import { SongCategoryEntity } from './song-category.entity';
 import { SongTagEntity } from './song-tag.entity';
 
+export type SongVisibility = 'public' | 'church' | 'private';
+
 @Entity({ name: 'songs' })
 export class SongEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -49,6 +51,9 @@ export class SongEntity {
 
   @Column({ name: 'is_published', type: 'boolean', default: true })
   isPublished!: boolean;
+
+  @Column({ type: 'varchar', length: 20, default: 'public' })
+  visibility!: SongVisibility;
 
   @Column({ name: 'view_count', type: 'integer', default: 0 })
   viewCount!: number;
