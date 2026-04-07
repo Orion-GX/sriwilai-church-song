@@ -435,8 +435,7 @@ export class SongsService {
       .leftJoinAndSelect('s.category', 'category', 'category.deleted_at IS NULL')
       .leftJoinAndSelect('s.tags', 'tags', 'tags.deleted_at IS NULL')
       .where('s.deleted_at IS NULL')
-      .andWhere('s.is_published = TRUE')
-      .andWhere('s.visibility != :privateVisibility', { privateVisibility: SONG_VISIBILITY.PRIVATE });
+      .andWhere('s.is_published = TRUE');
 
     if (query.churchId) {
       qb.andWhere('(s.visibility = :publicVisibility OR (s.visibility = :churchVisibility AND s.church_id = :churchId))', {

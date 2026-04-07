@@ -30,11 +30,12 @@ export default function LiveSessionsListPage() {
   const canReadLive = useCan(PERMISSIONS.LIVE_READ);
   const canManageLive = useCan(PERMISSIONS.LIVE_MANAGE);
   const user = useAuthStore((s) => s.user);
+  const currentChurchId = useAuthStore((s) => s.currentChurchId);
   const [title, setTitle] = React.useState("");
   const [createErr, setCreateErr] = React.useState<string | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["liveSessions"],
+    queryKey: ["liveSessions", currentChurchId ?? "no-church"],
     queryFn: () => fetchLiveSessions(),
     enabled: !!user && canReadLive,
   });
@@ -50,7 +51,9 @@ export default function LiveSessionsListPage() {
     onSuccess: () => {
       setTitle("");
       setCreateErr(null);
-      void queryClient.invalidateQueries({ queryKey: ["liveSessions"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["liveSessions", currentChurchId ?? "no-church"],
+      });
     },
     onError: (err: unknown) => {
       const msg =

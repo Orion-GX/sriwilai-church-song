@@ -40,7 +40,7 @@ export function deriveEffectivePermissions(
 ): PermissionCode[] {
   if (!user) return [];
   const all = new Set<PermissionCode>();
-  const systemPerms = user.systemPermissions ?? user.permissions ?? [];
+  const systemPerms = user.systemPermissions ?? [];
   for (const p of systemPerms) all.add(asPermissionCode(p));
   if (user.systemRoles?.includes("system_admin")) {
     all.add(PERMISSIONS.SYSTEM_ADMIN);

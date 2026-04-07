@@ -14,6 +14,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { useCan } from "@/lib/auth/use-can";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import {
   deleteSong,
   fetchSongAdminList,
@@ -26,6 +27,7 @@ const PAGE_LIMIT = 20;
 export default function SongManagementPage() {
   const canManageSongs = useCan(PERMISSIONS.SONG_UPDATE);
   const canCreateSong = useCan(PERMISSIONS.SONG_CREATE);
+  const currentChurchId = useAuthStore((s) => s.currentChurchId);
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
   const [searchDraft, setSearchDraft] = React.useState("");
@@ -40,7 +42,7 @@ export default function SongManagementPage() {
     null,
   );
 
-  const queryKey = ["dashboard", "songs", page, search];
+  const queryKey = ["dashboard", "songs", currentChurchId ?? "no-church", page, search];
   const { data, isLoading, isFetching, isError, error } = useQuery({
     queryKey,
     queryFn: () =>
@@ -58,7 +60,9 @@ export default function SongManagementPage() {
     onMutate: ({ id }) => setStatusPendingSongId(id),
     onSettled: () => setStatusPendingSongId(null),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "songs"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "songs", currentChurchId ?? "no-church"],
+      });
     },
   });
 
@@ -67,7 +71,9 @@ export default function SongManagementPage() {
     onMutate: (id) => setDeletePendingSongId(id),
     onSettled: () => setDeletePendingSongId(null),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "songs"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "songs", currentChurchId ?? "no-church"],
+      });
     },
   });
 

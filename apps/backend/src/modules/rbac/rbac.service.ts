@@ -24,7 +24,7 @@ export class RbacService {
   /**
    * ดึง permission codes ที่ user มีในบริบทนี้
    * - role แบบ global/personal: นับทุก request
-   * - role แบบ church: นับเฉพาะเมื่อ churchId ตรงกับ scope_id
+   * - role แบบ church: อ่านจาก church_members เท่านั้น
    */
   async getPermissionCodesForUser(userId: string, churchId?: string | null): Promise<Set<string>> {
     const baseQb = this.permissionRepository
@@ -38,20 +38,7 @@ export class RbacService {
       .andWhere('r.deleted_at IS NULL')
       .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
       .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
-      .andWhere(
-        churchId
-          ? '(ur.scope_type IN (:...baseScopes) OR (ur.scope_type = :churchScope AND ur.scope_id = :churchId))'
-          : 'ur.scope_type IN (:...baseScopes)',
-        churchId
-          ? {
-              baseScopes: ['global', 'personal'],
-              churchScope: 'church',
-              churchId,
-            }
-          : {
-              baseScopes: ['global', 'personal'],
-            },
-      );
+      .andWhere('ur.scope_type IN (:...baseScopes)', { baseScopes: ['global', 'personal'] });
 
     const baseRows = await baseQb.getRawMany<{ code: string }>();
 
@@ -103,20 +90,7 @@ export class RbacService {
       .andWhere('r.code IN (:...codes)', { codes: roleCodes })
       .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
       .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
-      .andWhere(
-        churchId
-          ? '(ur.scope_type IN (:...baseScopes) OR (ur.scope_type = :churchScope AND ur.scope_id = :churchId))'
-          : 'ur.scope_type IN (:...baseScopes)',
-        churchId
-          ? {
-              baseScopes: ['global', 'personal'],
-              churchScope: 'church',
-              churchId,
-            }
-          : {
-              baseScopes: ['global', 'personal'],
-            },
-      );
+      .andWhere('ur.scope_type IN (:...baseScopes)', { baseScopes: ['global', 'personal'] });
 
     const count = await qb.getCount();
     if (count > 0) {

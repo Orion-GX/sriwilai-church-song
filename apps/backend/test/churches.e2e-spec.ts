@@ -12,6 +12,7 @@ import {
   CHURCHES_E2E_EMAILS,
   CHURCHES_E2E_SLUGS,
 } from './support/churches-e2e.fixtures';
+import { assignSystemAdminRole } from './support/rbac-e2e.helper';
 import { createConfiguredTestApplication } from './support/test-app.factory';
 
 describe('Churches API (e2e)', () => {
@@ -111,7 +112,7 @@ describe('Churches API (e2e)', () => {
   });
 
   describe('เจ้าของ / สมาชิก / ผู้ไม่มีส่วนเกี่ยวข้อง', () => {
-    it('เจ้าของ (church_owner) อัปเดตคริสตจักรของตัวเองได้ — church.update แบบ church-scoped', async () => {
+    it('church_admin (ผู้สร้างคริสตจักร) อัปเดตคริสตจักรของตัวเองได้ — church.update แบบ church-scoped', async () => {
       const ownerToken = await registerAccessToken(CHURCHES_E2E_EMAILS.owner);
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
@@ -216,7 +217,29 @@ describe('Churches API (e2e)', () => {
   });
 
   describe('บทบาท church-scoped กับ permission ที่ต่างกัน', () => {
-    it('church_admin มี church.update แต่ไม่มี church.delete — ลบคริสตจักรไม่ได้ (404 จาก assertChurchPermission)', async () => {
+    it('system_admin override ได้แม้ไม่เป็นสมาชิกคริสตจักร', async () => {
+      const ownerToken = await registerAccessToken(CHURCHES_E2E_EMAILS.owner);
+      const adminToken = await registerAccessToken(CHURCHES_E2E_EMAILS.stranger);
+      const adminMe = await createHttpServerRequest(app)
+        .get('/api/v1/app/users/me')
+        .set(authBearerHeaders(adminToken))
+        .expect(HttpStatus.OK);
+      await assignSystemAdminRole(dataSource, adminMe.body.id as string);
+
+      const created = await createHttpServerRequest(app)
+        .post('/api/v1/app/churches')
+        .set(authBearerHeaders(ownerToken))
+        .send({ name: 'CE2E override', slug: CHURCHES_E2E_SLUGS.deleteDemo })
+        .expect(HttpStatus.CREATED);
+
+      await createHttpServerRequest(app)
+        .patch(`/api/v1/app/churches/${created.body.id as string}`)
+        .set(authBearerHeaders(adminToken))
+        .send({ name: 'override by system admin' })
+        .expect(HttpStatus.OK);
+    });
+
+    it('church_admin ที่ถูกมอบสิทธิ์สามารถลบคริสตจักรได้', async () => {
       const ownerToken = await registerAccessToken(CHURCHES_E2E_EMAILS.owner);
       const adminToken = await registerAccessToken(CHURCHES_E2E_EMAILS.churchAdminJoiner);
 
@@ -241,10 +264,10 @@ describe('Churches API (e2e)', () => {
       await createHttpServerRequest(app)
         .delete(`/api/v1/app/churches/${churchId}`)
         .set(authBearerHeaders(adminToken))
-        .expect(HttpStatus.NOT_FOUND);
+        .expect(HttpStatus.NO_CONTENT);
     });
 
-    it('church_owner ลบ (soft delete) ได้ — role มี church.delete', async () => {
+    it('church_admin (ผู้สร้างคริสตจักร) ลบ (soft delete) ได้ — role มี church.delete', async () => {
       const ownerToken = await registerAccessToken(CHURCHES_E2E_EMAILS.owner);
 
       const created = await createHttpServerRequest(app)

@@ -42,7 +42,6 @@ export type AuthUser = {
   displayName: string;
   systemRoles?: string[];
   systemPermissions?: string[];
-  permissions?: string[];
   currentChurchId?: string | null;
   churchMemberships?: Array<{
     churchId: string;

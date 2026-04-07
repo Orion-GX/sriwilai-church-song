@@ -16,11 +16,13 @@ import { ApiError } from "@/lib/api/client";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { useCan } from "@/lib/auth/use-can";
 import { fetchMyChurches } from "@/lib/api/churches";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function ChurchesListPage() {
   const canCreateChurch = useCan(PERMISSIONS.CHURCH_CREATE);
+  const currentChurchId = useAuthStore((s) => s.currentChurchId);
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["myChurches"],
+    queryKey: ["myChurches", currentChurchId ?? "no-church"],
     queryFn: fetchMyChurches,
   });
 

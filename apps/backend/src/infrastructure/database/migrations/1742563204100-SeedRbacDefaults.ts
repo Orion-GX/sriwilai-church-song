@@ -32,18 +32,16 @@ export class SeedRbacDefaults1742563204100 implements MigrationInterface {
         ('setlist.personal.manage', 'setlist', 'จัดการ setlist ส่วนตัว'),
         ('setlist.personal.share', 'setlist', 'แชร์ setlist ส่วนตัว'),
         ('live.read', 'live', 'ดู live session'),
-        ('live.manage', 'live', 'จัดการ live session')
+        ('live.manage', 'live', 'จัดการ live session'),
+        ('live.control', 'live', 'ควบคุม live session')
       ON CONFLICT ("code") DO NOTHING
     `);
 
     await queryRunner.query(`
       INSERT INTO "${schema}"."roles" ("code", "name", "description", "role_scope", "is_system") VALUES
         ('system_admin', 'System Admin', 'ผู้ดูแลระบบทั้งแพลตฟอร์ม', 'global', true),
-        ('church_owner', 'Church Owner', 'เจ้าของ/ผู้ก่อตั้งคริสตจักร', 'church', true),
         ('church_admin', 'Church Admin', 'ผู้ดูแลคริสตจักร', 'church', true),
-        ('worship_leader', 'Worship Leader', 'หัวหน้าทีมนมัสการ', 'church', true),
-        ('member', 'Member', 'สมาชิกทั่วไป', 'church', true),
-        ('viewer', 'Viewer', 'ดูอย่างเดียว', 'church', true)
+        ('member', 'Member', 'สมาชิกทั่วไป', 'church', true)
       ON CONFLICT ("code") DO NOTHING
     `);
 
@@ -83,8 +81,7 @@ export class SeedRbacDefaults1742563204100 implements MigrationInterface {
 
     await linkAll('system_admin');
 
-    await linkWhereCodes('church_owner', [
-      'audit.read',
+    await linkWhereCodes('church_admin', [
       'church.read',
       'church.update',
       'church.delete',
@@ -98,47 +95,18 @@ export class SeedRbacDefaults1742563204100 implements MigrationInterface {
       'setlist.manage',
       'live.read',
       'live.manage',
-    ]);
-
-    await linkWhereCodes('church_admin', [
-      'church.read',
-      'church.update',
-      'church.member.manage',
-      'song.read',
-      'song.create',
-      'song.update',
-      'song.delete',
-      'setlist.read',
-      'setlist.manage',
-      'live.read',
-      'live.manage',
-    ]);
-
-    await linkWhereCodes('worship_leader', [
-      'song.read',
-      'song.create',
-      'song.update',
-      'song.delete',
-      'setlist.read',
-      'setlist.manage',
-      'live.read',
-      'live.manage',
+      'live.control',
     ]);
 
     await linkWhereCodes('member', ['song.read', 'setlist.read', 'live.read']);
-
-    await linkWhereCodes('viewer', ['song.read', 'setlist.read']);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const schema = schemaName();
     const systemRoles = [
       'system_admin',
-      'church_owner',
       'church_admin',
-      'worship_leader',
       'member',
-      'viewer',
       'user',
     ];
     await queryRunner.query(
@@ -166,7 +134,7 @@ export class SeedRbacDefaults1742563204100 implements MigrationInterface {
         'system.admin','audit.read','church.read','church.update','church.delete',
         'church.member.manage','church.role.assign',
         'song.read','song.create','song.update','song.delete',
-        'setlist.read','setlist.manage','setlist.personal.manage','setlist.personal.share','live.read','live.manage'
+        'setlist.read','setlist.manage','setlist.personal.manage','setlist.personal.share','live.read','live.manage','live.control'
       )
     `);
   }

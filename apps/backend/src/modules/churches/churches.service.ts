@@ -9,7 +9,6 @@ import { IsNull, Not, Repository } from 'typeorm';
 
 import { AuditLogService } from '../audit/audit-log.service';
 import { RoleEntity } from '../rbac/entities/role.entity';
-import { UserRoleEntity } from '../rbac/entities/user-role.entity';
 import { RbacService } from '../rbac/rbac.service';
 import { CHURCH_ROLE_CODES, SYSTEM_PERMISSION_CODES } from '../rbac/rbac.constants';
 import { UserEntity } from '../users/entities/user.entity';
@@ -27,9 +26,7 @@ import { ChurchRequestMeta } from './types/church-request-meta.type';
 
 const ASSIGNABLE_NON_OWNER_ROLES: string[] = [
   CHURCH_ROLE_CODES.CHURCH_ADMIN,
-  CHURCH_ROLE_CODES.WORSHIP_LEADER,
   CHURCH_ROLE_CODES.MEMBER,
-  CHURCH_ROLE_CODES.VIEWER,
 ];
 
 @Injectable()
@@ -37,8 +34,6 @@ export class ChurchesService {
   constructor(
     @InjectRepository(ChurchEntity)
     private readonly churchRepo: Repository<ChurchEntity>,
-    @InjectRepository(UserRoleEntity)
-    private readonly userRoleRepo: Repository<UserRoleEntity>,
     @InjectRepository(ChurchMemberEntity)
     private readonly churchMemberRepo: Repository<ChurchMemberEntity>,
     @InjectRepository(RoleEntity)
@@ -80,12 +75,12 @@ export class ChurchesService {
     const baseSlug = dto.slug ?? this.slugify(dto.name);
     const slug = await this.ensureUniqueSlug(baseSlug);
 
-    const ownerRole = await this.roleRepo.findOne({
-      where: { code: CHURCH_ROLE_CODES.CHURCH_OWNER, deletedAt: IsNull() },
+    const adminRole = await this.roleRepo.findOne({
+      where: { code: CHURCH_ROLE_CODES.CHURCH_ADMIN, deletedAt: IsNull() },
       select: { id: true },
     });
-    if (!ownerRole) {
-      throw new BadRequestException('church_owner role is not configured');
+    if (!adminRole) {
+      throw new BadRequestException('church_admin role is not configured');
     }
 
     const queryRunner = this.churchRepo.manager.connection.createQueryRunner();
@@ -101,22 +96,10 @@ export class ChurchesService {
       const saved = await queryRunner.manager.save(church);
 
       await queryRunner.manager.save(
-        queryRunner.manager.create(UserRoleEntity, {
-          userId: actorUserId,
-          roleId: ownerRole.id,
-          scopeType: 'church',
-          scopeId: saved.id,
-          assignedBy: actorUserId,
-          effectiveFrom: null,
-          effectiveTo: null,
-          deletedAt: null,
-        }),
-      );
-      await queryRunner.manager.save(
         queryRunner.manager.create(ChurchMemberEntity, {
           churchId: saved.id,
           userId: actorUserId,
-          roleId: ownerRole.id,
+          roleId: adminRole.id,
           assignedBy: actorUserId,
           deletedAt: null,
         }),
@@ -198,14 +181,6 @@ export class ChurchesService {
     church.deletedAt = new Date();
     await this.churchRepo.save(church);
 
-    await this.userRoleRepo
-      .createQueryBuilder()
-      .update(UserRoleEntity)
-      .set({ deletedAt: () => 'NOW()' })
-      .where('scope_type = :st', { st: 'church' })
-      .andWhere('scope_id = :churchId', { churchId })
-      .andWhere('deleted_at IS NULL')
-      .execute();
     await this.churchMemberRepo
       .createQueryBuilder()
       .update(ChurchMemberEntity)
@@ -293,19 +268,6 @@ export class ChurchesService {
       }),
     );
 
-    await this.userRoleRepo.save(
-      this.userRoleRepo.create({
-        userId: dto.userId,
-        roleId: role.id,
-        scopeType: 'church',
-        scopeId: churchId,
-        assignedBy: actorUserId,
-        effectiveFrom: null,
-        effectiveTo: null,
-        deletedAt: null,
-      }),
-    );
-
     const withRelations = await this.churchMemberRepo.findOneOrFail({
       where: { id: row.id },
       relations: { user: true, role: true },
@@ -357,38 +319,12 @@ export class ChurchesService {
       throw new NotFoundException('Member not found');
     }
 
-    if (membership.role.code === CHURCH_ROLE_CODES.CHURCH_OWNER) {
-      throw new BadRequestException('Cannot change the church owner role via this endpoint');
-    }
-
     const newRole = await this.getChurchScopedRoleOrThrow(dto.roleCode);
 
     const beforeRole = membership.role.code;
     membership.roleId = newRole.id;
     membership.assignedBy = actorUserId;
     const saved = await this.churchMemberRepo.save(membership);
-
-    await this.userRoleRepo
-      .createQueryBuilder()
-      .update(UserRoleEntity)
-      .set({ deletedAt: () => 'NOW()' })
-      .where('user_id = :targetUserId', { targetUserId })
-      .andWhere('scope_type = :scopeType', { scopeType: 'church' })
-      .andWhere('scope_id = :churchId', { churchId })
-      .andWhere('deleted_at IS NULL')
-      .execute();
-    await this.userRoleRepo.save(
-      this.userRoleRepo.create({
-        userId: targetUserId,
-        roleId: newRole.id,
-        scopeType: 'church',
-        scopeId: churchId,
-        assignedBy: actorUserId,
-        effectiveFrom: null,
-        effectiveTo: null,
-        deletedAt: null,
-      }),
-    );
 
     const withRelations = await this.churchMemberRepo.findOneOrFail({
       where: { id: saved.id },
@@ -438,23 +374,14 @@ export class ChurchesService {
       throw new NotFoundException('Member not found');
     }
 
-    if (membership.role.code === CHURCH_ROLE_CODES.CHURCH_OWNER || church.ownerUserId === targetUserId) {
-      throw new BadRequestException('Cannot remove the church owner; transfer ownership first');
+    if (church.ownerUserId === targetUserId) {
+      throw new BadRequestException('Cannot remove the church creator from membership');
     }
 
     const before = { memberUserId: targetUserId, roleCode: membership.role.code };
 
     membership.deletedAt = new Date();
     await this.churchMemberRepo.save(membership);
-    await this.userRoleRepo
-      .createQueryBuilder()
-      .update(UserRoleEntity)
-      .set({ deletedAt: () => 'NOW()' })
-      .where('user_id = :targetUserId', { targetUserId })
-      .andWhere('scope_type = :scopeType', { scopeType: 'church' })
-      .andWhere('scope_id = :churchId', { churchId })
-      .andWhere('deleted_at IS NULL')
-      .execute();
 
     await this.auditLogService.log({
       actorUserId,
@@ -489,9 +416,6 @@ export class ChurchesService {
   }
 
   private assertAssignableRole(roleCode: string): void {
-    if (roleCode === CHURCH_ROLE_CODES.CHURCH_OWNER) {
-      throw new BadRequestException('church_owner cannot be assigned via membership endpoints');
-    }
     if (!ASSIGNABLE_NON_OWNER_ROLES.includes(roleCode)) {
       throw new BadRequestException('Invalid role for church membership');
     }

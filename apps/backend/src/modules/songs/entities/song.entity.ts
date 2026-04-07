@@ -17,7 +17,7 @@ import { UserEntity } from '../../users/entities/user.entity';
 import { SongCategoryEntity } from './song-category.entity';
 import { SongTagEntity } from './song-tag.entity';
 
-export type SongVisibility = 'public' | 'church' | 'private';
+export type SongVisibility = 'public' | 'church';
 
 @Entity({ name: 'songs' })
 export class SongEntity {

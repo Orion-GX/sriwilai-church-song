@@ -13,17 +13,13 @@ export const SYSTEM_ROLE_CODES = {
 
 /** รหัส church roles */
 export const CHURCH_ROLE_CODES = {
-  CHURCH_OWNER: 'church_owner',
   CHURCH_ADMIN: 'church_admin',
-  WORSHIP_LEADER: 'worship_leader',
   MEMBER: 'member',
-  VIEWER: 'viewer',
 } as const;
 
 export const SONG_VISIBILITY = {
   PUBLIC: 'public',
   CHURCH: 'church',
-  PRIVATE: 'private',
 } as const;
 
 /** ชุด permission เป้าหมายใหม่ */

@@ -39,10 +39,16 @@ export const useAuthStore = create<AuthState>()(
           };
         }),
       setCurrentChurchId: (churchId) =>
-        set((state) => ({
-          currentChurchId: churchId,
-          effectivePermissions: deriveEffectivePermissions(state.user, churchId),
-        })),
+        set((state) => {
+          const isMember =
+            churchId === null ||
+            Boolean(state.user?.churchMemberships?.some((m) => m.churchId === churchId));
+          const nextChurchId = isMember ? churchId : deriveDefaultChurchId(state.user);
+          return {
+            currentChurchId: nextChurchId,
+            effectivePermissions: deriveEffectivePermissions(state.user, nextChurchId),
+          };
+        }),
       can: (permission) => get().effectivePermissions.includes(permission),
       logout: () =>
         set({
