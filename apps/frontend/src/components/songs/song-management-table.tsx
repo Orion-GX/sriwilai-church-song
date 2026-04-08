@@ -1,6 +1,5 @@
 "use client";
 
-import { Search } from "lucide-react";
 import { SongRowActions } from "@/components/songs/song-row-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -14,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { SongListItem } from "@/lib/api/types";
+import { Search } from "lucide-react";
 
 type SongManagementTableProps = {
   items: SongListItem[];
@@ -87,19 +87,23 @@ export function SongManagementTable({
       <TableBody>
         {items.map((song) => (
           <TableRow key={song.id} data-testid={`song-admin-row-${song.id}`}>
-            <TableCell className="max-w-[280px] truncate font-medium">{song.title}</TableCell>
+            <TableCell className="max-w-[280px] truncate font-medium">
+              {song.title}
+            </TableCell>
             <TableCell className="max-w-[180px] truncate text-muted-foreground">
               {song.category?.name ?? "-"}
             </TableCell>
             <TableCell className="max-w-[240px] truncate text-muted-foreground">
-              {song.tags.length > 0 ? song.tags.map((tag) => tag.name).join(", ") : "-"}
+              {song.tags.length > 0
+                ? song.tags.map((tag) => tag.name).join(", ")
+                : "-"}
             </TableCell>
             <TableCell className="text-right text-muted-foreground">
               {song.viewCount.toLocaleString()}
             </TableCell>
             <TableCell>
               <Badge variant={song.isPublished ? "success" : "secondary"}>
-                {song.isPublished ? "ACTIVE" : "INACTIVE"}
+                {song.isPublished ? "เปิดใช้งาน" : "ปิดใช้งาน"}
               </Badge>
             </TableCell>
             <TableCell className="text-xs text-muted-foreground">

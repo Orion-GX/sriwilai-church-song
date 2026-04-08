@@ -1,8 +1,16 @@
 "use client";
 
+import { useId } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type SongTableToolbarProps = {
   searchDraft: string;
@@ -21,6 +29,8 @@ export function SongTableToolbar({
   onStatusFilterChange,
   isSearching = false,
 }: SongTableToolbarProps) {
+  const statusLabelId = useId();
+
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex w-full gap-2 sm:max-w-lg">
@@ -51,19 +61,31 @@ export function SongTableToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">สถานะ</span>
-        <select
-          value={statusFilter}
-          onChange={(e) =>
-            onStatusFilterChange(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")
-          }
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          data-testid="song-admin-status-filter"
+        <span
+          className="shrink-0 text-sm text-muted-foreground"
+          id={statusLabelId}
         >
-          <option value="ALL">ทั้งหมด</option>
-          <option value="ACTIVE">ใช้งาน</option>
-          <option value="INACTIVE">ไม่ใช้งาน</option>
-        </select>
+          สถานะ
+        </span>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) =>
+            onStatusFilterChange(v as "ALL" | "ACTIVE" | "INACTIVE")
+          }
+        >
+          <SelectTrigger
+            className="h-10 w-[min(100%,11rem)] sm:w-44"
+            data-testid="song-admin-status-filter"
+            aria-labelledby={statusLabelId}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" align="end" sideOffset={4}>
+            <SelectItem value="ALL">ทั้งหมด</SelectItem>
+            <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
+            <SelectItem value="INACTIVE">ไม่ใช้งาน</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
