@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Music } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { useAppShellSidebar } from "@/components/layout/app-shell-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useAppShellSidebar } from "@/components/layout/app-shell-context";
+import type { LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Music } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export type SidebarNavItem = {
   href: string;
@@ -52,6 +52,7 @@ export function Sidebar({
         collapsed && "items-stretch px-2",
         className,
       )}
+      style={{ backgroundColor: "hsl(var(--primary))" }}
     >
       <Link
         href={brand.href}
@@ -87,8 +88,8 @@ export function Sidebar({
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 collapsed && "justify-center px-0",
                 active
-                  ? "bg-sidebar-accent font-semibold text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
+                  ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-sm"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
               )}
             >
               <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />

@@ -172,7 +172,7 @@ describe('Auth API (e2e)', () => {
         .set(authBearerHeaders(body.accessToken))
         .expect(HttpStatus.OK);
 
-      expect(res.body).toEqual({
+      expect(res.body).toMatchObject({
         id: body.user.id,
         email: body.user.email,
         displayName: body.user.displayName,

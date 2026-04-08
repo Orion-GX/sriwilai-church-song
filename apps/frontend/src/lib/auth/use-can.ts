@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { useAuthStore } from "@/lib/stores/auth-store";
 import type { PermissionCode } from "@/lib/auth/permissions";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useMemo } from "react";
 
 export function useCan(permission: PermissionCode): boolean {
   const effectivePermissions = useAuthStore((s) => s.effectivePermissions);

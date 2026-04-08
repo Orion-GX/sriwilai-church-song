@@ -11,10 +11,12 @@ import { AuditLogService } from '../audit/audit-log.service';
 import { AppConfiguration } from '../../config/configuration';
 import { RbacService } from '../rbac/rbac.service';
 import { AUTH_AUDIT_ACTIONS } from './constants/audit-actions';
+import { ChurchMemberEntity } from '../churches/entities/church-member.entity';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshSessionEntity } from './entities/refresh-session.entity';
+import { UserRoleEntity } from '../rbac/entities/user-role.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { JwtPayload } from './types/jwt-payload.type';
 
@@ -33,6 +35,10 @@ export class AuthService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(RefreshSessionEntity)
     private readonly refreshSessionRepository: Repository<RefreshSessionEntity>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
+    @InjectRepository(ChurchMemberEntity)
+    private readonly churchMemberRepository: Repository<ChurchMemberEntity>,
     private readonly rbacService: RbacService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<AppConfiguration, true>,
@@ -201,7 +207,7 @@ export class AuthService {
     });
   }
 
-  async getCurrentUser(userId: string): Promise<Pick<UserEntity, 'id' | 'email' | 'displayName'>> {
+  async getCurrentUser(userId: string): Promise<AuthResponseDto['user']> {
     const user = await this.userRepository.findOne({
       where: {
         id: userId,
@@ -216,7 +222,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    return user;
+    return this.buildAuthUserPayload(user);
   }
 
   private async issueTokensForUser(
@@ -277,11 +283,61 @@ export class AuthService {
       expiresIn: authConfig.accessTokenExpiresIn,
       refreshToken,
       sessionId,
-      user: {
-        id: user.id,
-        email: user.email,
-        displayName: user.displayName,
-      },
+      user: await this.buildAuthUserPayload(user),
+    };
+  }
+
+  private async buildAuthUserPayload(user: Pick<UserEntity, 'id' | 'email' | 'displayName'>): Promise<AuthResponseDto['user']> {
+    const [systemRoleRows, churchRows, systemPermissions] = await Promise.all([
+      this.userRoleRepository
+        .createQueryBuilder('ur')
+        .innerJoin('ur.role', 'r')
+        .select('r.code', 'code')
+        .where('ur.user_id = :userId', { userId: user.id })
+        .andWhere('ur.deleted_at IS NULL')
+        .andWhere('r.deleted_at IS NULL')
+        .andWhere('ur.scope_type IN (:...scopes)', { scopes: ['global', 'personal'] })
+        .andWhere('(ur.effective_from IS NULL OR ur.effective_from <= NOW())')
+        .andWhere('(ur.effective_to IS NULL OR ur.effective_to > NOW())')
+        .getRawMany<{ code: string }>(),
+      this.churchMemberRepository
+        .createQueryBuilder('cm')
+        .innerJoin('cm.role', 'r')
+        .leftJoin('r.rolePermissions', 'rp')
+        .leftJoin('rp.permission', 'p')
+        .select('cm.church_id', 'churchId')
+        .addSelect('r.code', 'roleCode')
+        .addSelect('p.code', 'permissionCode')
+        .where('cm.user_id = :userId', { userId: user.id })
+        .andWhere('cm.deleted_at IS NULL')
+        .andWhere('r.deleted_at IS NULL')
+        .getRawMany<{ churchId: string; roleCode: string; permissionCode: string | null }>(),
+      this.rbacService.getPermissionCodesForUser(user.id, null),
+    ]);
+
+    const byChurch = new Map<string, { roleCode: string; permissions: Set<string> }>();
+    for (const row of churchRows) {
+      const current = byChurch.get(row.churchId) ?? { roleCode: row.roleCode, permissions: new Set<string>() };
+      if (row.permissionCode) {
+        current.permissions.add(row.permissionCode);
+      }
+      byChurch.set(row.churchId, current);
+    }
+
+    const churchMemberships = Array.from(byChurch.entries()).map(([churchId, info]) => ({
+      churchId,
+      roleCode: info.roleCode,
+      permissions: Array.from(info.permissions),
+    }));
+
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      systemRoles: Array.from(new Set(systemRoleRows.map((x) => x.code))),
+      systemPermissions: Array.from(systemPermissions),
+      currentChurchId: churchMemberships[0]?.churchId ?? null,
+      churchMemberships,
     };
   }
 

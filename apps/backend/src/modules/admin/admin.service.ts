@@ -125,7 +125,7 @@ export class AdminService {
       )
       SELECT d.day::text AS day, COUNT(s.id)::text AS cnt
       FROM days d
-      LEFT JOIN songs s
+      LEFT JOIN "${this.songRepo.metadata.schema}"."songs" s
         ON (s.created_at AT TIME ZONE 'UTC')::date = d.day
         AND s.deleted_at IS NULL
       GROUP BY d.day

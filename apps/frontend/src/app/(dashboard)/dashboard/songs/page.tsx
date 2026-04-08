@@ -1,48 +1,58 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DataTableCard } from "@/components/dashboard/data-table-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { SongManagementTable } from "@/components/songs/song-management-table";
 import { SongTableToolbar } from "@/components/songs/song-table-toolbar";
 import { buttonClassName } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
-import { PERMISSIONS } from "@/lib/auth/permissions";
-import { useCan } from "@/lib/auth/use-can";
-import { useAuthStore } from "@/lib/stores/auth-store";
 import {
   deleteSong,
   fetchSongAdminList,
   updateSongStatus,
 } from "@/lib/api/songs";
 import type { SongListItem } from "@/lib/api/types";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import * as React from "react";
 
 const PAGE_LIMIT = 20;
 
 export default function SongManagementPage() {
-  const canManageSongs = useCan(PERMISSIONS.SONG_UPDATE);
-  const canCreateSong = useCan(PERMISSIONS.SONG_CREATE);
+  const canAccessAdmin = useCan(PERMISSIONS.SYSTEM_ADMIN);
+  const canManageSongs = useCan(PERMISSIONS.SONG_UPDATE) || canAccessAdmin;
+  const canCreateSong = useCan(PERMISSIONS.SONG_CREATE) || canAccessAdmin;
   const currentChurchId = useAuthStore((s) => s.currentChurchId);
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
   const [searchDraft, setSearchDraft] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<"ALL" | "ACTIVE" | "INACTIVE">(
-    "ALL",
-  );
-  const [statusPendingSongId, setStatusPendingSongId] = React.useState<string | null>(
-    null,
-  );
-  const [deletePendingSongId, setDeletePendingSongId] = React.useState<string | null>(
-    null,
-  );
+  const [statusFilter, setStatusFilter] = React.useState<
+    "ALL" | "ACTIVE" | "INACTIVE"
+  >("ALL");
+  const [statusPendingSongId, setStatusPendingSongId] = React.useState<
+    string | null
+  >(null);
+  const [deletePendingSongId, setDeletePendingSongId] = React.useState<
+    string | null
+  >(null);
+  const [confirmStatusSong, setConfirmStatusSong] = React.useState<SongListItem | null>(null);
+  const [confirmDeleteSong, setConfirmDeleteSong] = React.useState<SongListItem | null>(null);
 
-  const queryKey = ["dashboard", "songs", currentChurchId ?? "no-church", page, search];
+  const queryKey = [
+    "dashboard",
+    "songs",
+    currentChurchId ?? "no-church",
+    page,
+    search,
+  ];
   const { data, isLoading, isFetching, isError, error } = useQuery({
     queryKey,
     queryFn: () =>
@@ -87,7 +97,8 @@ export default function SongManagementPage() {
   const items = React.useMemo(() => {
     const rows = data?.items ?? [];
     if (statusFilter === "ALL") return rows;
-    if (statusFilter === "ACTIVE") return rows.filter((song) => song.isPublished);
+    if (statusFilter === "ACTIVE")
+      return rows.filter((song) => song.isPublished);
     return rows.filter((song) => !song.isPublished);
   }, [data?.items, statusFilter]);
 
@@ -101,19 +112,11 @@ export default function SongManagementPage() {
   }
 
   function handleToggleStatus(song: SongListItem) {
-    const next = !song.isPublished;
-    const nextLabel = next ? "ACTIVE" : "INACTIVE";
-    const ok = window.confirm(`ยืนยันเปลี่ยนสถานะเพลง "${song.title}" เป็น ${nextLabel} ?`);
-    if (!ok) return;
-    statusMutation.mutate({ id: song.id, next });
+    setConfirmStatusSong(song);
   }
 
   function handleDelete(song: SongListItem) {
-    const ok = window.confirm(
-      `ยืนยันลบเพลง "${song.title}" ?\n\nการลบไม่สามารถย้อนกลับได้`,
-    );
-    if (!ok) return;
-    deleteMutation.mutate(song.id);
+    setConfirmDeleteSong(song);
   }
 
   return (
@@ -204,6 +207,53 @@ export default function SongManagementPage() {
           </DataTableCard>
         ) : null}
       </PageContainer>
+
+      <ConfirmModal
+        open={Boolean(confirmStatusSong)}
+        title="ยืนยันเปลี่ยนสถานะเพลง"
+        description={
+          confirmStatusSong ? (
+            <>
+              เปลี่ยนสถานะเพลง <strong>&quot;{confirmStatusSong.title}&quot;</strong> เป็น{" "}
+              <strong>{confirmStatusSong.isPublished ? "INACTIVE" : "ACTIVE"}</strong> ใช่หรือไม่?
+            </>
+          ) : undefined
+        }
+        confirmLabel="ยืนยันเปลี่ยนสถานะ"
+        loading={statusMutation.isPending}
+        onClose={() => setConfirmStatusSong(null)}
+        onConfirm={() => {
+          if (!confirmStatusSong) return;
+          statusMutation.mutate({
+            id: confirmStatusSong.id,
+            next: !confirmStatusSong.isPublished,
+          });
+          setConfirmStatusSong(null);
+        }}
+      />
+
+      <ConfirmModal
+        open={Boolean(confirmDeleteSong)}
+        title="ยืนยันลบเพลง"
+        description={
+          confirmDeleteSong ? (
+            <>
+              ยืนยันลบเพลง <strong>&quot;{confirmDeleteSong.title}&quot;</strong> ?
+              <br />
+              การลบไม่สามารถย้อนกลับได้
+            </>
+          ) : undefined
+        }
+        confirmLabel="ลบเพลง"
+        confirmVariant="destructive"
+        loading={deleteMutation.isPending}
+        onClose={() => setConfirmDeleteSong(null)}
+        onConfirm={() => {
+          if (!confirmDeleteSong) return;
+          deleteMutation.mutate(confirmDeleteSong.id);
+          setConfirmDeleteSong(null);
+        }}
+      />
     </>
   );
 }

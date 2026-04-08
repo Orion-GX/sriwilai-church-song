@@ -11,6 +11,7 @@ import { FollowLeaderToggle } from "@/components/live/follow-leader-toggle";
 import { LiveLargeControls } from "@/components/live/live-large-controls";
 import { TransposeBar } from "@/components/songs/transpose-bar";
 import { Button, buttonClassName } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
   Card,
   CardContent,
@@ -76,6 +77,7 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
   const [transpose, setTranspose] = React.useState(0);
   const [addSongId, setAddSongId] = React.useState("");
   const [addErr, setAddErr] = React.useState<string | null>(null);
+  const [confirmEndOpen, setConfirmEndOpen] = React.useState(false);
 
   const displayIndex = isLeader
     ? localIndex
@@ -318,9 +320,7 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
               variant="destructive"
               size="sm"
               disabled={endMut.isPending}
-              onClick={() => {
-                if (confirm("จบเซสชันนี้?")) endMut.mutate();
-              }}
+              onClick={() => setConfirmEndOpen(true)}
             >
               {endMut.isPending ? "กำลังจบ…" : "จบเซสชัน"}
             </Button>
@@ -442,6 +442,20 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
           กำลังตาม leader — ปุ่มเปลี่ยนเพลงถูกซ่อน
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmEndOpen}
+        title="ยืนยันจบเซสชัน"
+        description="ต้องการจบเซสชันไลฟ์นี้ใช่หรือไม่?"
+        confirmLabel="จบเซสชัน"
+        confirmVariant="destructive"
+        loading={endMut.isPending}
+        onClose={() => setConfirmEndOpen(false)}
+        onConfirm={() => {
+          endMut.mutate();
+          setConfirmEndOpen(false);
+        }}
+      />
     </div>
   );
 }

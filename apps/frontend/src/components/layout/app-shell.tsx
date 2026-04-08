@@ -104,7 +104,7 @@ export function AppShell({
             actions={navbarActions}
             userMenu={userMenu}
           />
-          <main className="min-h-0 flex-1 bg-background p-4 md:p-6">
+          <main className="min-h-0 flex-1 bg-background p-3 md:p-4 lg:p-5">
             {children}
           </main>
         </div>

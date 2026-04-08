@@ -2,11 +2,14 @@ import { FavoritesBootstrap } from "@/components/providers/favorites-bootstrap";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Bai_Jamjuree } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
+const baiJamjuree = Bai_Jamjuree({
+  subsets: ["latin", "thai"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
   variable: "--font-sans",
 });
 
@@ -22,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <body className={`${inter.variable} min-h-screen font-sans`}>
+      <body className={`${baiJamjuree.variable} min-h-screen font-sans`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

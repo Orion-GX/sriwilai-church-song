@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Button, buttonClassName } from "@/components/ui/button";
 import type { SongListItem } from "@/lib/api/types";
+import Link from "next/link";
 
 type SongRowActionsProps = {
   song: SongListItem;
@@ -23,8 +23,12 @@ export function SongRowActions({
     <div className="flex flex-wrap justify-end gap-2">
       <Link
         href={`/dashboard/songs/${song.id}/edit`}
-        className={buttonClassName("outline", "sm")}
+        className={buttonClassName("outline", "sm", "bg-background")}
         data-testid={`song-admin-edit-${song.id}`}
+        style={{
+          backgroundColor: "hsl(var(--warning))",
+          color: "hsl(var(--warning-foreground))",
+        }}
       >
         แก้ไข
       </Link>

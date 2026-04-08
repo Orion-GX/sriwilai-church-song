@@ -1,22 +1,20 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { ChurchSwitcher } from "@/components/layout/church-switcher";
+import { Sidebar, type SidebarNavItem } from "@/components/layout/sidebar";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { useCan } from "@/lib/auth/use-can";
 import {
   Building2,
   Home,
   LayoutDashboard,
   LayoutTemplate,
   ListMusic,
-  Music,
-  PlusCircle,
   Radio,
   Settings,
   User,
 } from "lucide-react";
-import { ChurchSwitcher } from "@/components/layout/church-switcher";
-import { Sidebar, type SidebarNavItem } from "@/components/layout/sidebar";
-import { PERMISSIONS } from "@/lib/auth/permissions";
-import { useCan } from "@/lib/auth/use-can";
+import { usePathname } from "next/navigation";
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/dashboard") {
@@ -38,7 +36,10 @@ function isActive(pathname: string, href: string): boolean {
     return pathname === "/songs" || pathname.startsWith("/songs/");
   }
   if (href === "/dashboard/songs") {
-    return pathname === "/dashboard/songs" || pathname.startsWith("/dashboard/songs/");
+    return (
+      pathname === "/dashboard/songs" ||
+      pathname.startsWith("/dashboard/songs/")
+    );
   }
   if (href === "/dashboard/songs/new") {
     return pathname.startsWith("/dashboard/songs");
@@ -61,7 +62,7 @@ const adminItem: SidebarNavItem = {
 
 const restItems: SidebarNavItem[] = [
   { href: "/dashboard/ui-showcase", label: "UI อ้างอิง", icon: LayoutTemplate },
-  { href: "/songs", label: "เพลง", icon: Music },
+  // { href: "/songs", label: "เพลง", icon: Music },
   { href: "/dashboard/settings", label: "ตั้งค่า", icon: Settings },
 ];
 
@@ -79,10 +80,12 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
     ...(canManageSongs
       ? [{ href: "/dashboard/songs", label: "จัดการเพลง", icon: ListMusic }]
       : []),
-    ...(canCreateSongs
-      ? [{ href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle }]
+    // ...(canCreateSongs
+    //   ? [{ href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle }]
+    //   : []),
+    ...(canAccessLive
+      ? [{ href: "/dashboard/live", label: "ไลฟ์", icon: Radio }]
       : []),
-    ...(canAccessLive ? [{ href: "/dashboard/live", label: "ไลฟ์", icon: Radio }] : []),
     ...(canAccessSetlists
       ? [{ href: "/dashboard/setlists", label: "เซ็ตลิสต์", icon: ListMusic }]
       : []),

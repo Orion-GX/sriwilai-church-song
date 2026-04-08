@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,12 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/client";
 import { createSong, updateSong } from "@/lib/api/songs";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 type SongEditorFormProps = {
   mode: "create" | "edit";
@@ -50,13 +50,18 @@ export function SongEditorForm({
     setLoading(true);
     try {
       if (mode === "create") {
-        const created = await createSong({ title, chordproBody: chordpro, isPublished: true });
-        router.push(`/songs/${created.id}`);
-        router.refresh();
+        const created = await createSong({
+          title,
+          chordproBody: chordpro,
+          isPublished: true,
+        });
+        router.back();
       } else if (songId) {
-        const updated = await updateSong(songId, { title, chordproBody: chordpro });
-        router.push(`/songs/${updated.id}`);
-        router.refresh();
+        const updated = await updateSong(songId, {
+          title,
+          chordproBody: chordpro,
+        });
+        router.back();
       }
     } catch (err) {
       const msg =
@@ -75,16 +80,22 @@ export function SongEditorForm({
     <Card className="mx-auto w-full max-w-3xl" data-testid="song-editor-form">
       {!hideCardHeader ? (
         <CardHeader>
-          <CardTitle>{mode === "create" ? "สร้างเพลงใหม่" : "แก้ไขเพลง"}</CardTitle>
+          <CardTitle>
+            {mode === "create" ? "สร้างเพลงใหม่" : "แก้ไขเพลง"}
+          </CardTitle>
           <CardDescription>
             เนื้อ ChordPro — คอร์ดใน [วงเล็บเหลี่ยม]
           </CardDescription>
         </CardHeader>
       ) : null}
       <form onSubmit={onSubmit}>
-        <CardContent className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}>
+        <CardContent
+          className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}
+        >
           {error ? (
-            <FormErrorBanner data-testid="song-editor-error">{error}</FormErrorBanner>
+            <FormErrorBanner data-testid="song-editor-error">
+              {error}
+            </FormErrorBanner>
           ) : null}
           <div className="space-y-2">
             <Label htmlFor="song-title">ชื่อเพลง</Label>

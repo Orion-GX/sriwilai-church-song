@@ -26,11 +26,11 @@
     --radius-xl: 0.875rem;
     --radius-2xl: 1rem;
 
-    /* —— Typography scale (Roboto ใน Celestial → ใช้ Inter ผ่าน --font-sans) —— */
-    --font-size-heading-xl: 2rem;
-    --font-size-heading-lg: 1.5rem;
-    --font-size-heading-md: 1.25rem;
-    --font-size-heading-sm: 1.125rem;
+    /* —— Typography scale (Bai Jamjuree ผ่าน --font-sans) —— */
+    --font-size-heading-xl: 1.875rem;
+    --font-size-heading-lg: 1.375rem;
+    --font-size-heading-md: 1.1875rem;
+    --font-size-heading-sm: 1.0625rem;
     --font-size-body: 0.875rem; /* Celestial $default-font-size */
     --font-size-body-sm: 0.8125rem;
     --font-size-label: 0.75rem;
@@ -44,42 +44,42 @@
     --line-height-label: 1.25;
     --line-height-stat: 1.1;
 
-    --font-weight-heading: 600;
+    --font-weight-heading: 700;
     --font-weight-label: 500;
     --font-weight-stat: 600;
 
-    --letter-spacing-heading: -0.025em;
+    --letter-spacing-heading: -0.015em;
     --letter-spacing-label: 0.04em;
     --letter-spacing-stat: -0.02em;
 
     /* —— สีหลัก Celestial: primary #f2125e, body #001737, canvas #e8eff9 —— */
-    --background: 218 45% 95%; /* #e8eff9 $content-bg */
+    --background: 52 25% 96%; /* cream-tinted canvas */
     --foreground: 214 100% 11%; /* #001737 $body-color */
 
     --card: 0 0% 100%;
     --card-foreground: 214 100% 11%;
 
-    --navbar: 0 0% 100%;
-    --navbar-foreground: 214 100% 11%;
+    --navbar: 42 20% 95%; /* warm light topbar */
+    --navbar-foreground: 223 97% 12%;
 
     /* ไซด์บาร์โหมดสว่าง: พื้นขาว เมนูเข้ม (เทียบ $sidebar-light-*) */
-    --sidebar: 0 0% 100%;
-    --sidebar-foreground: 214 100% 11%;
-    --sidebar-accent: 218 35% 96%;
-    --sidebar-accent-foreground: 214 100% 11%;
-    --sidebar-border: 220 14% 91%;
+    --sidebar: 226 36% 14%; /* deep desaturated navy */
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-accent: 225 18% 28%; /* active/hover background */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 225 20% 24%;
 
-    /* primary / secondary จาก $theme-colors */
-    --primary: 340 89% 51%; /* #f2125e */
+    /* primary / secondary brand colors */
+    --primary: 223 97% 12%; /* #01123D */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 248 68% 48%; /* #392ccd */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 52 25% 88%; /* #E8E6D9 */
+    --secondary-foreground: 223 97% 12%;
 
-    --muted: 192 33% 97%; /* #f2f7f8 $white-smoke */
+    --muted: 52 18% 93%; /* subtle cream-muted */
     --muted-foreground: 210 5% 62%; /* #9a9ea2 $text-muted */
 
-    --accent: 228 20% 93%; /* hover ใกล้ #eaeaf1 */
+    --accent: 52 20% 91%; /* soft cream accent */
     --accent-foreground: 214 100% 11%;
 
     --destructive: 0 100% 50%; /* #ff0000 theme danger */
@@ -94,9 +94,9 @@
     --info: 217 100% 58%; /* #2b80ff — ไอคอน active ใน Celestial */
     --info-foreground: 210 40% 98%;
 
-    --border: 218 40% 92%; /* แยกจากพื้นหลังเล็กน้อย */
-    --input: 218 40% 92%;
-    --ring: 340 89% 51%;
+    --border: 52 14% 86%; /* cream-tinted border */
+    --input: 52 14% 86%;
+    --ring: 223 97% 12%;
 
     /* —— เงา: sidebar จาก template + elevation สมัยใหม่สำหรับการ์ด —— */
     --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.05),
@@ -108,31 +108,31 @@
   }
 
   .dark {
-    --background: 228 35% 8%;
+    --background: 223 45% 10%; /* deep navy canvas */
     --foreground: 210 40% 98%;
 
     --card: 228 28% 12%;
     --card-foreground: 210 40% 98%;
 
-    --navbar: 228 30% 10%;
-    --navbar-foreground: 210 40% 98%;
+    --navbar: 223 32% 12%;
+    --navbar-foreground: 220 20% 92%;
 
-    --sidebar: 240 6% 10%; /* ใกล้ #1b1b29 */
-    --sidebar-foreground: 210 20% 92%;
-    --sidebar-accent: 240 5% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 240 5% 20%;
+    --sidebar: 226 36% 12%;
+    --sidebar-foreground: 220 18% 90%;
+    --sidebar-accent: 225 16% 24%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 225 16% 22%;
 
-    --primary: 340 82% 58%;
-    --primary-foreground: 228 35% 8%;
+    --primary: 223 97% 12%; /* #01123D */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 248 62% 58%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 52 25% 88%; /* #E8E6D9 */
+    --secondary-foreground: 223 97% 12%;
 
-    --muted: 228 22% 18%;
+    --muted: 223 20% 16%; /* subtle navy-muted */
     --muted-foreground: 215 16% 62%;
 
-    --accent: 228 22% 20%;
+    --accent: 223 26% 18%; /* navy-tinted accent */
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62% 50%;
@@ -147,9 +147,9 @@
     --info: 217 90% 62%;
     --info-foreground: 210 40% 98%;
 
-    --border: 228 22% 22%;
-    --input: 228 22% 22%;
-    --ring: 340 82% 58%;
+    --border: 223 16% 24%;
+    --input: 223 16% 24%;
+    --ring: 223 97% 12%;
 
     --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.35),
       0 0 0 1px rgb(255 255 255 / 0.04);

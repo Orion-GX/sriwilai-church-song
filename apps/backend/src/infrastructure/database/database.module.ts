@@ -24,7 +24,7 @@ import { AppConfiguration } from '../../config/configuration';
           synchronize: false,
           migrations: [join(__dirname, 'migrations/*{.ts,.js}')],
           migrationsRun: process.env.NODE_ENV === 'test',
-          logging: false,
+          logging: true,
           extra: {
             max: db.maxConnections,
           },
