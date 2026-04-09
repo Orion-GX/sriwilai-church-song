@@ -99,8 +99,8 @@
     --ring: 223 97% 12%;
 
     /* —— เงา: sidebar จาก template + elevation สมัยใหม่สำหรับการ์ด —— */
-    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.05),
-      0 0 0 1px rgb(15 23 42 / 0.04);
+    --shadow-card:
+      0 1px 2px 0 rgb(15 23 42 / 0.05), 0 0 0 1px rgb(15 23 42 / 0.04);
     --shadow-soft: 0 4px 14px -4px rgb(15 23 42 / 0.08);
     --shadow-sidebar: 6px 16px 31px -18px rgb(183 188 209 / 0.55);
     --shadow-elevated: 0 12px 40px -12px rgb(15 23 42 / 0.12);
@@ -151,8 +151,8 @@
     --input: 223 16% 24%;
     --ring: 223 97% 12%;
 
-    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.35),
-      0 0 0 1px rgb(255 255 255 / 0.04);
+    --shadow-card:
+      0 1px 3px 0 rgb(0 0 0 / 0.35), 0 0 0 1px rgb(255 255 255 / 0.04);
     --shadow-soft: 0 8px 24px -8px rgb(0 0 0 / 0.45);
     --shadow-sidebar: 6px 16px 31px -18px rgb(0 0 0 / 0.5);
     --shadow-elevated: 0 20px 50px -15px rgb(0 0 0 / 0.55);
@@ -239,7 +239,7 @@
   }
 
   .ui-section-gap {
-    @apply space-y-8;
+    @apply space-y-2;
   }
 
   .ui-widget-gap {

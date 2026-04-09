@@ -24,6 +24,7 @@ import {
   fetchSongTagsCatalog,
 } from "@/lib/api/songs";
 import { useFavoriteSongIds } from "@/lib/stores/favorites-store";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import Link from "next/link";
@@ -228,7 +229,11 @@ export default function SongsListPage() {
                 type="button"
                 variant={favoritesOnly ? "secondary" : "outline"}
                 onClick={() => setFavoritesOnly((v) => !v)}
-                className="w-full xl:w-auto"
+                className={cn(
+                  "w-full transition-colors xl:w-auto",
+                  favoritesOnly &&
+                    "border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+                )}
                 data-testid="song-filter-favorites"
               >
                 รายการโปรด ({favoriteIds.length})

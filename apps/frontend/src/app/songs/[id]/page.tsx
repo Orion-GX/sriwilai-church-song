@@ -11,7 +11,6 @@ import { fetchSongById } from "@/lib/api/songs";
 import { buildDisplayDocument } from "@/lib/songs/song-content";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -34,19 +33,6 @@ export default function SongDetailPage() {
       <SiteHeader />
       <main className="flex-1">
         <PageContainer maxWidth="layout" className="py-6 md:py-8">
-          <Link
-            href="/songs"
-            className={buttonClassName(
-              "ghost",
-              "sm",
-              "mb-4 inline-flex gap-2 sm:mb-6",
-            )}
-            data-testid="song-back-list"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            กลับรายการเพลง
-          </Link>
-
           {isLoading ? (
             <div className="space-y-6" data-testid="song-detail-loading">
               <div className="space-y-2">
@@ -71,7 +57,7 @@ export default function SongDetailPage() {
             </FormErrorBanner>
           ) : data ? (
             <>
-              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="mb-3 flex flex-col gap-4 sm:mb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <h1
                     className="break-words text-page-title"
