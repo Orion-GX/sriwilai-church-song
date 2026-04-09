@@ -4,13 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { FavoriteButton } from "@/components/songs/favorite-button";
 import { PageContainer } from "@/components/layout/page-container";
 import { SiteHeader } from "@/components/layout/site-header";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
+import { ComboboxChips } from "@/components/ui/combobox-chips";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,7 +29,6 @@ import {
   fetchSongTagsCatalog,
 } from "@/lib/api/songs";
 import { useFavoriteSongIds } from "@/lib/stores/favorites-store";
-import { cn } from "@/lib/utils";
 
 function parseTagSlugs(raw: string | null): string[] {
   if (!raw) return [];
@@ -141,12 +141,6 @@ export default function SongsListPage() {
     router.push(buildSongsQuery(nextQ, draftCategorySlug, draftTagSlugs));
   }
 
-  function toggleDraftTagSlug(slug: string) {
-    setDraftTagSlugs((prev) =>
-      prev.includes(slug) ? prev.filter((item) => item !== slug) : [...prev, slug],
-    );
-  }
-
   function clearFilters() {
     setDraft("");
     setQ("");
@@ -189,7 +183,10 @@ export default function SongsListPage() {
                 setDraftCategorySlug(value === "all" ? "" : value)
               }
             >
-              <SelectTrigger className="w-full sm:w-48" aria-label="เลือกหมวดหมู่">
+              <SelectTrigger
+                className="w-full bg-white dark:bg-card sm:w-48"
+                aria-label="เลือกหมวดหมู่"
+              >
                 <SelectValue placeholder="ทุกหมวดหมู่" />
               </SelectTrigger>
               <SelectContent>
@@ -201,6 +198,16 @@ export default function SongsListPage() {
                 ))}
               </SelectContent>
             </Select>
+            <ComboboxChips
+              className="w-full sm:w-[22rem]"
+              ariaLabel="เลือกแท็ก"
+              value={draftTagSlugs}
+              onValueChange={setDraftTagSlugs}
+              multiple
+              placeholder="เลือกแท็กเพลง"
+              searchPlaceholder="ค้นหาแท็ก..."
+              options={tags.map((tag) => ({ value: tag.slug, label: tag.name }))}
+            />
             <Button type="submit" data-testid="song-search-submit">
               ค้นหา
             </Button>
@@ -214,36 +221,6 @@ export default function SongsListPage() {
             </Button>
             </div>
 
-            {tags.length > 0 ? (
-              <div className="rounded-lg border border-border bg-card p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  เลือกแท็ก (เลือกได้หลายแท็ก)
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => {
-                    const selected = draftTagSlugs.includes(tag.slug);
-                    return (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={() => toggleDraftTagSlug(tag.slug)}
-                        className={cn(
-                          badgeVariants({
-                            variant: selected ? "secondary" : "outline",
-                          }),
-                          "cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-medium",
-                        )}
-                      >
-                        {selected ? (
-                          <Check className="mr-1 inline h-3 w-3" aria-hidden />
-                        ) : null}
-                        {tag.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
           </form>
 
           {hasAppliedFilters ? (
