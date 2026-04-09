@@ -2,35 +2,127 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Check, Search, X } from "lucide-react";
 import { FavoriteButton } from "@/components/songs/favorite-button";
 import { PageContainer } from "@/components/layout/page-container";
 import { SiteHeader } from "@/components/layout/site-header";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchSongList } from "@/lib/api/songs";
+import {
+  fetchSongCategories,
+  fetchSongList,
+  fetchSongTagsCatalog,
+} from "@/lib/api/songs";
 import { useFavoriteSongIds } from "@/lib/stores/favorites-store";
+import { cn } from "@/lib/utils";
+
+function parseTagSlugs(raw: string | null): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((slug) => slug.trim())
+    .filter(Boolean);
+}
+
+function buildSongsQuery(
+  q: string,
+  categorySlug: string,
+  tagSlugs: string[],
+): string {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (categorySlug) params.set("categorySlug", categorySlug);
+  if (tagSlugs.length > 0) params.set("tagSlugs", tagSlugs.join(","));
+  const query = params.toString();
+  return query ? `/songs?${query}` : "/songs";
+}
 
 export default function SongsListPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const qFromUrl = searchParams.get("q")?.trim() ?? "";
+  const categorySlugFromUrl = searchParams.get("categorySlug")?.trim() ?? "";
+  const rawTagSlugsFromUrl = searchParams.get("tagSlugs");
+  const tagSlugsFromUrl = React.useMemo(
+    () => parseTagSlugs(rawTagSlugsFromUrl),
+    [rawTagSlugsFromUrl],
+  );
   const [page, setPage] = React.useState(1);
-  const [q, setQ] = React.useState("");
-  const [draft, setDraft] = React.useState("");
+  const [q, setQ] = React.useState(qFromUrl);
+  const [draft, setDraft] = React.useState(qFromUrl);
+  const [categorySlug, setCategorySlug] = React.useState(categorySlugFromUrl);
+  const [draftCategorySlug, setDraftCategorySlug] =
+    React.useState(categorySlugFromUrl);
+  const [tagSlugs, setTagSlugs] = React.useState<string[]>(tagSlugsFromUrl);
+  const [draftTagSlugs, setDraftTagSlugs] =
+    React.useState<string[]>(tagSlugsFromUrl);
   const [favoritesOnly, setFavoritesOnly] = React.useState(false);
   const favoriteIds = useFavoriteSongIds();
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["songs", page, q],
-    queryFn: () => fetchSongList({ page, limit: 20, q: q || undefined }),
+  React.useEffect(() => {
+    setQ((prev) => (prev === qFromUrl ? prev : qFromUrl));
+    setDraft((prev) => (prev === qFromUrl ? prev : qFromUrl));
+    setCategorySlug((prev) =>
+      prev === categorySlugFromUrl ? prev : categorySlugFromUrl,
+    );
+    setDraftCategorySlug((prev) =>
+      prev === categorySlugFromUrl ? prev : categorySlugFromUrl,
+    );
+    setTagSlugs((prev) =>
+      prev.join(",") === tagSlugsFromUrl.join(",") ? prev : tagSlugsFromUrl,
+    );
+    setDraftTagSlugs((prev) =>
+      prev.join(",") === tagSlugsFromUrl.join(",") ? prev : tagSlugsFromUrl,
+    );
+    setPage(1);
+  }, [categorySlugFromUrl, qFromUrl, tagSlugsFromUrl]);
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["song-categories-catalog"],
+    queryFn: fetchSongCategories,
   });
+
+  const { data: tags = [] } = useQuery({
+    queryKey: ["song-tags-catalog"],
+    queryFn: fetchSongTagsCatalog,
+  });
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["songs", page, q, categorySlug, tagSlugs.join(",")],
+    queryFn: () =>
+      fetchSongList({
+        page,
+        limit: 20,
+        q: q || undefined,
+        categorySlug: categorySlug || undefined,
+        tagSlugs: tagSlugs.length > 0 ? tagSlugs : undefined,
+      }),
+  });
+
+  const categoryNameBySlug = React.useMemo(
+    () => new Map(categories.map((category) => [category.slug, category.name])),
+    [categories],
+  );
+  const tagNameBySlug = React.useMemo(
+    () => new Map(tags.map((tag) => [tag.slug, tag.name])),
+    [tags],
+  );
+  const hasAppliedFilters =
+    q.length > 0 || categorySlug.length > 0 || tagSlugs.length > 0;
 
   const items = React.useMemo(() => {
     if (!data?.items) return [];
@@ -41,8 +133,29 @@ export default function SongsListPage() {
 
   function onSearch(e: React.FormEvent) {
     e.preventDefault();
-    setQ(draft.trim());
+    const nextQ = draft.trim();
+    setQ(nextQ);
+    setCategorySlug(draftCategorySlug);
+    setTagSlugs(draftTagSlugs);
     setPage(1);
+    router.push(buildSongsQuery(nextQ, draftCategorySlug, draftTagSlugs));
+  }
+
+  function toggleDraftTagSlug(slug: string) {
+    setDraftTagSlugs((prev) =>
+      prev.includes(slug) ? prev.filter((item) => item !== slug) : [...prev, slug],
+    );
+  }
+
+  function clearFilters() {
+    setDraft("");
+    setQ("");
+    setDraftCategorySlug("");
+    setCategorySlug("");
+    setDraftTagSlugs([]);
+    setTagSlugs([]);
+    setPage(1);
+    router.push("/songs");
   }
 
   return (
@@ -51,18 +164,15 @@ export default function SongsListPage() {
       data-testid="page-songs-list"
     >
       <SiteHeader />
-      <main className="flex-1">
-        <PageContainer maxWidth="layout" className="py-8">
+      <main className="flex-1 px-4 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6">
+        <PageContainer maxWidth="layout" className="py-6 md:py-8">
           <SectionHeader
             title="เพลง"
             description="รายการเพลง ChordPro จาก API — อ่านได้โดยไม่ต้องล็อกอิน"
           />
 
-          <form
-            onSubmit={onSearch}
-            className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center"
-            data-testid="song-search-form"
-          >
+          <form onSubmit={onSearch} className="mb-4 space-y-3" data-testid="song-search-form">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -73,6 +183,24 @@ export default function SongsListPage() {
                 data-testid="song-search-input"
               />
             </div>
+            <Select
+              value={draftCategorySlug || "all"}
+              onValueChange={(value) =>
+                setDraftCategorySlug(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-full sm:w-48" aria-label="เลือกหมวดหมู่">
+                <SelectValue placeholder="ทุกหมวดหมู่" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.slug}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button type="submit" data-testid="song-search-submit">
               ค้นหา
             </Button>
@@ -82,9 +210,61 @@ export default function SongsListPage() {
               onClick={() => setFavoritesOnly((v) => !v)}
               data-testid="song-filter-favorites"
             >
-              เฉพาะโปรด ({favoriteIds.length})
+              รายการโปรด ({favoriteIds.length})
             </Button>
+            </div>
+
+            {tags.length > 0 ? (
+              <div className="rounded-lg border border-border bg-card p-3">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  เลือกแท็ก (เลือกได้หลายแท็ก)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => {
+                    const selected = draftTagSlugs.includes(tag.slug);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleDraftTagSlug(tag.slug)}
+                        className={cn(
+                          badgeVariants({
+                            variant: selected ? "secondary" : "outline",
+                          }),
+                          "cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-medium",
+                        )}
+                      >
+                        {selected ? (
+                          <Check className="mr-1 inline h-3 w-3" aria-hidden />
+                        ) : null}
+                        {tag.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </form>
+
+          {hasAppliedFilters ? (
+            <div className="mb-6 flex flex-wrap items-center gap-2">
+              {q ? <Badge variant="outline">คำค้น: {q}</Badge> : null}
+              {categorySlug ? (
+                <Badge variant="secondary">
+                  หมวด: {categoryNameBySlug.get(categorySlug) ?? categorySlug}
+                </Badge>
+              ) : null}
+              {tagSlugs.map((slug) => (
+                <Badge key={slug} variant="outline">
+                  แท็ก: {tagNameBySlug.get(slug) ?? slug}
+                </Badge>
+              ))}
+              <Button type="button" size="sm" variant="ghost" onClick={clearFilters}>
+                <X className="mr-1 h-3.5 w-3.5" />
+                ล้างตัวกรอง
+              </Button>
+            </div>
+          ) : null}
 
           {isLoading ? (
             <ul className="space-y-2" data-testid="song-list-loading">
@@ -122,12 +302,23 @@ export default function SongsListPage() {
                           >
                             {song.title}
                           </Link>
-                          <CardDescription className="truncate">
-                            {song.category?.name ?? "ไม่มีหมวด"}{" "}
-                            {song.tags.length > 0
-                              ? `· ${song.tags.map((t) => t.name).join(", ")}`
-                              : ""}
-                          </CardDescription>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            คีย์: {song.originalKey ?? "-"}
+                          </p>
+                          {song.category || song.tags.length > 0 ? (
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              {song.category ? (
+                                <Badge variant="secondary">
+                                  {song.category.name}
+                                </Badge>
+                              ) : null}
+                              {song.tags.map((tag) => (
+                                <Badge key={tag.id} variant="outline">
+                                  {tag.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                         <FavoriteButton songId={song.id} />
                       </CardHeader>

@@ -5,7 +5,7 @@ import { Container } from "@/components/homepage/container";
 import { cn } from "@/lib/utils";
 
 const navLinkClass =
-  "inline-flex items-center gap-0.5 text-sm font-medium text-white/90 transition-colors hover:text-white";
+  "inline-flex items-center gap-0.5 text-sm font-medium text-primary-foreground/90 transition-colors hover:text-primary-foreground";
 
 type NavItemProps = {
   href: string;
@@ -26,11 +26,11 @@ function NavItem({ href, label, hasDropdown }: NavItemProps) {
 
 export function Navbar() {
   return (
-    <header className="min-h-header border-b border-white/10 bg-[hsl(214,100%,11%)] shadow-soft">
+    <header className="min-h-header border-b border-primary/30 bg-primary text-primary-foreground shadow-soft">
       <Container className="flex h-header items-center justify-between gap-6 py-0">
         <Link
           href="/"
-          className="text-base font-semibold tracking-tight text-white"
+          className="text-base font-semibold tracking-tight text-primary-foreground"
           data-testid="home-marketing-title"
         >
           Sriwilai Church
@@ -41,7 +41,7 @@ export function Navbar() {
           aria-label="หลัก"
         >
           {/* <NavItem href="#" label="Bible" hasDropdown /> */}
-          <NavItem href="#" label="เพลงนมัสการ" hasDropdown />
+          <NavItem href="/songs" label="เพลงนมัสการ" />
           <NavItem href="#" label="ชีทเพลง" />
           <NavItem href="#" label="Live" hasDropdown />
         </nav>

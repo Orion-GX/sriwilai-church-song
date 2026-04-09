@@ -83,7 +83,6 @@ export function SongViewer({
             className="mb-4 font-mono leading-relaxed"
             style={{
               fontSize: `${0.92 * fontScale}rem`,
-              color: "var(--color-red-500)",
             }}
           >
             <span className="font-bold text-primary">Intro:</span>{" "}

@@ -9,15 +9,15 @@ const nav = [
 ];
 
 const navLinkClass =
-  "inline-flex h-9 items-center justify-center rounded-lg px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground ui-focus-ring";
+  "inline-flex h-9 items-center justify-center rounded-lg px-3 text-sm font-medium text-primary-foreground/90 transition-colors hover:bg-primary-foreground/15 hover:text-primary-foreground ui-focus-ring";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-navbar text-navbar-foreground shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-primary/30 bg-primary text-primary-foreground shadow-sm">
       <div className="mx-auto flex h-header min-h-header max-w-layout items-center justify-between px-4 md:px-6">
         <Link
           href="/"
-          className="text-lg font-semibold tracking-tight text-foreground"
+          className="text-lg font-semibold tracking-tight text-primary-foreground"
           data-testid="nav-brand"
         >
           Sriwilai Song

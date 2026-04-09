@@ -18,6 +18,7 @@ export class SongPublicListItemDto {
   title!: string;
   slug!: string;
   churchId!: string | null;
+  originalKey!: string | null;
   visibility!: SongEntity['visibility'];
   isPublished!: boolean;
   category!: SongCategorySnippetDto | null;
@@ -32,6 +33,7 @@ export class SongPublicListItemDto {
     dto.title = row.title;
     dto.slug = row.slug;
     dto.churchId = row.churchId;
+    dto.originalKey = row.originalKey ?? null;
     dto.visibility = row.visibility;
     dto.isPublished = row.isPublished;
     dto.category = row.category
@@ -59,6 +61,7 @@ export class SongPublicDetailDto extends SongPublicListItemDto {
     dto.title = list.title;
     dto.slug = list.slug;
     dto.churchId = list.churchId;
+    dto.originalKey = list.originalKey;
     dto.visibility = list.visibility;
     dto.isPublished = list.isPublished;
     dto.category = list.category;
@@ -83,6 +86,7 @@ export class SongAdminListItemDto extends SongPublicListItemDto {
     dto.title = list.title;
     dto.slug = list.slug;
     dto.churchId = list.churchId;
+    dto.originalKey = list.originalKey;
     dto.visibility = list.visibility;
     dto.category = list.category;
     dto.tags = list.tags;
@@ -109,6 +113,7 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
     dto.title = list.title;
     dto.slug = list.slug;
     dto.churchId = list.churchId;
+    dto.originalKey = list.originalKey;
     dto.isPublished = list.isPublished;
     dto.category = list.category;
     dto.tags = list.tags;

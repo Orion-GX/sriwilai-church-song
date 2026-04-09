@@ -67,6 +67,7 @@ export type SongListItem = {
   title: string;
   slug: string;
   churchId: string | null;
+  originalKey: string | null;
   isPublished: boolean;
   category: SongCategorySnippet | null;
   tags: SongTagSnippet[];
