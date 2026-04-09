@@ -1,5 +1,12 @@
 import { apiFetch } from "@/lib/api/client";
-import type { PaginatedSongs, SongDetail } from "@/lib/api/types";
+import type {
+  PaginatedSongs,
+  SongCategoryCatalogItem,
+  SongContentDocument,
+  SongDetail,
+  SongVersion,
+  SongTagCatalogItem,
+} from "@/lib/api/types";
 
 export type ListSongsParams = {
   page?: number;
@@ -46,10 +53,39 @@ export async function fetchSongById(id: string): Promise<SongDetail> {
   });
 }
 
+export async function fetchSongCategories(): Promise<SongCategoryCatalogItem[]> {
+  return apiFetch<SongCategoryCatalogItem[]>("/app/songs/categories", {
+    auth: false,
+    retryOn401: false,
+  });
+}
+
+export async function fetchSongTagsCatalog(): Promise<SongTagCatalogItem[]> {
+  return apiFetch<SongTagCatalogItem[]>("/app/songs/tags", {
+    auth: false,
+    retryOn401: false,
+  });
+}
+
 export type CreateSongPayload = {
   title: string;
   chordproBody: string;
   isPublished?: boolean;
+  categoryId?: string;
+  tagSlugs?: string[];
+  contentJson?: SongContentDocument;
+  originalKey?: string;
+  tempo?: number;
+  timeSignature?: string;
+  versions?: Array<{
+    id?: string;
+    code: "th" | "en" | "custom";
+    name: string;
+    chordproBody: string;
+    contentJson?: SongContentDocument | null;
+    isDefault?: boolean;
+    sortOrder?: number;
+  }>;
 };
 
 export async function createSong(payload: CreateSongPayload): Promise<SongDetail> {
@@ -59,6 +95,13 @@ export async function createSong(payload: CreateSongPayload): Promise<SongDetail
       title: payload.title,
       chordproBody: payload.chordproBody,
       isPublished: payload.isPublished ?? true,
+      ...(payload.categoryId ? { categoryId: payload.categoryId } : {}),
+      ...(payload.tagSlugs?.length ? { tagSlugs: payload.tagSlugs } : {}),
+      ...(payload.contentJson ? { contentJson: payload.contentJson } : {}),
+      ...(payload.originalKey ? { originalKey: payload.originalKey } : {}),
+      ...(payload.tempo != null ? { tempo: payload.tempo } : {}),
+      ...(payload.timeSignature ? { timeSignature: payload.timeSignature } : {}),
+      ...(payload.versions?.length ? { versions: payload.versions } : {}),
     }),
   });
 }
@@ -67,15 +110,33 @@ export type UpdateSongPayload = {
   title?: string;
   chordproBody?: string;
   isPublished?: boolean;
+  categoryId?: string | null;
+  tagSlugs?: string[];
+  contentJson?: SongContentDocument | null;
+  originalKey?: string | null;
+  tempo?: number | null;
+  timeSignature?: string | null;
+  versions?: Array<{
+    id?: string;
+    code: "th" | "en" | "custom";
+    name: string;
+    chordproBody: string;
+    contentJson?: SongContentDocument | null;
+    isDefault?: boolean;
+    sortOrder?: number;
+  }>;
 };
 
 export async function updateSong(
   id: string,
   payload: UpdateSongPayload,
 ): Promise<SongDetail> {
+  const body = Object.fromEntries(
+    Object.entries(payload).filter(([, v]) => v !== undefined),
+  );
   return apiFetch<SongDetail>(`/app/admin/songs/${id}`, {
     method: "PATCH",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }
 
@@ -90,4 +151,53 @@ export async function deleteSong(id: string): Promise<void> {
   await apiFetch<void>(`/app/admin/songs/${id}`, {
     method: "DELETE",
   });
+}
+
+export type CreateSongVersionPayload = {
+  code: "th" | "en" | "custom";
+  name: string;
+  chordproBody: string;
+  contentJson?: SongContentDocument | null;
+  isDefault?: boolean;
+  sortOrder?: number;
+};
+
+export type UpdateSongVersionPayload = Partial<CreateSongVersionPayload>;
+
+export async function createSongVersion(
+  songId: string,
+  payload: CreateSongVersionPayload,
+): Promise<SongDetail> {
+  return apiFetch<SongDetail>(`/app/admin/songs/${songId}/versions`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateSongVersion(
+  songId: string,
+  versionId: string,
+  payload: UpdateSongVersionPayload,
+): Promise<SongDetail> {
+  const body = Object.fromEntries(
+    Object.entries(payload).filter(([, v]) => v !== undefined),
+  );
+  return apiFetch<SongDetail>(`/app/admin/songs/${songId}/versions/${versionId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteSongVersion(songId: string, versionId: string): Promise<void> {
+  await apiFetch<void>(`/app/admin/songs/${songId}/versions/${versionId}`, {
+    method: "DELETE",
+  });
+}
+
+export function pickDefaultVersion(versions: SongVersion[]): SongVersion | null {
+  if (!versions.length) return null;
+  return (
+    versions.find((v) => v.isDefault) ??
+    versions.slice().sort((a, b) => a.sortOrder - b.sortOrder)[0]
+  );
 }

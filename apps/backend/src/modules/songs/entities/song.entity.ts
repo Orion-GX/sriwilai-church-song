@@ -14,6 +14,7 @@ import {
 import { ChurchEntity } from '../../churches/entities/church.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 
+import { SongContentDocument } from '../types/song-content.type';
 import { SongCategoryEntity } from './song-category.entity';
 import { SongTagEntity } from './song-tag.entity';
 
@@ -40,6 +41,18 @@ export class SongEntity {
 
   @Column({ name: 'chordpro_body', type: 'text' })
   chordproBody!: string;
+
+  @Column({ name: 'content_json', type: 'jsonb', nullable: true })
+  contentJson!: SongContentDocument | null;
+
+  @Column({ name: 'original_key', type: 'varchar', length: 24, nullable: true })
+  originalKey!: string | null;
+
+  @Column({ name: 'tempo', type: 'integer', nullable: true })
+  tempo!: number | null;
+
+  @Column({ name: 'time_signature', type: 'varchar', length: 16, nullable: true })
+  timeSignature!: string | null;
 
   @Index('idx_songs_category')
   @Column({ name: 'category_id', type: 'uuid', nullable: true })

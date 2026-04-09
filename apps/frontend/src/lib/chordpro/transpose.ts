@@ -1,5 +1,6 @@
 /** index 0..11 โน้ตมาตรฐาน (sharp) */
 const SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
+const FLAT = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"] as const;
 
 const NOTE_TO_INDEX: Record<string, number> = {
   C: 0,
@@ -26,19 +27,32 @@ const NOTE_TO_INDEX: Record<string, number> = {
  */
 export function transposeChordSymbol(chord: string, semitones: number): string {
   const trimmed = chord.trim();
-  const m = trimmed.match(/^([A-G])([#b]?)((?:\/[A-G][#b]?)|.*)?$/);
+  const m = trimmed.match(/^([A-G])([#b]?)([^/]*)(?:\/([A-G])([#b]?))?$/);
   if (!m) {
     return chord;
   }
-  const base = m[1] + (m[2] || "");
-  const qualityAndBass = m[3] ?? "";
-  const idx = NOTE_TO_INDEX[base];
+  const rootNote = m[1] + (m[2] || "");
+  const suffix = m[3] ?? "";
+  const bassNote = m[4] ? `${m[4]}${m[5] || ""}` : null;
+  const idx = NOTE_TO_INDEX[rootNote];
   if (idx === undefined) {
     return chord;
   }
-  const next = (idx + semitones + 12_000) % 12;
-  const root = SHARP[next];
-  return root + qualityAndBass;
+  const nextRoot = (idx + semitones + 12_000) % 12;
+  const preferFlat = rootNote.includes("b");
+  const root = preferFlat ? FLAT[nextRoot] : SHARP[nextRoot];
+  let bass = "";
+  if (bassNote) {
+    const bassIdx = NOTE_TO_INDEX[bassNote];
+    if (bassIdx !== undefined) {
+      const nextBass = (bassIdx + semitones + 12_000) % 12;
+      const preferBassFlat = bassNote.includes("b");
+      bass = `/${preferBassFlat ? FLAT[nextBass] : SHARP[nextBass]}`;
+    } else {
+      bass = `/${bassNote}`;
+    }
+  }
+  return `${root}${suffix}${bass}`;
 }
 
 /** แทนที่ [Chord] ทุกจุดในเนื้อ ChordPro */

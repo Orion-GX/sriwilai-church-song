@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Music, Trash2 } from "lucide-react";
-import { ChordproView } from "@/components/songs/chordpro-view";
 import { FavoriteButton } from "@/components/songs/favorite-button";
+import { SongViewer } from "@/components/songs/viewer/song-viewer";
 import { FollowLeaderToggle } from "@/components/live/follow-leader-toggle";
 import { LiveLargeControls } from "@/components/live/live-large-controls";
-import { TransposeBar } from "@/components/songs/transpose-bar";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
@@ -26,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { endLiveSession, fetchLiveSessionState } from "@/lib/api/live";
 import { fetchSongById } from "@/lib/api/songs";
+import { buildDisplayVersions } from "@/lib/songs/song-content";
 import {
   applySyncToView,
   useLiveSocket,
@@ -74,7 +74,6 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
 
   const [localIndex, setLocalIndex] = React.useState(0);
   const [followerIndex, setFollowerIndex] = React.useState(0);
-  const [transpose, setTranspose] = React.useState(0);
   const [addSongId, setAddSongId] = React.useState("");
   const [addErr, setAddErr] = React.useState<string | null>(null);
   const [confirmEndOpen, setConfirmEndOpen] = React.useState(false);
@@ -401,18 +400,21 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            {currentSongId ? (
+          {currentSongId ? (
+            <div className="flex flex-wrap items-center gap-3">
               <FavoriteButton songId={currentSongId} large />
-            ) : null}
-            <TransposeBar value={transpose} onChange={setTranspose} large />
-          </div>
+            </div>
+          ) : null}
           {songDetail ? (
-            <ChordproView
-              body={songDetail.chordproBody}
-              transposeSemitones={transpose}
+            <SongViewer
+              versions={buildDisplayVersions(songDetail)}
+              title={songDetail.title}
+              originalKey={songDetail.originalKey}
+              tempo={songDetail.tempo}
+              timeSignature={songDetail.timeSignature}
               scrollContainerRef={scrollRef}
-              className="max-h-[55vh] min-h-[200px] lg:max-h-[65vh]"
+              className="max-h-[55vh] min-h-[200px] lg:max-h-[65vh] md:max-h-[65vh] md:overflow-y-auto"
+              toolbarLarge
             />
           ) : (
             <EmptyState

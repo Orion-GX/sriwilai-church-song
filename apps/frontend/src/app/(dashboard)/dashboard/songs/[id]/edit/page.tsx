@@ -58,6 +58,12 @@ export default function EditSongPage() {
             songId={data.id}
             initialTitle={data.title}
             initialChordpro={data.chordproBody}
+            initialVersions={data.versions}
+            initialCategory={data.category}
+            initialTagSlugs={data.tags.map((t) => t.slug)}
+            initialOriginalKey={data.originalKey}
+            initialTempo={data.tempo}
+            initialTimeSignature={data.timeSignature}
             hideCardHeader
           />
         ) : null}

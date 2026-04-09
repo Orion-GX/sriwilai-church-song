@@ -10,6 +10,58 @@ export type SongTagSnippet = {
   name: string;
 };
 
+/** รายการหมวดจาก GET /app/songs/categories */
+export type SongCategoryCatalogItem = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+};
+
+/** รายการแท็กจาก GET /app/songs/tags */
+export type SongTagCatalogItem = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+export type SongContentSegment = {
+  chord: string | null;
+  text_th: string;
+  text_en: string;
+};
+
+export type SongContentRow = {
+  id: string;
+  kind: "lyric_with_chords";
+  segments: SongContentSegment[];
+};
+
+export type SongContentSection = {
+  id: string;
+  type: "verse" | "chorus" | "bridge" | "other";
+  label?: string;
+  rows: SongContentRow[];
+};
+
+export type SongContentDocument = {
+  sections: SongContentSection[];
+};
+
+export type SongVersion = {
+  id: string;
+  songId: string;
+  code: "th" | "en" | "custom";
+  name: string;
+  chordproBody: string;
+  contentJson: SongContentDocument | null;
+  isDefault: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type SongListItem = {
   id: string;
   title: string;
@@ -25,6 +77,11 @@ export type SongListItem = {
 
 export type SongDetail = SongListItem & {
   chordproBody: string;
+  contentJson: SongContentDocument | null;
+  versions: SongVersion[];
+  originalKey: string | null;
+  tempo: number | null;
+  timeSignature: string | null;
   createdBy: string | null;
   updatedBy: string | null;
 };

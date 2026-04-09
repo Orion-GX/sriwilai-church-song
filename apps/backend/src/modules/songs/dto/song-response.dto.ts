@@ -1,4 +1,5 @@
 import { SongEntity } from '../entities/song.entity';
+import { SongContentDocument } from '../types/song-content.type';
 
 export class SongCategorySnippetDto {
   id!: string;
@@ -46,6 +47,10 @@ export class SongPublicListItemDto {
 
 export class SongPublicDetailDto extends SongPublicListItemDto {
   chordproBody!: string;
+  contentJson!: SongContentDocument | null;
+  originalKey!: string | null;
+  tempo!: number | null;
+  timeSignature!: string | null;
 
   static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongPublicDetailDto {
     const list = SongPublicListItemDto.fromEntity(row, opts);
@@ -62,6 +67,10 @@ export class SongPublicDetailDto extends SongPublicListItemDto {
     dto.createdAt = list.createdAt;
     dto.updatedAt = list.updatedAt;
     dto.chordproBody = row.chordproBody;
+    dto.contentJson = row.contentJson ?? null;
+    dto.originalKey = row.originalKey ?? null;
+    dto.tempo = row.tempo ?? null;
+    dto.timeSignature = row.timeSignature ?? null;
     return dto;
   }
 }
@@ -86,6 +95,10 @@ export class SongAdminListItemDto extends SongPublicListItemDto {
 
 export class SongAdminDetailDto extends SongAdminListItemDto {
   chordproBody!: string;
+  contentJson!: SongContentDocument | null;
+  originalKey!: string | null;
+  tempo!: number | null;
+  timeSignature!: string | null;
   createdBy!: string | null;
   updatedBy!: string | null;
 
@@ -103,6 +116,10 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
     dto.createdAt = list.createdAt;
     dto.updatedAt = list.updatedAt;
     dto.chordproBody = row.chordproBody;
+    dto.contentJson = row.contentJson ?? null;
+    dto.originalKey = row.originalKey ?? null;
+    dto.tempo = row.tempo ?? null;
+    dto.timeSignature = row.timeSignature ?? null;
     dto.createdBy = row.createdBy;
     dto.updatedBy = row.updatedBy;
     return dto;
@@ -110,8 +127,7 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
 }
 
 // Backward compatible aliases for existing consumers.
-export { SongPublicListItemDto as SongListItemDto };
-export { SongAdminDetailDto as SongDetailDto };
+export { SongAdminDetailDto as SongDetailDto, SongPublicListItemDto as SongListItemDto };
 
 export class SongCategoryResponseDto {
   id!: string;
@@ -120,7 +136,9 @@ export class SongCategoryResponseDto {
   description!: string | null;
   sortOrder!: number;
 
-  static fromEntity(row: import('../entities/song-category.entity').SongCategoryEntity): SongCategoryResponseDto {
+  static fromEntity(
+    row: import('../entities/song-category.entity').SongCategoryEntity,
+  ): SongCategoryResponseDto {
     const dto = new SongCategoryResponseDto();
     dto.id = row.id;
     dto.slug = row.slug;

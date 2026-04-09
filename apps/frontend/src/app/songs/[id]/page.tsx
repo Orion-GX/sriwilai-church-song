@@ -1,26 +1,22 @@
 "use client";
-
-import * as React from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { SiteHeader } from "@/components/layout/site-header";
-import { ChordproView } from "@/components/songs/chordpro-view";
 import { FavoriteButton } from "@/components/songs/favorite-button";
-import { TransposeBar } from "@/components/songs/transpose-bar";
+import { SongViewer } from "@/components/songs/viewer/song-viewer";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchSongById } from "@/lib/api/songs";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export default function SongDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : "";
-  const [transpose, setTranspose] = React.useState(0);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const { data, isLoading, isError, error } = useQuery({
@@ -99,17 +95,20 @@ export default function SongDetailPage() {
                       แก้ไขเพลง
                     </Link>
                   ) : null}
-                  <FavoriteButton songId={data.id} large className="self-start" />
+                  <FavoriteButton
+                    songId={data.id}
+                    large
+                    className="self-start"
+                  />
                 </div>
               </div>
 
-              <TransposeBar
-                value={transpose}
-                onChange={setTranspose}
-                className="mb-6"
+              <SongViewer
+                title={data.title}
+                originalKey={data.originalKey}
+                tempo={data.tempo}
+                timeSignature={data.timeSignature}
               />
-
-              <ChordproView body={data.chordproBody} transposeSemitones={transpose} />
             </>
           ) : null}
         </PageContainer>

@@ -28,6 +28,10 @@ import { AppConfiguration } from '../../config/configuration';
           extra: {
             max: db.maxConnections,
           },
+          toRetry(err) {
+            console.log('toRetry', err);
+            return true;
+          },
         };
       },
     }),

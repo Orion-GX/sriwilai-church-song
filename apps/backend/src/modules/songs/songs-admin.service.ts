@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { ListAdminSongsQueryDto } from './dto/list-admin-songs-query.dto';
 import { CreateSongDto } from './dto/create-song.dto';
+import { ListAdminSongsQueryDto } from './dto/list-admin-songs-query.dto';
 import { CreateSongCategoryDto, UpdateSongCategoryDto } from './dto/song-category.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
 import { SongsService } from './songs.service';
@@ -19,7 +19,12 @@ export class SongsAdminService {
     return this.songsService.findOneAdminSong(id);
   }
 
-  createSong(actorUserId: string, scopeChurchId: string | null, dto: CreateSongDto, meta?: SongRequestMeta) {
+  createSong(
+    actorUserId: string,
+    scopeChurchId: string | null,
+    dto: CreateSongDto,
+    meta?: SongRequestMeta,
+  ) {
     return this.songsService.createSong(actorUserId, scopeChurchId, dto, meta);
   }
 
@@ -35,7 +40,12 @@ export class SongsAdminService {
     return this.songsService.createCategory(actorUserId, dto, meta);
   }
 
-  updateCategory(actorUserId: string, id: string, dto: UpdateSongCategoryDto, meta?: SongRequestMeta) {
+  updateCategory(
+    actorUserId: string,
+    id: string,
+    dto: UpdateSongCategoryDto,
+    meta?: SongRequestMeta,
+  ) {
     return this.songsService.updateCategory(actorUserId, id, dto, meta);
   }
 

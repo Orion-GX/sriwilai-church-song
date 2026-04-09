@@ -5,6 +5,8 @@ import { AuditLogEntity } from '../../modules/audit/entities/audit-log.entity';
 import { RefreshSessionEntity } from '../../modules/auth/entities/refresh-session.entity';
 import { ChurchEntity } from '../../modules/churches/entities/church.entity';
 import { UserSongFavoriteEntity } from '../../modules/favourites/entities/user-song-favorite.entity';
+import { LiveSessionSongEntity } from '../../modules/live/entities/live-session-song.entity';
+import { LiveSessionEntity } from '../../modules/live/entities/live-session.entity';
 import { PermissionEntity } from '../../modules/rbac/entities/permission.entity';
 import { RolePermissionEntity } from '../../modules/rbac/entities/role-permission.entity';
 import { RoleEntity } from '../../modules/rbac/entities/role.entity';
@@ -12,8 +14,6 @@ import { UserRoleEntity } from '../../modules/rbac/entities/user-role.entity';
 import { PersonalSetlistEntity } from '../../modules/setlists/entities/personal-setlist.entity';
 import { SongCategoryEntity } from '../../modules/songs/entities/song-category.entity';
 import { SongTagEntity } from '../../modules/songs/entities/song-tag.entity';
-import { LiveSessionSongEntity } from '../../modules/live/entities/live-session-song.entity';
-import { LiveSessionEntity } from '../../modules/live/entities/live-session.entity';
 import { SongEntity } from '../../modules/songs/entities/song.entity';
 import { UserEntity } from '../../modules/users/entities/user.entity';
 

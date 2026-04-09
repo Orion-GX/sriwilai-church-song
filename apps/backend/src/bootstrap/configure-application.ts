@@ -47,9 +47,11 @@ export async function configureApplication(app: INestApplication): Promise<void>
       exposedHeaders: ['Content-Length'],
     });
   } else if (appConfig.nodeEnv === 'production') {
-    app.get(Logger).warn(
-      'CORS is disabled (empty CORS_ORIGIN). Browser cross-origin API calls will fail unless traffic is same-origin via reverse proxy.',
-    );
+    app
+      .get(Logger)
+      .warn(
+        'CORS is disabled (empty CORS_ORIGIN). Browser cross-origin API calls will fail unless traffic is same-origin via reverse proxy.',
+      );
   }
 
   app.setGlobalPrefix(appConfig.appBasePath);

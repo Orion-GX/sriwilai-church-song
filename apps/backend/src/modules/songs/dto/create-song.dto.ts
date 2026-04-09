@@ -2,12 +2,17 @@ import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsInt,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
+import { SongContentDocument } from '../types/song-content.type';
 
 export class CreateSongDto {
   @IsString()
@@ -40,4 +45,29 @@ export class CreateSongDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  contentJson?: SongContentDocument;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500_000)
+  rawText?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  originalKey?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(20)
+  @Max(360)
+  tempo?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(16)
+  timeSignature?: string;
 }

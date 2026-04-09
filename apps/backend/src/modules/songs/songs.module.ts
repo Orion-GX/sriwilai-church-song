@@ -7,6 +7,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { SongCategoryEntity } from './entities/song-category.entity';
 import { SongTagEntity } from './entities/song-tag.entity';
 import { SongEntity } from './entities/song.entity';
+import { SongContentNormalizerService } from './song-content-normalizer.service';
 import { SongsAdminController } from './songs-admin.controller';
 import { SongsAdminService } from './songs-admin.service';
 import { SongsPublicController } from './songs-public.controller';
@@ -15,10 +16,16 @@ import { SongsService } from './songs.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SongEntity, SongCategoryEntity, SongTagEntity, ChurchEntity, UserEntity]),
+    TypeOrmModule.forFeature([
+      SongEntity,
+      SongCategoryEntity,
+      SongTagEntity,
+      ChurchEntity,
+      UserEntity,
+    ]),
   ],
   controllers: [SongsPublicController, SongsAdminController],
-  providers: [SongsService, SongsPublicService, SongsAdminService],
+  providers: [SongsService, SongsPublicService, SongsAdminService, SongContentNormalizerService],
   exports: [SongsService],
 })
 export class SongsModule {}

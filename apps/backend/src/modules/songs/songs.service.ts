@@ -8,8 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 
 import { AuditLogService } from '../audit/audit-log.service';
-import { RbacService } from '../rbac/rbac.service';
 import { SONG_VISIBILITY, SYSTEM_PERMISSION_CODES } from '../rbac/rbac.constants';
+import { RbacService } from '../rbac/rbac.service';
 
 import { SONG_AUDIT_ACTIONS } from './constants/audit-actions';
 import { CreateSongDto } from './dto/create-song.dto';
@@ -28,6 +28,7 @@ import { UpdateSongDto } from './dto/update-song.dto';
 import { SongCategoryEntity } from './entities/song-category.entity';
 import { SongTagEntity } from './entities/song-tag.entity';
 import { SongEntity } from './entities/song.entity';
+import { SongContentNormalizerService } from './song-content-normalizer.service';
 import { SongRequestMeta } from './types/song-request-meta.type';
 
 export interface PaginatedSongsDto {
@@ -48,6 +49,7 @@ export class SongsService {
     private readonly tagRepo: Repository<SongTagEntity>,
     private readonly rbacService: RbacService,
     private readonly auditLogService: AuditLogService,
+    private readonly songContentNormalizer: SongContentNormalizerService,
   ) {}
 
   async listPublicSongs(query: ListPublicSongsQueryDto): Promise<PaginatedSongsDto> {
@@ -169,12 +171,23 @@ export class SongsService {
 
     const tags = await this.resolveTagEntities(dto.tagSlugs ?? []);
 
+    const contentJson =
+      dto.contentJson !== undefined
+        ? this.songContentNormalizer.validateContentJson(dto.contentJson)
+        : dto.rawText
+          ? this.songContentNormalizer.importThreeLineBlock(dto.rawText)
+          : null;
+
     const created = this.songRepo.create({
       churchId: scopeChurchId,
       visibility: scopeChurchId ? SONG_VISIBILITY.CHURCH : SONG_VISIBILITY.PUBLIC,
       title: dto.title,
       slug,
       chordproBody: dto.chordproBody,
+      contentJson,
+      originalKey: dto.originalKey ?? null,
+      tempo: dto.tempo ?? null,
+      timeSignature: dto.timeSignature ?? null,
       categoryId: dto.categoryId ?? null,
       isPublished: dto.isPublished ?? true,
       createdBy: actorUserId,
@@ -203,6 +216,10 @@ export class SongsService {
         slug: saved.slug,
         churchId: saved.churchId,
         visibility: saved.visibility,
+        contentJson: saved.contentJson,
+        originalKey: saved.originalKey,
+        tempo: saved.tempo,
+        timeSignature: saved.timeSignature,
         categoryId: saved.categoryId,
         tagSlugs: tags.map((t) => t.slug),
         isPublished: saved.isPublished,
@@ -252,6 +269,24 @@ export class SongsService {
     }
     if (dto.isPublished !== undefined) {
       song.isPublished = dto.isPublished;
+    }
+    if (dto.contentJson !== undefined) {
+      song.contentJson =
+        dto.contentJson === null
+          ? null
+          : this.songContentNormalizer.validateContentJson(dto.contentJson);
+    } else if (dto.rawText !== undefined) {
+      song.contentJson =
+        dto.rawText === null ? null : this.songContentNormalizer.importThreeLineBlock(dto.rawText);
+    }
+    if (dto.originalKey !== undefined) {
+      song.originalKey = dto.originalKey;
+    }
+    if (dto.tempo !== undefined) {
+      song.tempo = dto.tempo;
+    }
+    if (dto.timeSignature !== undefined) {
+      song.timeSignature = dto.timeSignature;
     }
 
     song.updatedBy = actorUserId;
@@ -438,11 +473,14 @@ export class SongsService {
       .andWhere('s.is_published = TRUE');
 
     if (query.churchId) {
-      qb.andWhere('(s.visibility = :publicVisibility OR (s.visibility = :churchVisibility AND s.church_id = :churchId))', {
-        publicVisibility: SONG_VISIBILITY.PUBLIC,
-        churchVisibility: SONG_VISIBILITY.CHURCH,
-        churchId: query.churchId,
-      });
+      qb.andWhere(
+        '(s.visibility = :publicVisibility OR (s.visibility = :churchVisibility AND s.church_id = :churchId))',
+        {
+          publicVisibility: SONG_VISIBILITY.PUBLIC,
+          churchVisibility: SONG_VISIBILITY.CHURCH,
+          churchId: query.churchId,
+        },
+      );
     } else {
       qb.andWhere('s.visibility = :publicVisibility', { publicVisibility: SONG_VISIBILITY.PUBLIC });
     }
@@ -541,7 +579,11 @@ export class SongsService {
     return SongAdminDetailDto.fromEntity(row);
   }
 
-  private async assertSongMutation(userId: string, song: SongEntity, permission: string): Promise<void> {
+  private async assertSongMutation(
+    userId: string,
+    song: SongEntity,
+    permission: string,
+  ): Promise<void> {
     const ok = await this.rbacService.userHasAllPermissions(userId, [permission], song.churchId);
     if (!ok) {
       throw new NotFoundException('Song not found');
@@ -587,6 +629,10 @@ export class SongsService {
       slug: song.slug,
       churchId: song.churchId,
       visibility: song.visibility,
+      contentJson: song.contentJson,
+      originalKey: song.originalKey,
+      tempo: song.tempo,
+      timeSignature: song.timeSignature,
       categoryId: song.categoryId,
       tagSlugs: (song.tags ?? []).map((t) => t.slug),
       isPublished: song.isPublished,
