@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import { parseChordPro } from "@/lib/chordpro/parse-chordpro";
 import { transposeChordproText } from "@/lib/chordpro/transpose";
+import { cn } from "@/lib/utils";
+import * as React from "react";
 
 type ChordproViewProps = {
   body: string;
@@ -61,6 +61,27 @@ export function ChordproView({
               </p>
             );
           case "directive":
+            if (block.key === "comment") {
+              const label = normalizeSectionLabel(block.value ?? "");
+              return (
+                <h3
+                  key={i}
+                  className="mb-2 mt-4 text-sm font-semibold text-primary"
+                >
+                  {label}
+                </h3>
+              );
+            }
+            if (block.key === "intro") {
+              return (
+                <p key={i} className="mb-3 font-mono leading-relaxed ">
+                  <span className="font-bold text-primary">Intro:</span>{" "}
+                  <span className="font-bold text-primary">
+                    {introRawToDisplay(block.value ?? "")}
+                  </span>
+                </p>
+              );
+            }
             return (
               <p
                 key={i}
@@ -79,9 +100,7 @@ export function ChordproView({
                 className="my-4 rounded-r-md border-l-4 border-primary bg-primary/5 py-3 pl-4 pr-2"
               >
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">
-                  {block.label?.trim()
-                    ? block.label
-                    : "ท่อนฮุค (Chorus)"}
+                  {block.label?.trim() ? block.label : "ท่อนฮุค (Chorus)"}
                 </p>
                 <div className="space-y-0">
                   {block.lines.map((line, j) =>
@@ -102,6 +121,18 @@ export function ChordproView({
   );
 }
 
+function normalizeSectionLabel(input: string): string {
+  return input.replace(/([A-Za-z])(\d)/g, "$1 $2").trim();
+}
+
+function introRawToDisplay(raw: string): string {
+  return raw
+    .replace(/\[([^\]]+)\]/g, " $1 ")
+    .replace(/\s*\/\s*/g, " / ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function LyricLine({ line }: { line: string }) {
   const parts = line.split(/(\[[^\]]+\])/g);
   return (
@@ -109,10 +140,7 @@ function LyricLine({ line }: { line: string }) {
       {parts.map((part, j) => {
         if (part.startsWith("[") && part.endsWith("]")) {
           return (
-            <span
-              key={j}
-              className="mr-[0.15em] font-semibold text-primary"
-            >
+            <span key={j} className="mr-[0.15em] font-semibold text-primary">
               {part}
             </span>
           );

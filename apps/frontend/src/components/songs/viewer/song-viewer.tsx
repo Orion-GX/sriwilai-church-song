@@ -73,11 +73,25 @@ export function SongViewer({
         )}
       >
         <SongHeader
-          title={title}
+          title={title ?? displayDocument.title}
           originalKey={originalKey}
           tempo={tempo}
           timeSignature={timeSignature}
         />
+        {displayDocument.intro ? (
+          <p
+            className="mb-4 font-mono leading-relaxed"
+            style={{
+              fontSize: `${0.92 * fontScale}rem`,
+              color: "var(--color-red-500)",
+            }}
+          >
+            <span className="font-bold text-primary">Intro:</span>{" "}
+            <span className="font-bold text-primary">
+              {displayDocument.intro.display}
+            </span>
+          </p>
+        ) : null}
         {displayDocument.sections.map((section) => (
           <SongSection
             key={section.id}

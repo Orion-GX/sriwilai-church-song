@@ -17,16 +17,23 @@ export function SongSegment({
 }: SongSegmentProps) {
   const hasText = text.trim();
   return (
-    <span className="inline-flex min-w-[3.2rem] flex-col align-top">
-      <span
-        className={cn(
-          "h-6 font-semibold leading-6 text-primary",
-          !showChords && "opacity-0",
-        )}
-        style={{ fontSize: `${0.92 * fontScale}rem` }}
-      >
-        {showChords ? (chord ?? "") : ""}
-      </span>
+    <span
+      className={cn(
+        "inline-flex min-w-[3.2rem] flex-col align-top",
+        showChords ? "min-w-[3.2rem]" : "min-w-0",
+      )}
+    >
+      {showChords ? (
+        <span
+          className={cn(
+            "h-6 font-semibold leading-6 text-primary",
+            !showChords && "opacity-0",
+          )}
+          style={{ fontSize: `${0.92 * fontScale}rem` }}
+        >
+          {chord ?? ""}
+        </span>
+      ) : null}
       <span
         className={cn(
           "whitespace-pre-wrap leading-relaxed text-foreground",

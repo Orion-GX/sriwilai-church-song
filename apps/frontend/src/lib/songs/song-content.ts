@@ -1,8 +1,10 @@
 import {
   parseChordPro,
-  type ChordProBlock,
 } from "@/lib/chordpro/parse-chordpro";
-import { transposeChordSymbol } from "@/lib/chordpro/transpose";
+import {
+  transposeChordSymbol,
+  transposeChordproText,
+} from "@/lib/chordpro/transpose";
 
 export type SongSectionType = "verse" | "chorus" | "bridge" | "other";
 export type SongRowKind = "lyric_with_chords";
@@ -25,19 +27,26 @@ export type SongContentSection = {
   rows: SongContentRow[];
 };
 
+export type SongIntro = {
+  raw: string;
+  display: string;
+};
+
 export type SongContentDocument = {
+  title?: string;
+  intro?: SongIntro;
   sections: SongContentSection[];
 };
 
 type SongDetailLike = {
   chordproBody: string;
-  contentJson?: SongContentDocument | null;
+  contentJson?: unknown;
   versions?: Array<{
     id: string;
     code: "th" | "en" | "custom";
     name: string;
     chordproBody: string;
-    contentJson: SongContentDocument | null;
+    contentJson: unknown;
     isDefault: boolean;
     sortOrder: number;
   }>;
@@ -90,81 +99,165 @@ export function chordProLineToRow(line: string, rowId: string): SongContentRow {
   };
 }
 
-function blockToSection(
-  block: ChordProBlock,
-  index: number,
-): SongContentSection | null {
-  if (block.kind === "spacer") {
-    return null;
-  }
-  if (block.kind === "chorus") {
-    const rows = block.lines.map((line, rowIndex) =>
-      chordProLineToRow(line, `row_${index + 1}_${rowIndex + 1}`),
-    );
-    return {
-      id: `sec_${index + 1}`,
-      type: "chorus",
-      label: block.label?.trim() || "Chorus",
-      rows:
-        rows.length > 0 ? rows : [chordProLineToRow("", `row_${index + 1}_1`)],
-    };
-  }
-  if (block.kind === "lyric") {
-    return {
-      id: `sec_${index + 1}`,
-      type: "verse",
-      rows: [chordProLineToRow(block.line, `row_${index + 1}_1`)],
-    };
-  }
+function normalizeSectionLabel(input: string): string {
+  return input.replace(/([A-Za-z])(\d)/g, "$1 $2").trim();
+}
+
+function inferSectionType(label: string): SongSectionType {
+  if (/^chorus\b/i.test(label)) return "chorus";
+  if (/^bridge\b/i.test(label)) return "bridge";
+  if (/^verse\b/i.test(label)) return "verse";
+  return "other";
+}
+
+function introRawToDisplay(raw: string): string {
+  return raw
+    .replace(/\[([^\]]+)\]/g, " $1 ")
+    .replace(/\s*\/\s*/g, " / ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isSongContentDocument(value: unknown): value is SongContentDocument {
   if (
-    block.kind === "title" ||
-    block.kind === "subtitle" ||
-    block.kind === "directive"
+    !value ||
+    typeof value !== "object" ||
+    !Array.isArray((value as SongContentDocument).sections) ||
+    (value as SongContentDocument).sections.length === 0
   ) {
-    const text =
-      block.kind === "directive"
-        ? `[${block.key}]${block.value ? ` ${block.value}` : ""}`
-        : block.value;
-    return {
-      id: `sec_${index + 1}`,
-      type: "other",
-      label:
-        block.kind === "title"
-          ? "Title"
-          : block.kind === "subtitle"
-            ? "Subtitle"
-            : "Directive",
-      rows: [chordProLineToRow(text, `row_${index + 1}_1`)],
-    };
+    return false;
   }
-  return null;
+  return (value as SongContentDocument).sections.every((section) =>
+    Array.isArray(section.rows)
+      ? section.rows.every((row) =>
+          Array.isArray(row.segments)
+            ? row.segments.every(
+                (segment) =>
+                  (segment.chord == null || typeof segment.chord === "string") &&
+                  typeof segment.text === "string",
+              )
+            : false,
+        )
+      : false,
+  );
 }
 
 export function chordProToContentDocument(
   chordproBody: string,
 ): SongContentDocument {
   const blocks = parseChordPro(chordproBody);
-  const sections = blocks
-    .map((block, index) => blockToSection(block, index))
-    .filter((x): x is SongContentSection => x != null);
+  const sections: SongContentSection[] = [];
+  let title: string | undefined;
+  let intro: SongIntro | undefined;
+  let currentSection:
+    | {
+        type: SongSectionType;
+        label?: string;
+        rows: SongContentRow[];
+      }
+    | null = null;
+  let sectionCounter = 0;
+  let rowCounter = 0;
+
+  const flushCurrentSection = () => {
+    if (!currentSection || currentSection.rows.length === 0) {
+      currentSection = null;
+      return;
+    }
+    sectionCounter += 1;
+    sections.push({
+      id: `sec_${sectionCounter}`,
+      type: currentSection.type,
+      label: currentSection.label,
+      rows: currentSection.rows,
+    });
+    currentSection = null;
+  };
+
+  const ensureCurrentSection = () => {
+    if (currentSection) return currentSection;
+    currentSection = { type: "verse", rows: [] };
+    return currentSection;
+  };
+
+  const addLyricRow = (line: string) => {
+    const section = ensureCurrentSection();
+    rowCounter += 1;
+    section.rows.push(chordProLineToRow(line, `row_${rowCounter}`));
+  };
+
+  for (const block of blocks) {
+    if (block.kind === "title") {
+      title = block.value.trim();
+      continue;
+    }
+
+    if (block.kind === "directive" && block.key === "intro") {
+      const raw = (block.value ?? "").trim();
+      if (raw) {
+        intro = { raw, display: introRawToDisplay(raw) };
+      }
+      continue;
+    }
+
+    if (block.kind === "directive" && block.key === "comment") {
+      const label = normalizeSectionLabel((block.value ?? "").trim());
+      flushCurrentSection();
+      currentSection = {
+        type: inferSectionType(label),
+        label: label || undefined,
+        rows: [],
+      };
+      continue;
+    }
+
+    if (block.kind === "lyric") {
+      addLyricRow(block.line);
+      continue;
+    }
+
+    if (block.kind === "chorus") {
+      flushCurrentSection();
+      sectionCounter += 1;
+      const rows = block.lines.map((line) => {
+        rowCounter += 1;
+        return chordProLineToRow(line, `row_${rowCounter}`);
+      });
+      sections.push({
+        id: `sec_${sectionCounter}`,
+        type: "chorus",
+        label: block.label?.trim() || "Chorus",
+        rows:
+          rows.length > 0
+            ? rows
+            : [chordProLineToRow("", `row_${(rowCounter += 1)}`)],
+      });
+      continue;
+    }
+
+    if (block.kind === "spacer") {
+      continue;
+    }
+  }
+
+  flushCurrentSection();
+
   if (sections.length === 0) {
     return {
+      title,
+      intro,
       sections: [
         { id: "sec_1", type: "verse", rows: [chordProLineToRow("", "row_1")] },
       ],
     };
   }
-  return { sections };
+  return { title, intro, sections };
 }
 
 export function buildDisplayDocument(
   song: SongDetailLike,
 ): SongContentDocument {
-  if (
-    song.contentJson &&
-    Array.isArray(song.contentJson.sections) &&
-    song.contentJson.sections.length > 0
-  ) {
+  if (isSongContentDocument(song.contentJson)) {
     return song.contentJson;
   }
   return chordProToContentDocument(song.chordproBody);
@@ -189,12 +282,9 @@ export function buildDisplayVersions(
         isDefault: v.isDefault,
         sortOrder: v.sortOrder,
         chordproBody: v.chordproBody,
-        document:
-          v.contentJson &&
-          Array.isArray(v.contentJson.sections) &&
-          v.contentJson.sections.length > 0
-            ? v.contentJson
-            : chordProToContentDocument(v.chordproBody),
+        document: isSongContentDocument(v.contentJson)
+          ? v.contentJson
+          : chordProToContentDocument(v.chordproBody),
       }));
   }
   return [
@@ -215,7 +305,18 @@ export function transposeContentDocument(
   semitones: number,
 ): SongContentDocument {
   if (semitones === 0) return document;
+  const transposedIntroRaw = document.intro
+    ? transposeChordproText(document.intro.raw, semitones)
+    : null;
   return {
+    ...document,
+    intro:
+      transposedIntroRaw != null
+        ? {
+            raw: transposedIntroRaw,
+            display: introRawToDisplay(transposedIntroRaw),
+          }
+        : undefined,
     sections: document.sections.map((section) => ({
       ...section,
       rows: section.rows.map((row) => ({

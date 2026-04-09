@@ -13,7 +13,7 @@ describe('SongContentNormalizerService', () => {
             {
               id: 'rowA',
               kind: 'lyric_with_chords',
-              segments: [{ chord: 'G', text: 'ทุกวัน', text_en: 'All day' }],
+              segments: [{ chord: 'G', text: 'ทุกวัน' }],
             },
           ],
         },

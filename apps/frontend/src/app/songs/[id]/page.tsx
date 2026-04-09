@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchSongById } from "@/lib/api/songs";
+import { buildDisplayDocument } from "@/lib/songs/song-content";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
@@ -104,6 +105,7 @@ export default function SongDetailPage() {
               </div>
 
               <SongViewer
+                document={buildDisplayDocument(data)}
                 title={data.title}
                 originalKey={data.originalKey}
                 tempo={data.tempo}

@@ -20,6 +20,13 @@ export interface SongContentSection {
   rows: SongContentRow[];
 }
 
+export interface SongIntro {
+  raw: string;
+  display: string;
+}
+
 export interface SongContentDocument {
+  title?: string;
+  intro?: SongIntro;
   sections: SongContentSection[];
 }
