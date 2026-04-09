@@ -33,13 +33,13 @@ export default function SongDetailPage() {
     >
       <SiteHeader />
       <main className="flex-1">
-        <PageContainer maxWidth="layout" className="py-8">
+        <PageContainer maxWidth="layout" className="py-6 md:py-8">
           <Link
             href="/songs"
             className={buttonClassName(
               "ghost",
-              "default",
-              "mb-6 -ml-2 inline-flex gap-2",
+              "sm",
+              "mb-4 inline-flex gap-2 sm:mb-6",
             )}
             data-testid="song-back-list"
           >
@@ -74,7 +74,7 @@ export default function SongDetailPage() {
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <h1
-                    className="text-page-title"
+                    className="break-words text-page-title"
                     data-testid="song-detail-title"
                   >
                     {data.title}
@@ -86,7 +86,7 @@ export default function SongDetailPage() {
                       : ""}
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-2 self-start">
+                <div className="flex w-full flex-wrap items-center gap-2 self-start sm:w-auto sm:justify-end">
                   {accessToken ? (
                     <Link
                       href={`/dashboard/songs/${data.id}/edit`}
@@ -98,7 +98,7 @@ export default function SongDetailPage() {
                   ) : null}
                   <FavoriteButton
                     songId={data.id}
-                    large
+                    compactLabel="รายการโปรด"
                     className="self-start"
                   />
                 </div>

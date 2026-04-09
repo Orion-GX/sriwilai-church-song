@@ -12,9 +12,16 @@ type FavoriteButtonProps = {
   className?: string;
   /** ขนาดใหญ่สำหรับโหมดไลฟ์ */
   large?: boolean;
+  /** แสดงข้อความแบบ compact คู่กับไอคอน */
+  compactLabel?: string;
 };
 
-export function FavoriteButton({ songId, className, large }: FavoriteButtonProps) {
+export function FavoriteButton({
+  songId,
+  className,
+  large,
+  compactLabel,
+}: FavoriteButtonProps) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const guestSongIds = useFavoritesStore((s) => s.guestSongIds);
   const serverSongIds = useFavoritesStore((s) => s.serverSongIds);
@@ -29,8 +36,12 @@ export function FavoriteButton({ songId, className, large }: FavoriteButtonProps
     <Button
       type="button"
       variant={on ? "secondary" : "outline"}
-      size={large ? "lg" : "icon"}
-      className={cn(large && "h-14 gap-2 px-5 text-lg", className)}
+      size={large ? "lg" : compactLabel ? "sm" : "icon"}
+      className={cn(
+        large && "h-14 gap-2 px-5 text-lg",
+        compactLabel && "h-9 gap-1.5 px-3",
+        className,
+      )}
       aria-pressed={on}
       aria-label={on ? "เอาออกจากรายการโปรด" : "เพิ่มในรายการโปรด"}
       disabled={pending}
@@ -50,7 +61,7 @@ export function FavoriteButton({ songId, className, large }: FavoriteButtonProps
       <Heart
         className={cn(large ? "h-7 w-7" : "h-4 w-4", on && "fill-primary text-primary")}
       />
-      {large ? (on ? "โปรดแล้ว" : "โปรด") : null}
+      {large ? (on ? "โปรดแล้ว" : "โปรด") : compactLabel ?? null}
     </Button>
   );
 }

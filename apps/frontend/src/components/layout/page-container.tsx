@@ -10,7 +10,7 @@ type PageContainerProps = React.HTMLAttributes<HTMLDivElement> & {
 
 /**
  * โครงหน้าใน AppShell: จัด max-width + ระยะแนวตั้ง (ui-section-gap)
- * Padding แนวนอนหลักมาจาก `<main>` ใน AppShell — คอมโพเนนต์นี้ไม่ซ้ำ px
+ * มี padding แนวนอนกลางให้ทุกหน้าที่ใช้ PageContainer
  */
 export function PageContainer({
   className,
@@ -29,7 +29,7 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        "ui-section-gap flex w-full min-w-0 flex-col",
+        "ui-section-gap flex w-full min-w-0 flex-col px-4 md:px-6",
         maxWidthClass,
         maxWidth !== "none" && "mx-auto w-full",
         className,
