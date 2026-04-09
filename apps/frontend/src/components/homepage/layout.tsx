@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/homepage/navbar";
+import { SiteHeader } from "@/components/layout/site-header";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -7,7 +7,7 @@ type LayoutProps = {
 export function Layout({ children }: LayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
+      <SiteHeader />
       {children}
     </div>
   );
