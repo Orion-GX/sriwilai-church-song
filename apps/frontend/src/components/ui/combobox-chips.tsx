@@ -146,8 +146,7 @@ export function ComboboxChips({
         onClick={() => setOpen((v) => !v)}
         onKeyDown={onTriggerKeyDown}
         className={cn(
-          "flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-input bg-white px-3 py-2 text-left text-sm shadow-sm",
-          "dark:bg-card",
+          "flex min-h-10 w-full items-center justify-between gap-2 rounded-lg bg-surface-highest px-3 py-2 text-left text-sm transition-all ui-focus-ring focus-visible:bg-surface-lowest focus-visible:ring-2 focus-visible:ring-outline-variant/30",
         )}
       >
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
@@ -160,7 +159,7 @@ export function ComboboxChips({
                 <span
                   role="button"
                   tabIndex={0}
-                  className="inline-flex cursor-pointer rounded p-0.5 hover:bg-black/10"
+                  className="inline-flex cursor-pointer rounded p-0.5 hover:bg-surface-high"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeValue(option.value);
@@ -183,14 +182,14 @@ export function ComboboxChips({
       </button>
 
       {open ? (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-card p-2 shadow-elevated">
+        <div className="absolute z-50 mt-1 w-full rounded-lg bg-card/80 p-2 shadow-elevated backdrop-blur-lg">
           <input
             ref={searchInputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onSearchInputKeyDown}
             placeholder={searchPlaceholder}
-            className="mb-2 h-9 w-full rounded-md border border-input bg-background px-2 text-sm outline-none focus:ring-2 focus:ring-ring/40"
+            className="mb-2 h-9 w-full rounded-md bg-surface-highest px-2 text-sm outline-none transition-colors focus:bg-surface-lowest focus:ring-2 focus:ring-outline-variant/30"
           />
           <div id={listboxId} role="listbox" className="max-h-56 overflow-auto">
             {filteredOptions.length === 0 ? (

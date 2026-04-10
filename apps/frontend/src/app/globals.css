@@ -2,17 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/**
- * Design system: Celestial-inspired (sidebar + topbar + cards)
- * อ้างอิงสี/โครงจาก Celestial Admin — แปลงเป็น semantic tokens + Tailwind
- * https://github.com/BootstrapDash/celestialAdmin-free-admin-template
- *
- * หลักการ: ไม่ใช้คลาส Bootstrap — ใช้ token + คอมโพเนนต์ร่วมเท่านั้น
- */
-
 @layer base {
   :root {
-    /* —— Layout (จาก _variables.scss: sidebar 255px, navbar 64px, boxed 1200px) —— */
+    /* Layout */
     --sidebar-width: 15.9375rem; /* 255px */
     --header-height: 4rem; /* 64px */
     --container-max-width: 75rem; /* 1200px */
@@ -21,17 +13,17 @@
     --spacing-card-y: 1.875rem;
     --spacing-card-x: 1.875rem;
 
-    /* —— Radius: ปรับให้นุ่มกว่า Bootstrap เดิม (card เดิม ~0) —— */
-    --radius: 0.75rem; /* การ์ด / วิดเจ็ตหลัก */
+    /* Radius */
+    --radius: 1rem;
     --radius-xl: 0.875rem;
     --radius-2xl: 1rem;
 
-    /* —— Typography scale (Bai Jamjuree ผ่าน --font-sans) —— */
-    --font-size-heading-xl: 1.875rem;
-    --font-size-heading-lg: 1.375rem;
-    --font-size-heading-md: 1.1875rem;
-    --font-size-heading-sm: 1.0625rem;
-    --font-size-body: 0.875rem; /* Celestial $default-font-size */
+    /* Typography scale */
+    --font-size-heading-xl: 2.75rem;
+    --font-size-heading-lg: 2rem;
+    --font-size-heading-md: 1.5rem;
+    --font-size-heading-sm: 1.125rem;
+    --font-size-body: 0.9375rem;
     --font-size-body-sm: 0.8125rem;
     --font-size-label: 0.75rem;
     --font-size-stat-sm: 1.5rem;
@@ -48,114 +40,117 @@
     --font-weight-label: 500;
     --font-weight-stat: 600;
 
-    --letter-spacing-heading: -0.015em;
+    --letter-spacing-heading: -0.02em;
     --letter-spacing-label: 0.04em;
     --letter-spacing-stat: -0.02em;
 
-    /* —— สีหลัก Celestial: primary #f2125e, body #001737, canvas #e8eff9 —— */
-    --background: 52 25% 96%; /* cream-tinted canvas */
-    --foreground: 214 100% 11%; /* #001737 $body-color */
+    /* The Sanctuary Aesthetic */
+    --background: 60 4% 98%; /* surface #f9f9f8 */
+    --foreground: 171 9% 19%; /* on-surface #2c3433 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 214 100% 11%;
+    --card: 0 0% 100%; /* surface-container-lowest */
+    --card-foreground: 171 9% 19%;
 
-    --navbar: 42 20% 95%; /* warm light topbar */
-    --navbar-foreground: 223 97% 12%;
+    --navbar: 160 14% 95%; /* surface-container-low */
+    --navbar-foreground: 171 9% 19%;
 
-    /* ไซด์บาร์โหมดสว่าง: พื้นขาว เมนูเข้ม (เทียบ $sidebar-light-*) */
-    --sidebar: 226 36% 14%; /* deep desaturated navy */
-    --sidebar-foreground: 220 20% 92%;
-    --sidebar-accent: 225 18% 28%; /* active/hover background */
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 225 20% 24%;
+    --sidebar: 160 14% 95%;
+    --sidebar-foreground: 171 9% 19%;
+    --sidebar-accent: 161 15% 91%;
+    --sidebar-accent-foreground: 171 9% 19%;
+    --sidebar-border: 170 8% 68%;
 
-    /* primary / secondary brand colors */
-    --primary: 223 97% 12%; /* #01123D */
+    --primary: 180 11% 35%; /* #4f6262 */
+    --primary-dim: 180 12% 30%; /* #435656 */
     --primary-foreground: 0 0% 100%;
+    --primary-fixed-dim: 178 9% 48%;
 
-    --secondary: 52 25% 88%; /* #E8E6D9 */
-    --secondary-foreground: 223 97% 12%;
+    --secondary: 214 17% 39%; /* #526073 */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-container: 215 76% 91%; /* #d5e4fa */
 
-    --muted: 52 18% 93%; /* subtle cream-muted */
-    --muted-foreground: 210 5% 62%; /* #9a9ea2 $text-muted */
+    --muted: 160 12% 95%; /* surface-container-low #f1f4f3 */
+    --muted-foreground: 171 7% 40%;
 
-    --accent: 52 20% 91%; /* soft cream accent */
-    --accent-foreground: 214 100% 11%;
+    --accent: 161 15% 91%; /* surface-container-high #e3e9e8 */
+    --accent-foreground: 171 9% 19%;
+    --surface-container-highest: 160 13% 88%;
 
-    --destructive: 0 100% 50%; /* #ff0000 theme danger */
+    --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 145 79% 42%; /* #17c964 */
-    --success-foreground: 144 61% 12%;
+    --success: 142 18% 49%; /* tertiary soft sage */
+    --success-foreground: 0 0% 100%;
 
-    --warning: 31 100% 50%; /* #ff8300 */
+    --warning: 33 92% 48%;
     --warning-foreground: 26 83% 14%;
 
-    --info: 217 100% 58%; /* #2b80ff — ไอคอน active ใน Celestial */
+    --info: 210 32% 43%;
     --info-foreground: 210 40% 98%;
 
-    --border: 52 14% 86%; /* cream-tinted border */
-    --input: 52 14% 86%;
-    --ring: 223 97% 12%;
+    --border: 170 8% 68%;
+    --input: 160 13% 88%;
+    --ring: 171 9% 19%;
 
-    /* —— เงา: sidebar จาก template + elevation สมัยใหม่สำหรับการ์ด —— */
-    --shadow-card:
-      0 1px 2px 0 rgb(15 23 42 / 0.05), 0 0 0 1px rgb(15 23 42 / 0.04);
-    --shadow-soft: 0 4px 14px -4px rgb(15 23 42 / 0.08);
-    --shadow-sidebar: 6px 16px 31px -18px rgb(183 188 209 / 0.55);
-    --shadow-elevated: 0 12px 40px -12px rgb(15 23 42 / 0.12);
+    --shadow-card: 0 2px 16px -10px rgb(44 52 51 / 0.06);
+    --shadow-soft: 0 12px 32px -16px rgb(44 52 51 / 0.05);
+    --shadow-sidebar: 0 18px 40px -22px rgb(44 52 51 / 0.06);
+    --shadow-elevated: 0 24px 40px -20px rgb(44 52 51 / 0.06);
     --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
   }
 
   .dark {
-    --background: 223 45% 10%; /* deep navy canvas */
-    --foreground: 210 40% 98%;
+    --background: 171 18% 10%;
+    --foreground: 160 12% 90%;
 
-    --card: 228 28% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 170 16% 14%;
+    --card-foreground: 160 12% 90%;
 
-    --navbar: 223 32% 12%;
-    --navbar-foreground: 220 20% 92%;
+    --navbar: 171 15% 13%;
+    --navbar-foreground: 160 12% 90%;
 
-    --sidebar: 226 36% 12%;
-    --sidebar-foreground: 220 18% 90%;
-    --sidebar-accent: 225 16% 24%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 225 16% 22%;
+    --sidebar: 171 17% 12%;
+    --sidebar-foreground: 160 12% 90%;
+    --sidebar-accent: 171 15% 18%;
+    --sidebar-accent-foreground: 160 12% 90%;
+    --sidebar-border: 171 10% 40%;
 
-    --primary: 223 97% 12%; /* #01123D */
+    --primary: 181 18% 66%;
+    --primary-dim: 181 16% 58%;
     --primary-foreground: 0 0% 100%;
+    --primary-fixed-dim: 180 12% 56%;
 
-    --secondary: 52 25% 88%; /* #E8E6D9 */
-    --secondary-foreground: 223 97% 12%;
+    --secondary: 213 20% 72%;
+    --secondary-foreground: 171 18% 10%;
+    --secondary-container: 214 30% 26%;
 
-    --muted: 223 20% 16%; /* subtle navy-muted */
-    --muted-foreground: 215 16% 62%;
+    --muted: 171 14% 16%;
+    --muted-foreground: 165 8% 68%;
 
-    --accent: 223 26% 18%; /* navy-tinted accent */
-    --accent-foreground: 210 40% 98%;
+    --accent: 171 14% 22%;
+    --accent-foreground: 160 12% 90%;
+    --surface-container-highest: 171 14% 24%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --success: 145 65% 45%;
-    --success-foreground: 144 61% 12%;
+    --success: 142 18% 49%;
+    --success-foreground: 160 12% 90%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 26 83% 14%;
 
-    --info: 217 90% 62%;
+    --info: 212 32% 68%;
     --info-foreground: 210 40% 98%;
 
-    --border: 223 16% 24%;
-    --input: 223 16% 24%;
-    --ring: 223 97% 12%;
+    --border: 171 10% 40%;
+    --input: 171 14% 24%;
+    --ring: 160 12% 90%;
 
-    --shadow-card:
-      0 1px 3px 0 rgb(0 0 0 / 0.35), 0 0 0 1px rgb(255 255 255 / 0.04);
-    --shadow-soft: 0 8px 24px -8px rgb(0 0 0 / 0.45);
-    --shadow-sidebar: 6px 16px 31px -18px rgb(0 0 0 / 0.5);
-    --shadow-elevated: 0 20px 50px -15px rgb(0 0 0 / 0.55);
+    --shadow-card: 0 8px 26px -16px rgb(0 0 0 / 0.35);
+    --shadow-soft: 0 14px 34px -18px rgb(0 0 0 / 0.4);
+    --shadow-sidebar: 0 20px 45px -24px rgb(0 0 0 / 0.45);
+    --shadow-elevated: 0 24px 40px -20px rgb(0 0 0 / 0.48);
     --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
   }
 
@@ -165,8 +160,13 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     font-size: var(--font-size-body);
     line-height: var(--line-height-body);
+  }
+
+  html:lang(th) body {
+    letter-spacing: 0;
   }
 }
 
@@ -175,7 +175,9 @@
  */
 @layer utilities {
   .text-page-title {
-    @apply font-semibold tracking-tight text-foreground;
+    @apply text-foreground;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: var(--font-weight-heading);
     font-size: var(--font-size-heading-lg);
     line-height: var(--line-height-heading);
     letter-spacing: var(--letter-spacing-heading);
@@ -188,7 +190,9 @@
   }
 
   .text-section-title {
-    @apply font-semibold tracking-tight text-foreground;
+    @apply text-foreground;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: var(--font-weight-heading);
     font-size: var(--font-size-heading-md);
     line-height: var(--line-height-heading);
     letter-spacing: var(--letter-spacing-heading);
@@ -201,13 +205,16 @@
   }
 
   .text-card-title {
-    @apply font-semibold leading-none tracking-tight text-card-foreground;
+    @apply leading-none text-card-foreground;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: var(--font-weight-heading);
+    letter-spacing: var(--letter-spacing-heading);
     font-size: var(--font-size-heading-sm);
   }
 
-  /** หัวข้อย่อย / ป้ายฟอร์ม — uppercase แบบ admin สมัยใหม่ */
   .text-label {
     @apply text-form-label uppercase text-muted-foreground;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
 
   .text-stat {
@@ -244,5 +251,19 @@
 
   .ui-widget-gap {
     @apply gap-4;
+  }
+}
+
+@layer utilities {
+  html:lang(th) .text-page-title,
+  html:lang(th) .text-section-title,
+  html:lang(th) .text-card-title {
+    letter-spacing: -0.005em;
+    line-height: 1.32;
+    font-weight: 600;
+  }
+
+  html:lang(th) .text-label {
+    letter-spacing: 0.02em;
   }
 }

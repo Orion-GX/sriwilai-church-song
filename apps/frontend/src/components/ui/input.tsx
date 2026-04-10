@@ -3,14 +3,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-  "flex h-10 w-full rounded-lg border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground transition-colors ui-focus-ring disabled:cursor-not-allowed disabled:opacity-50",
+  "flex h-10 w-full rounded-lg bg-surface-highest px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground transition-all ui-focus-ring focus-visible:bg-surface-lowest focus-visible:ring-2 focus-visible:ring-outline-variant/30 disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "border-input",
-        /** สถานะผิดพลาด / validation */
+        default: "ring-1 ring-transparent",
         error:
-          "border-destructive text-foreground focus-visible:ring-destructive",
+          "text-foreground ring-1 ring-destructive/35 focus-visible:ring-destructive/50",
       },
     },
     defaultVariants: {

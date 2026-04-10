@@ -21,7 +21,11 @@ export function SongSection({
   return (
     <section className="mb-5">
       {section.label ? (
-        <h3 className="mb-2 text-sm font-semibold text-primary">
+        <h3
+          className="mb-2 text-sm font-semibold text-primary"
+          data-testid="song-section-label"
+          style={{ fontSize: `${0.92 * fontScale}rem` }}
+        >
           {section.label}
         </h3>
       ) : null}

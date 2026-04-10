@@ -3,16 +3,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "rounded-lg border text-card-foreground transition-shadow",
+  "rounded-lg text-card-foreground transition-colors",
   {
     variants: {
       variant: {
-        /** การ์ดมาตรฐาน: ขอบ + เงาเบา */
-        default: "border-border bg-card shadow-card",
-        /** ลอยขึ้น — เงาเข้มขึ้นเล็กน้อย */
-        elevated: "border-border bg-card shadow-elevated",
-        /** แบน: ไม่เน้น elevation (ยังมีขอบอ่อนให้อ่านง่าย) */
-        flat: "border-border/80 bg-card shadow-none",
+        default: "bg-card shadow-card",
+        elevated: "bg-card shadow-elevated",
+        flat: "bg-muted shadow-none",
       },
     },
     defaultVariants: {

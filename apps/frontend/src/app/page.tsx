@@ -1,124 +1,40 @@
+import { FeaturedSongsGrid } from "@/components/homepage/featured-songs-grid";
+import { HeroSearchSection } from "@/components/homepage/hero-search-section";
+import { HomepageCTA } from "@/components/homepage/homepage-cta";
+import { HomepageFooter } from "@/components/homepage/homepage-footer";
 import {
-  BibleVerse,
-  Container,
-  Layout,
-  SearchBar,
-  SectionHeader,
-  SideMenu,
-  SongList,
-  WeeklyPopularChordsSection,
-  type WeeklyPopularChordItem,
-} from "@/components/homepage";
-import { TitleSearchBar } from "@/components/homepage/title-search-bar";
-
-const VERSE_LINES = [
-  "ความรักนั้นอดทน ความรักนั้นแสดงเมตตา ความรักไม่ริษยา ความรักไม่โอ้อวด ไม่หยิ่งยโส",
-  "ความรักไม่ทำสิ่งที่ไม่สมควร ไม่แสวงหาประโยชน์ของตน ไม่โกรธง่าย ไม่จดจำความผิด",
-  "ความรักไม่ชื่นชมความชั่วร้าย แต่ชื่นชมความจริง",
-];
-
-const SONGS = [
-  { title: "ความรักมั่นคง", meta: "Crossover", href: "/songs" },
-  { title: "เวลาฤดูกาล", meta: "Crossover", href: "/songs" },
-  { title: "เป็นฝุ่นผง", meta: "W501", href: "/songs" },
-];
-
-const SIDE_LINKS = [
-  { label: "แนะนำการใช้งาน", href: "#" },
-  { label: "สมัครสมาชิก", href: "/register" },
-  { label: "เทคนิคการค้นหาเพลง", href: "#" },
-  { label: "ทำชีทเพลง", href: "#" },
-  { label: "แสดงเนื้อเพลงในรอบนมัสการ", href: "#" },
-  { label: "ป้ายบอกหมดเวลา", href: "#" },
-];
-
-/** mock ตามเลย์เอาต์สกรีนช็อต (9 การ์ด — 3 อันดับแรกมีป้ายสี) */
-const WEEKLY_POPULAR_CHORDS_MOCK: WeeklyPopularChordItem[] = [
-  {
-    id: "w1",
-    rank: 1,
-    title: "เล่นของสูง",
-    artist: "KLEAR",
-    coverSrc: "https://picsum.photos/seed/wpc1/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w2",
-    rank: 2,
-    title: "ซ่อน(ไม่)หา",
-    artist: "JEFF SATUR",
-    coverSrc: "https://picsum.photos/seed/wpc2/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w3",
-    rank: 3,
-    title: "จีบ",
-    artist: "Q",
-    coverSrc: "https://picsum.photos/seed/wpc3/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w4",
-    title: "ใจฉันตามเธอไป",
-    artist: "YOUNGOHM",
-    coverSrc: "https://picsum.photos/seed/wpc4/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w5",
-    title: "หวานขื่น",
-    artist: "สิงโต นำโชค",
-    coverSrc: "https://picsum.photos/seed/wpc5/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w6",
-    title: "โตกว่านี้",
-    artist: "GOOD MOOD",
-    coverSrc: "https://picsum.photos/seed/wpc6/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w7",
-    title: "ฝนตกไหม",
-    artist: "Three Man Down",
-    coverSrc: "https://picsum.photos/seed/wpc7/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w8",
-    title: "คิดถึงฉันไหมเวลาที่เธอ",
-    artist: "MEAN",
-    coverSrc: "https://picsum.photos/seed/wpc8/128/128",
-    href: "/songs",
-  },
-  {
-    id: "w9",
-    title: "วันนี้",
-    artist: "Wan Thanakrit",
-    coverSrc: "https://picsum.photos/seed/wpc9/128/128",
-    href: "/songs",
-  },
-];
+  FEATURED_SONGS,
+  HOMEPAGE_TAGS,
+  QUICK_ACCESS_ITEMS,
+  RECENT_SET_LISTS,
+} from "@/components/homepage/homepage-mock-data";
+import { QuickAccessCards } from "@/components/homepage/quick-access-cards";
+import { RecentSetLists } from "@/components/homepage/recent-set-lists";
+import { SiteHeader } from "../components/layout/site-header";
 
 export default function HomePage() {
   return (
-    <Layout>
-      <div data-testid="page-home">
-        <TitleSearchBar />
-        <SearchBar />
-        <BibleVerse lines={VERSE_LINES} reference="1 คร 13:4-7" />
-        <WeeklyPopularChordsSection items={WEEKLY_POPULAR_CHORDS_MOCK} />
-        <SectionHeader title="ชีทเพลงทั้งหมด" />
+    <main
+      className="min-h-screen bg-[#f6f7f5] text-[#1f2a28]"
+      data-testid="page-home"
+    >
+      {/* <HomepageNavbar
+        brand="Sriwilai Church Worship"
+        navItems={HOMEPAGE_NAV_ITEMS}
+      /> */}
+      <SiteHeader />
+      <HeroSearchSection tags={HOMEPAGE_TAGS} />
+      <QuickAccessCards items={QUICK_ACCESS_ITEMS} />
 
-        <Container className="pb-16 pt-8 sm:pt-10">
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,18rem)] lg:gap-14 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)]">
-            <SongList heading="🎵 เพลงมาใหม่ 🎵" songs={SONGS} />
-            <SideMenu items={SIDE_LINKS} />
-          </div>
-        </Container>
-      </div>
-    </Layout>
+      <section className="px-4 py-12 sm:px-6 lg:py-16">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <RecentSetLists items={RECENT_SET_LISTS} />
+          <FeaturedSongsGrid items={FEATURED_SONGS} />
+        </div>
+      </section>
+
+      <HomepageCTA />
+      <HomepageFooter />
+    </main>
   );
 }

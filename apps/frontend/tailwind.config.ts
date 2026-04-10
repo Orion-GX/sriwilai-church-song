@@ -1,10 +1,5 @@
 import type { Config } from "tailwindcss";
 
-/**
- * Celestial-inspired design tokens (BootstrapDash Celestial Admin)
- * → Tailwind + shadcn: สีหลักชมพู/ม่วง ฟ้าอ่อนเป็นพื้นหลัง ตัวอักษรน้ำเงินเข้ม
- * อ้างอิง: https://github.com/BootstrapDash/celestialAdmin-free-admin-template
- */
 const config: Config = {
   darkMode: "class",
   // Paths relative to apps/frontend. App + shadcn under src/. (Avoid block comments with **/ inside globs.)
@@ -19,6 +14,9 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        utility: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        chord: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       fontSize: {
         /** หัวหน้า H1 / ชื่อหน้า */
@@ -152,11 +150,14 @@ const config: Config = {
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          dim: "hsl(var(--primary-dim))",
+          "fixed-dim": "hsl(var(--primary-fixed-dim))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          container: "hsl(var(--secondary-container))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -185,6 +186,16 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        surface: {
+          DEFAULT: "hsl(var(--background))",
+          low: "hsl(var(--muted))",
+          lowest: "hsl(var(--card))",
+          high: "hsl(var(--accent))",
+          highest: "hsl(var(--surface-container-highest))",
+        },
+        outline: {
+          variant: "hsl(var(--border))",
         },
       },
     },

@@ -1,113 +1,116 @@
 "use client";
 
-import * as React from "react";
-import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BookOpen, ListMusic } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 
 const nav = [
   { href: "/songs", label: "เพลง" },
-  { href: "/dashboard", label: "แดชบอร์ด" },
-  { href: "/login", label: "เข้าสู่ระบบ" },
+  { href: "/dashboard/setlists", label: "เซ็ตลิสต์เพลง" },
 ];
-
-const navLinkClass =
-  "inline-flex h-9 items-center justify-center rounded-lg px-3 text-sm font-medium text-primary-foreground/90 transition-colors hover:bg-primary-foreground/15 hover:text-primary-foreground ui-focus-ring";
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const headerRef = React.useRef<HTMLElement>(null);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
 
   React.useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
-  React.useEffect(() => {
-    if (!mobileOpen) return;
-    function onPointerDown(event: MouseEvent | TouchEvent) {
-      const target = event.target as Node | null;
-      if (!target) return;
-      if (headerRef.current?.contains(target)) return;
-      setMobileOpen(false);
+    function onScroll() {
+      setIsScrolled(window.scrollY > 8);
     }
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("touchstart", onPointerDown);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("touchstart", onPointerDown);
-    };
-  }, [mobileOpen]);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const isActive = React.useCallback(
+    (href: string) => pathname === href || pathname.startsWith(`${href}/`),
+    [pathname],
+  );
 
   return (
-    <header
-      ref={headerRef}
-      className="sticky top-0 z-50 w-full border-b border-primary/30 bg-primary text-primary-foreground shadow-sm"
-    >
-      <div className="mx-auto flex h-header min-h-header max-w-layout items-center justify-between px-4 md:px-6">
-        <Link
-          href="/"
-          className="text-lg font-semibold tracking-tight text-primary-foreground"
-          data-testid="nav-brand"
-        >
-          Sriwilai Song
-        </Link>
-
-        <nav className="hidden items-center gap-1 sm:gap-2 md:flex">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className={cn(navLinkClass)}>
-              {item.label}
-            </Link>
-          ))}
-          <ThemeToggle />
-        </nav>
-
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground"
-            aria-label={mobileOpen ? "ปิดเมนูนำทาง" : "เปิดเมนูนำทาง"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5" aria-hidden />
-            ) : (
-              <Menu className="h-5 w-5" aria-hidden />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      <div
-        aria-hidden={!mobileOpen}
+    <>
+      <header
         className={cn(
-          "overflow-hidden border-primary-foreground/20 transition-all duration-200 ease-out md:hidden",
-          mobileOpen
-            ? "max-h-80 translate-y-0 border-t opacity-100"
-            : "pointer-events-none max-h-0 -translate-y-1 opacity-0",
+          "sticky top-0 z-40 bg-[#f6f7f5]/95 backdrop-blur transition-shadow",
+          isScrolled
+            ? "shadow-[0_8px_22px_-18px_rgba(31,42,40,0.5)]"
+            : "shadow-none",
         )}
       >
-        <div className="px-4 pb-3 pt-2">
-          <nav className="mx-auto flex max-w-layout flex-col gap-1" aria-label="เมนูมือถือ">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            className="text-base font-semibold tracking-tight text-[#1f2a28]"
+            data-testid="nav-brand"
+          >
+            Worship Chord
+          </Link>
+
+          <nav className="hidden items-center gap-7 md:flex">
             {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(navLinkClass, "h-10 justify-start")}
+                className={cn(
+                  "relative pb-1 text-sm font-medium text-[#475653] transition-colors hover:text-[#1f2a28]",
+                  isActive(item.href) && "text-[#1f2a28]",
+                )}
               >
                 {item.label}
+                {isActive(item.href) ? (
+                  <span className="absolute -bottom-0.5 left-0 h-px w-full bg-[#70817c]" />
+                ) : null}
               </Link>
             ))}
           </nav>
+
+          <div className="hidden items-center gap-3 md:flex">
+            <Link
+              href="/login"
+              className="rounded-full px-3 py-2 text-sm font-medium text-[#5a6865] transition-colors hover:text-[#1f2a28]"
+            >
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-full bg-[#4f6863] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435a56]"
+            >
+              Get Started
+            </Link>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dce1de] bg-[#f6f7f5]/95 px-3 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur md:hidden">
+        <ul className="grid grid-cols-2 gap-2">
+          <li>
+            <Link
+              href="/songs"
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-2 text-xs font-medium text-[#556460] transition-colors",
+                isActive("/songs") && "bg-[#e8edeb] text-[#1f2a28]",
+              )}
+            >
+              <BookOpen className="h-4 w-4" aria-hidden />
+              <span>เพลง</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/dashboard/setlists"
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-2 text-xs font-medium text-[#556460] transition-colors",
+                isActive("/dashboard/setlists") && "bg-[#e8edeb] text-[#1f2a28]",
+              )}
+            >
+              <ListMusic className="h-4 w-4" aria-hidden />
+              <span>เซ็ตลิสต์</span>
+            </Link>
+          </li>
+        </ul>
+      </nav>
+    </>
   );
 }
