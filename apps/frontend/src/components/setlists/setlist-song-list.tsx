@@ -23,6 +23,7 @@ type SetlistSongListProps = {
   onReorder: (orderedSongIds: string[]) => void;
   onChangeKey: (itemId: string, key: string) => void;
   onSaveTransitionNotes: (itemId: string, notes: string) => void;
+  onDeleteSong: (itemId: string) => void;
 };
 
 export function SetlistSongList({
@@ -30,6 +31,7 @@ export function SetlistSongList({
   onReorder,
   onChangeKey,
   onSaveTransitionNotes,
+  onDeleteSong,
 }: SetlistSongListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -64,6 +66,7 @@ export function SetlistSongList({
               song={song}
               onChangeKey={onChangeKey}
               onSaveTransitionNotes={onSaveTransitionNotes}
+              onDeleteSong={onDeleteSong}
             />
           ))}
         </div>

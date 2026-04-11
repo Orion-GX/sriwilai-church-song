@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Ip,
   Post,
@@ -118,6 +119,17 @@ export class SetlistsController {
     @Body() body: AddSetlistItemDto,
   ) {
     return this.setlistsService.addSetlistItem(userId, id, body);
+  }
+
+  @Delete(':id/song-items/:itemId')
+  @Throttle(APP_THROTTLE)
+  @Permissions(SYSTEM_PERMISSION_CODES.SETLIST_PERSONAL_MANAGE)
+  removeSongItem(
+    @CurrentUser('sub') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+  ) {
+    return this.setlistsService.removeSetlistItem(userId, id, itemId);
   }
 
   @Patch(':id/visibility')

@@ -104,6 +104,15 @@ export async function addSetlistSong(
   });
 }
 
+export async function deleteSetlistSong(
+  setlistId: string,
+  itemId: string,
+): Promise<SetlistDetail> {
+  return apiFetch<SetlistDetail>(`/app/setlists/personal/${setlistId}/song-items/${itemId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function updateSetlistVisibility(
   setlistId: string,
   isPublic: boolean,

@@ -1,7 +1,7 @@
 "use client";
 
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil } from "lucide-react";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 
 import {
@@ -43,12 +43,14 @@ type SetlistSongCardProps = {
   song: SetlistSongItem;
   onChangeKey: (itemId: string, key: string) => void;
   onSaveTransitionNotes: (itemId: string, notes: string) => void;
+  onDeleteSong: (itemId: string) => void;
 };
 
 export function SetlistSongCard({
   song,
   onChangeKey,
   onSaveTransitionNotes,
+  onDeleteSong,
 }: SetlistSongCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: song.id });
@@ -83,7 +85,18 @@ export function SetlistSongCard({
                 {song.bpm ?? "--"} BPM
               </p>
             </div>
-            <Pencil className="mt-1 h-4 w-4 text-muted-foreground" />
+            <div className="mt-1 flex items-center gap-1">
+              <Pencil className="h-4 w-4 text-muted-foreground" />
+              <button
+                type="button"
+                className="rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                aria-label={`ลบเพลง ${song.title} ออกจากเซ็ตลิสต์`}
+                onClick={() => onDeleteSong(song.id)}
+                data-testid={`setlist-song-delete-${song.id}`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
           <div className="mt-3 w-28">
             <Select

@@ -345,6 +345,52 @@ export class SetlistsService {
     return this.mapSetlistResponse(updated);
   }
 
+  async removeSetlistItem(ownerUserId: string, setlistId: string, itemId: string) {
+    await this.loadOwnedSetlist(ownerUserId, setlistId);
+    const item = await this.itemRepo.findOne({
+      where: { id: itemId, setlistId },
+    });
+    if (!item) {
+      throw new NotFoundException('Setlist item not found');
+    }
+
+    await this.itemRepo.delete({ id: itemId, setlistId });
+
+    const remaining = await this.itemRepo.find({
+      where: { setlistId },
+      order: { order: 'ASC' },
+    });
+
+    const queryRunner = this.itemRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      for (const [idx, row] of remaining.entries()) {
+        await queryRunner.manager.update(
+          PersonalSetlistItemEntity,
+          { id: row.id, setlistId },
+          { order: idx + 10_000 },
+        );
+      }
+      for (const [idx, row] of remaining.entries()) {
+        await queryRunner.manager.update(
+          PersonalSetlistItemEntity,
+          { id: row.id, setlistId },
+          { order: idx },
+        );
+      }
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException('Failed to remove setlist item');
+    } finally {
+      await queryRunner.release();
+    }
+
+    const updated = await this.loadOwnedSetlist(ownerUserId, setlistId);
+    return this.mapSetlistResponse(updated);
+  }
+
   async setSetlistVisibility(
     ownerUserId: string,
     id: string,
