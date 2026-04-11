@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { transposeChordSymbol } from "@/lib/chordpro/transpose";
 import { cn } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
 
@@ -36,6 +37,9 @@ export function SongViewerToolbar({
   const reset = () => onTransposeChange(0);
   const fontDown = () => onFontScaleChange(Math.max(fontScale - 0.05, 0.8));
   const fontUp = () => onFontScaleChange(Math.min(fontScale + 0.05, 1.35));
+  const transposedKey = originalKey
+    ? transposeChordSymbol(originalKey, transpose)
+    : null;
 
   const meta: string[] = [];
   if (originalKey) meta.push(`Key ${originalKey}`);
@@ -68,6 +72,39 @@ export function SongViewerToolbar({
       )}
 
       <div className="flex flex-wrap items-center gap-3">
+        <label className="inline-flex items-center gap-2">
+          <span
+            className={cn(
+              "text-sm text-muted-foreground",
+              large && "text-base",
+            )}
+          >
+            คอร์ด
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={showChords}
+            aria-label="แสดงหรือซ่อนคอร์ด"
+            className={cn(
+              "relative inline-flex h-6 w-11 items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              showChords
+                ? "border-primary bg-primary/30"
+                : "border-input bg-muted",
+            )}
+            onClick={() => onShowChordsChange(!showChords)}
+            data-testid="toggle-chords"
+          >
+            <span
+              className={cn(
+                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow transition-transform",
+                showChords ? "translate-x-5" : "translate-x-0.5",
+              )}
+              aria-hidden
+            />
+          </button>
+        </label>
+
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
@@ -76,11 +113,12 @@ export function SongViewerToolbar({
             )}
             data-testid="transpose-value-label"
           >
-            Transpose{" "}
+            Key{" "}
             <strong className="text-foreground" data-testid="transpose-value">
-              {transpose === 0
-                ? "0"
-                : `${transpose > 0 ? "+" : ""}${transpose}`}
+              {transposedKey ??
+                (transpose === 0
+                  ? "0"
+                  : `${transpose > 0 ? "+" : ""}${transpose}`)}
             </strong>
           </span>
           <div
@@ -130,20 +168,6 @@ export function SongViewerToolbar({
             </Button>
           </div>
         </div>
-
-        <Button
-          type="button"
-          size={large ? "lg" : "sm"}
-          variant="outline"
-          className={cn(
-            showChords &&
-              "border-primary bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary",
-          )}
-          onClick={() => onShowChordsChange(!showChords)}
-          data-testid="toggle-chords"
-        >
-          คอร์ด
-        </Button>
 
         <div className="flex items-center gap-2">
           <span

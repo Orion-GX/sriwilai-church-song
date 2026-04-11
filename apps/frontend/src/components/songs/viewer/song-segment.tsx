@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 type SongSegmentProps = {
   chord: string | null;
   text: string;
+  appendChordSpace?: boolean;
   showChords: boolean;
   fontScale: number;
 };
@@ -12,6 +13,7 @@ type SongSegmentProps = {
 export function SongSegment({
   chord,
   text,
+  appendChordSpace = false,
   showChords,
   fontScale,
 }: SongSegmentProps) {
@@ -27,7 +29,7 @@ export function SongSegment({
           )}
           style={{ fontSize: `${0.92 * fontScale}rem` }}
         >
-          {chord ?? ""}
+          {chord != null ? `${chord}${appendChordSpace ? "\u00a0" : ""}` : ""}
         </span>
       ) : null}
       <span

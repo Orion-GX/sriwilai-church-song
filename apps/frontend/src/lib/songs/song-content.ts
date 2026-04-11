@@ -70,6 +70,10 @@ function parseLineToSegments(line: string): SongContentSegment[] {
   for (const part of parts) {
     const isChord = part.startsWith("[") && part.endsWith("]");
     if (isChord) {
+      if (pendingChord != null) {
+        // Consecutive chords like [A][E7]: keep both chords without touching lyric text.
+        segments.push({ chord: pendingChord, text: "" });
+      }
       pendingChord = part.slice(1, -1).trim() || null;
       continue;
     }
@@ -110,6 +114,14 @@ function directiveValueToDisplay(raw: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+const PROGRESSION_DIRECTIVE_LABELS: Record<string, string> = {
+  outro: "Outro",
+  instrument: "Instrument",
+  interlude: "Interlude",
+  solo: "Solo",
+  midtro: "Midtro",
+};
 
 function buildSectionFromDirective(
   key: string,
@@ -266,10 +278,7 @@ export function chordProToContentDocument(
       continue;
     }
 
-    if (
-      block.kind === "directive" &&
-      (block.key === "outro" || block.key === "instrument")
-    ) {
+    if (block.kind === "directive" && block.key in PROGRESSION_DIRECTIVE_LABELS) {
       const value = (block.value ?? "").trim();
       if (!value) continue;
       flushCurrentSection();
@@ -278,7 +287,7 @@ export function chordProToContentDocument(
       sections.push({
         id: `sec_${sectionCounter}`,
         type: "other",
-        label: block.key === "outro" ? "Outro" : "Instrument",
+        label: PROGRESSION_DIRECTIVE_LABELS[block.key],
         rows: [
           chordProLineToRow(
             directiveValueToDisplay(value),

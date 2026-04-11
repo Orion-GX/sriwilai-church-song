@@ -13,6 +13,15 @@ type ChordproViewProps = {
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
 };
 
+const PROGRESSION_DIRECTIVE_LEADS: Record<string, string> = {
+  intro: "Intro",
+  outro: "Outro",
+  instrument: "Instrument",
+  interlude: "Interlude",
+  solo: "Solo",
+  midtro: "Midtro",
+};
+
 /**
  * เรนเดอร์ ChordPro: directive, ท่อนฮุค {start_of_chorus}…{end_of_chorus}, คอร์ดใน []
  */
@@ -78,17 +87,8 @@ export function ChordproView({
                 </h3>
               );
             }
-            if (
-              block.key === "intro" ||
-              block.key === "outro" ||
-              block.key === "instrument"
-            ) {
-              const lead =
-                block.key === "intro"
-                  ? "Intro"
-                  : block.key === "outro"
-                    ? "Outro"
-                    : "Instrument";
+            if (block.key in PROGRESSION_DIRECTIVE_LEADS) {
+              const lead = PROGRESSION_DIRECTIVE_LEADS[block.key];
               return (
                 <p key={i} className="mb-3 font-mono leading-relaxed ">
                   <span className="font-bold text-primary">{lead}:</span>{" "}
@@ -159,7 +159,8 @@ function introRawToDisplay(raw: string): string {
 }
 
 function LyricLine({ line }: { line: string }) {
-  const parts = line.split(/(\[[^\]]+\])/g);
+  const normalizedLine = line.replace(/\]\[/g, "] [");
+  const parts = normalizedLine.split(/(\[[^\]]+\])/g);
   return (
     <p className="mb-1 font-mono text-[0.95rem] md:text-base">
       {parts.map((part, j) => {

@@ -7,6 +7,13 @@ type ChordHit = {
 };
 
 type CanonicalSection = "verse" | "chorus" | "bridge" | "tag";
+type ProgressionDirective =
+  | "intro"
+  | "outro"
+  | "instrument"
+  | "interlude"
+  | "solo"
+  | "midtro";
 
 const LYRIC_PREFIX_RE = /^(\s*(?:\d+|[A-Za-z])\s*:\s*)/;
 
@@ -56,7 +63,7 @@ export function mergeChordAndLyricLines(chordLine: string, lyricLine: string): s
 }
 
 function buildProgressionDirective(
-  label: "intro" | "outro" | "instrument",
+  label: ProgressionDirective,
   payload: string,
 ): string | null {
   const candidates = payload
@@ -79,7 +86,7 @@ export function parseIntroLine(line: string): string | null {
 
 function parseProgressionDirectiveLine(
   line: string,
-  label: "outro" | "instrument",
+  label: Exclude<ProgressionDirective, "intro">,
 ): string | null {
   const match = line.trim().match(new RegExp(`^${label}\\b\\s*:?\\s*(.+)$`, "i"));
   if (!match) return null;
@@ -149,6 +156,12 @@ function parseStructuredTag(
 
   const instrumentTag = parseProgressionDirectiveLine(line, "instrument");
   if (instrumentTag) return instrumentTag;
+  const interludeTag = parseProgressionDirectiveLine(line, "interlude");
+  if (interludeTag) return interludeTag;
+  const soloTag = parseProgressionDirectiveLine(line, "solo");
+  if (soloTag) return soloTag;
+  const midtroTag = parseProgressionDirectiveLine(line, "midtro");
+  if (midtroTag) return midtroTag;
 
   const section = detectCanonicalSection(line);
   if (!section) return null;
@@ -160,6 +173,9 @@ function isStructuredTagLine(line: string): boolean {
     !!parseIntroLine(line) ||
     !!parseProgressionDirectiveLine(line, "outro") ||
     !!parseProgressionDirectiveLine(line, "instrument") ||
+    !!parseProgressionDirectiveLine(line, "interlude") ||
+    !!parseProgressionDirectiveLine(line, "solo") ||
+    !!parseProgressionDirectiveLine(line, "midtro") ||
     !!detectCanonicalSection(line)
   );
 }
@@ -170,6 +186,9 @@ function isLikelyChordLine(line: string): boolean {
   if (parseIntroLine(trimmed)) return false;
   if (parseProgressionDirectiveLine(trimmed, "outro")) return false;
   if (parseProgressionDirectiveLine(trimmed, "instrument")) return false;
+  if (parseProgressionDirectiveLine(trimmed, "interlude")) return false;
+  if (parseProgressionDirectiveLine(trimmed, "solo")) return false;
+  if (parseProgressionDirectiveLine(trimmed, "midtro")) return false;
   if (normalizeSectionTag(trimmed)) return false;
 
   const tokens = trimmed.split(/\s+/).filter(Boolean);

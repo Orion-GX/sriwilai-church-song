@@ -19,6 +19,11 @@ export function SongRow({ row, showChords, fontScale }: SongRowProps) {
           key={`${row.id}-${index}`}
           chord={segment.chord}
           text={segment.text}
+          appendChordSpace={
+            segment.chord != null &&
+            segment.text.length === 0 &&
+            row.segments[index + 1]?.chord != null
+          }
           showChords={showChords}
           fontScale={fontScale}
         />

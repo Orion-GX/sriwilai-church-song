@@ -11,6 +11,14 @@ type SongSectionProps = {
   fontScale: number;
 };
 
+const PROGRESSION_SECTION_LABELS = new Set([
+  "Outro",
+  "Instrument",
+  "Interlude",
+  "Solo",
+  "Midtro",
+]);
+
 export function SongSection({
   section,
   showChords,
@@ -18,6 +26,38 @@ export function SongSection({
   showEnglish,
   fontScale,
 }: SongSectionProps) {
+  const isProgressionDirective =
+    section.type === "other" &&
+    !!section.label &&
+    PROGRESSION_SECTION_LABELS.has(section.label);
+
+  if (isProgressionDirective) {
+    const progressionText = section.rows
+      .flatMap((row) => row.segments)
+      .map((segment) => segment.text)
+      .join("")
+      .trim();
+
+    return (
+      <section className="mb-5">
+        <p className="mb-4 font-mono leading-relaxed">
+          <span
+            className="font-bold text-primary"
+            style={{ fontSize: `${0.92 * fontScale}rem` }}
+          >
+            {section.label}:
+          </span>{" "}
+          <span
+            className="font-bold text-primary"
+            style={{ fontSize: `${0.92 * fontScale}rem` }}
+          >
+            {progressionText}
+          </span>
+        </p>
+      </section>
+    );
+  }
+
   const rowWrapperClassName =
     section.type === "chorus" ? "space-y-0.5 pl-4" : "space-y-0.5";
 
