@@ -103,6 +103,53 @@ function normalizeSectionLabel(input: string): string {
   return input.replace(/([A-Za-z])(\d)/g, "$1 $2").trim();
 }
 
+function directiveValueToDisplay(raw: string): string {
+  return raw
+    .replace(/\[([^\]]+)\]/g, " $1 ")
+    .replace(/\s*\/\s*/g, " / ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildSectionFromDirective(
+  key: string,
+  value: string,
+): { type: SongSectionType; label: string } | null {
+  const trimmedValue = value.trim();
+  if (key === "verse") {
+    return {
+      type: "verse",
+      label: trimmedValue ? `Verse ${trimmedValue}` : "Verse",
+    };
+  }
+  if (key === "chorus") {
+    return {
+      type: "chorus",
+      label: trimmedValue ? `Chorus ${trimmedValue}` : "Chorus",
+    };
+  }
+  if (key === "bridge") {
+    return {
+      type: "bridge",
+      label: trimmedValue ? `Bridge ${trimmedValue}` : "Bridge",
+    };
+  }
+  if (key === "tag") {
+    return {
+      type: "other",
+      label: trimmedValue ? `Tag ${trimmedValue}` : "Tag",
+    };
+  }
+  if (key === "comment") {
+    const label = normalizeSectionLabel(trimmedValue);
+    return {
+      type: inferSectionType(label),
+      label: label || "Section",
+    };
+  }
+  return null;
+}
+
 function inferSectionType(label: string): SongSectionType {
   if (/^chorus\b/i.test(label)) return "chorus";
   if (/^bridge\b/i.test(label)) return "bridge";
@@ -200,14 +247,45 @@ export function chordProToContentDocument(
       continue;
     }
 
-    if (block.kind === "directive" && block.key === "comment") {
-      const label = normalizeSectionLabel((block.value ?? "").trim());
+    if (
+      block.kind === "directive" &&
+      (block.key === "verse" ||
+        block.key === "chorus" ||
+        block.key === "bridge" ||
+        block.key === "tag" ||
+        block.key === "comment")
+    ) {
+      const section = buildSectionFromDirective(block.key, block.value ?? "");
+      if (!section) continue;
       flushCurrentSection();
       currentSection = {
-        type: inferSectionType(label),
-        label: label || undefined,
+        type: section.type,
+        label: section.label,
         rows: [],
       };
+      continue;
+    }
+
+    if (
+      block.kind === "directive" &&
+      (block.key === "outro" || block.key === "instrument")
+    ) {
+      const value = (block.value ?? "").trim();
+      if (!value) continue;
+      flushCurrentSection();
+      sectionCounter += 1;
+      rowCounter += 1;
+      sections.push({
+        id: `sec_${sectionCounter}`,
+        type: "other",
+        label: block.key === "outro" ? "Outro" : "Instrument",
+        rows: [
+          chordProLineToRow(
+            directiveValueToDisplay(value),
+            `row_${rowCounter}`,
+          ),
+        ],
+      });
       continue;
     }
 

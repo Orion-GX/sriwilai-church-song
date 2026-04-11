@@ -6,13 +6,7 @@ type ChordHit = {
   index: number;
 };
 
-const COMMENT_SECTION_LABELS = [
-  "Chorus",
-  "Pre-Chorus",
-  "Bridge",
-  "Outro",
-  "Tag",
-] as const;
+type CanonicalSection = "verse" | "chorus" | "bridge" | "tag";
 
 const LYRIC_PREFIX_RE = /^(\s*(?:\d+|[A-Za-z])\s*:\s*)/;
 
@@ -53,10 +47,7 @@ export function mergeChordAndLyricLines(chordLine: string, lyricLine: string): s
   const anchorStart = findLyricAnchorStart(out);
   let offset = 0;
   for (const hit of hits) {
-    const boundedPos = Math.max(
-      anchorStart,
-      Math.min(hit.index, lyricLine.length),
-    );
+    const boundedPos = Math.max(anchorStart, Math.min(hit.index, lyricLine.length));
     const insertPos = boundedPos + offset;
     out = `${out.slice(0, insertPos)}[${hit.chord}]${out.slice(insertPos)}`;
     offset += hit.chord.length + 2;
@@ -64,11 +55,10 @@ export function mergeChordAndLyricLines(chordLine: string, lyricLine: string): s
   return out;
 }
 
-export function parseIntroLine(line: string): string | null {
-  const match = line.trim().match(/^intro\b\s*:?\s*(.+)$/i);
-  if (!match) return null;
-
-  const payload = match[1] ?? "";
+function buildProgressionDirective(
+  label: "intro" | "outro" | "instrument",
+  payload: string,
+): string | null {
   const candidates = payload
     .replace(/[|,]/g, " ")
     .replace(/\s*\/\s*/g, " ")
@@ -77,40 +67,110 @@ export function parseIntroLine(line: string): string | null {
     .filter(Boolean);
   const chords = candidates.filter((token) => CHORD_SYMBOL_RE.test(token));
   if (chords.length === 0) return null;
-
   const progression = chords.map((chord) => `[${chord}]`).join(" / ");
-  return `{intro: ${progression}}`;
+  return `{${label}: ${progression}}`;
 }
 
-export function normalizeSectionTag(line: string): string | null {
+export function parseIntroLine(line: string): string | null {
+  const match = line.trim().match(/^intro\b\s*:?\s*(.+)$/i);
+  if (!match) return null;
+  return buildProgressionDirective("intro", match[1] ?? "");
+}
+
+function parseProgressionDirectiveLine(
+  line: string,
+  label: "outro" | "instrument",
+): string | null {
+  const match = line.trim().match(new RegExp(`^${label}\\b\\s*:?\\s*(.+)$`, "i"));
+  if (!match) return null;
+  return buildProgressionDirective(label, match[1] ?? "");
+}
+
+function detectCanonicalSection(line: string): {
+  key: CanonicalSection;
+  value?: string;
+} | null {
   const trimmed = line.trim();
   const verseMatch = trimmed.match(/^verse\s*(\d+)?\s*:?\s*$/i);
   if (verseMatch) {
     const no = verseMatch[1]?.trim();
-    return no ? `{comment: Verse ${no}}` : "{comment: Verse}";
+    return { key: "verse", value: no || undefined };
   }
-
   const verseCompact = trimmed.match(/^verse(\d+)\s*:?\s*$/i);
   if (verseCompact) {
-    return `{comment: Verse ${verseCompact[1]}}`;
+    return { key: "verse", value: verseCompact[1] };
   }
 
-  for (const label of COMMENT_SECTION_LABELS) {
-    const re = new RegExp(`^${label}\\s*:?\\s*$`, "i");
-    if (re.test(trimmed)) {
-      return `{comment: ${label}}`;
-    }
+  const chorusMatch = trimmed.match(/^chorus\s*(\d+)?\s*:?\s*$/i);
+  if (chorusMatch) {
+    return { key: "chorus", value: chorusMatch[1]?.trim() || undefined };
+  }
+
+  const bridgeMatch = trimmed.match(/^bridge\s*(\d+)?\s*:?\s*$/i);
+  if (bridgeMatch) {
+    return { key: "bridge", value: bridgeMatch[1]?.trim() || undefined };
+  }
+
+  const tagMatch = trimmed.match(/^tag\s*(\d+)?\s*:?\s*$/i);
+  if (tagMatch) {
+    return { key: "tag", value: tagMatch[1]?.trim() || undefined };
   }
 
   return null;
 }
 
+export function normalizeSectionTag(line: string): string | null {
+  const detected = detectCanonicalSection(line);
+  if (!detected) return null;
+  return detected.value
+    ? `{${detected.key}: ${detected.value}}`
+    : `{${detected.key}}`;
+}
+
+function formatSectionTagWithCounter(
+  section: CanonicalSection,
+  rawValue: string | undefined,
+  counters: Record<CanonicalSection, number>,
+): string {
+  if (rawValue) return `{${section}: ${rawValue}}`;
+  counters[section] += 1;
+  return `{${section}: ${counters[section]}}`;
+}
+
+function parseStructuredTag(
+  line: string,
+  counters: Record<CanonicalSection, number>,
+): string | null {
+  const introTag = parseIntroLine(line);
+  if (introTag) return introTag;
+
+  const outroTag = parseProgressionDirectiveLine(line, "outro");
+  if (outroTag) return outroTag;
+
+  const instrumentTag = parseProgressionDirectiveLine(line, "instrument");
+  if (instrumentTag) return instrumentTag;
+
+  const section = detectCanonicalSection(line);
+  if (!section) return null;
+  return formatSectionTagWithCounter(section.key, section.value, counters);
+}
+
+function isStructuredTagLine(line: string): boolean {
+  return (
+    !!parseIntroLine(line) ||
+    !!parseProgressionDirectiveLine(line, "outro") ||
+    !!parseProgressionDirectiveLine(line, "instrument") ||
+    !!detectCanonicalSection(line)
+  );
+}
+
 function isLikelyChordLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
-  const sectionTag = normalizeSectionTag(trimmed);
-  if (sectionTag) return false;
   if (parseIntroLine(trimmed)) return false;
+  if (parseProgressionDirectiveLine(trimmed, "outro")) return false;
+  if (parseProgressionDirectiveLine(trimmed, "instrument")) return false;
+  if (normalizeSectionTag(trimmed)) return false;
 
   const tokens = trimmed.split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return false;
@@ -120,6 +180,12 @@ function isLikelyChordLine(line: string): boolean {
 export function convertRawLyricsToChordPro(rawText: string): string {
   const lines = rawText.replace(/\r\n/g, "\n").split("\n");
   const out: string[] = [];
+  const sectionCounters: Record<CanonicalSection, number> = {
+    verse: 0,
+    chorus: 0,
+    bridge: 0,
+    tag: 0,
+  };
 
   let i = 0;
   while (i < lines.length) {
@@ -134,16 +200,9 @@ export function convertRawLyricsToChordPro(rawText: string): string {
       continue;
     }
 
-    const introTag = parseIntroLine(trimmed);
-    if (introTag) {
-      out.push(introTag);
-      i += 1;
-      continue;
-    }
-
-    const sectionTag = normalizeSectionTag(trimmed);
-    if (sectionTag) {
-      out.push(sectionTag);
+    const structuredTag = parseStructuredTag(trimmed, sectionCounters);
+    if (structuredTag) {
+      out.push(structuredTag);
       i += 1;
       continue;
     }
@@ -152,7 +211,7 @@ export function convertRawLyricsToChordPro(rawText: string): string {
       const next = lines[i + 1];
       if (next && next.trim()) {
         const nextTrimmed = next.trim();
-        const nextIsSection = !!normalizeSectionTag(nextTrimmed) || !!parseIntroLine(nextTrimmed);
+        const nextIsSection = isStructuredTagLine(nextTrimmed);
         const nextIsChord = isLikelyChordLine(next);
         if (!nextIsSection && !nextIsChord) {
           out.push(mergeChordAndLyricLines(current, next));

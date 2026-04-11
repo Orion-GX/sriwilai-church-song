@@ -61,8 +61,14 @@ export function ChordproView({
               </p>
             );
           case "directive":
-            if (block.key === "comment") {
-              const label = normalizeSectionLabel(block.value ?? "");
+            if (
+              block.key === "comment" ||
+              block.key === "verse" ||
+              block.key === "chorus" ||
+              block.key === "bridge" ||
+              block.key === "tag"
+            ) {
+              const label = sectionLabelFromDirective(block.key, block.value);
               return (
                 <h3
                   key={i}
@@ -72,10 +78,20 @@ export function ChordproView({
                 </h3>
               );
             }
-            if (block.key === "intro") {
+            if (
+              block.key === "intro" ||
+              block.key === "outro" ||
+              block.key === "instrument"
+            ) {
+              const lead =
+                block.key === "intro"
+                  ? "Intro"
+                  : block.key === "outro"
+                    ? "Outro"
+                    : "Instrument";
               return (
                 <p key={i} className="mb-3 font-mono leading-relaxed ">
-                  <span className="font-bold text-primary">Intro:</span>{" "}
+                  <span className="font-bold text-primary">{lead}:</span>{" "}
                   <span className="font-bold text-primary">
                     {introRawToDisplay(block.value ?? "")}
                   </span>
@@ -123,6 +139,15 @@ export function ChordproView({
 
 function normalizeSectionLabel(input: string): string {
   return input.replace(/([A-Za-z])(\d)/g, "$1 $2").trim();
+}
+
+function sectionLabelFromDirective(key: string, value?: string): string {
+  const trimmed = (value ?? "").trim();
+  if (key === "verse") return trimmed ? `Verse ${trimmed}` : "Verse";
+  if (key === "chorus") return trimmed ? `Chorus ${trimmed}` : "Chorus";
+  if (key === "bridge") return trimmed ? `Bridge ${trimmed}` : "Bridge";
+  if (key === "tag") return trimmed ? `Tag ${trimmed}` : "Tag";
+  return normalizeSectionLabel(trimmed);
 }
 
 function introRawToDisplay(raw: string): string {

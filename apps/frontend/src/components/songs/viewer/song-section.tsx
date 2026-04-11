@@ -18,6 +18,9 @@ export function SongSection({
   showEnglish,
   fontScale,
 }: SongSectionProps) {
+  const rowWrapperClassName =
+    section.type === "chorus" ? "space-y-0.5 pl-4" : "space-y-0.5";
+
   return (
     <section className="mb-5">
       {section.label ? (
@@ -29,16 +32,18 @@ export function SongSection({
           {section.label}
         </h3>
       ) : null}
-      {section.rows.map((row) => (
-        <SongRow
-          key={row.id}
-          row={row}
-          showChords={showChords}
-          showThai={showThai}
-          showEnglish={showEnglish}
-          fontScale={fontScale}
-        />
-      ))}
+      <div className={rowWrapperClassName}>
+        {section.rows.map((row) => (
+          <SongRow
+            key={row.id}
+            row={row}
+            showChords={showChords}
+            showThai={showThai}
+            showEnglish={showEnglish}
+            fontScale={fontScale}
+          />
+        ))}
+      </div>
     </section>
   );
 }

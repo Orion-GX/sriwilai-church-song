@@ -252,7 +252,7 @@ export function SongEditorForm({
           ...(parsedTempo != null ? { tempo: parsedTempo } : {}),
           ...(timeSignature ? { timeSignature } : {}),
         });
-        router.back();
+        router.push(`/dashboard/songs`);
       } else if (songId) {
         await updateSong(songId, {
           title,
@@ -263,7 +263,7 @@ export function SongEditorForm({
           tempo: parsedTempo,
           timeSignature: timeSignature || null,
         });
-        router.back();
+        router.push(`/dashboard/songs`);
       }
     } catch (err) {
       const msg =
