@@ -22,7 +22,7 @@ export function SongSection({
     <section className="mb-5">
       {section.label ? (
         <h3
-          className="mb-2 text-sm font-semibold text-primary"
+          className="mb-2 text-sm font-bold text-primary"
           data-testid="song-section-label"
           style={{ fontSize: `${0.92 * fontScale}rem` }}
         >

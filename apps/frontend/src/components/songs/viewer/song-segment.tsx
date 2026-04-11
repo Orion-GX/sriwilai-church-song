@@ -15,14 +15,10 @@ export function SongSegment({
   showChords,
   fontScale,
 }: SongSegmentProps) {
-  const hasText = text.trim();
+  const hasVisibleText = text.length > 0;
+  const filler = !hasVisibleText && !chord ? "\u00a0" : "";
   return (
-    <span
-      className={cn(
-        "inline-flex min-w-[3.2rem] flex-col align-top",
-        showChords ? "min-w-[3.2rem]" : "min-w-0",
-      )}
-    >
+    <span className="inline-flex flex-col align-top">
       {showChords ? (
         <span
           className={cn(
@@ -37,11 +33,11 @@ export function SongSegment({
       <span
         className={cn(
           "whitespace-pre-wrap leading-relaxed text-foreground",
-          !text.trim() && "h-6",
+          !hasVisibleText && "h-6",
         )}
         style={{ fontSize: `${1 * fontScale}rem` }}
       >
-        {text || (hasText ? "" : "\u00a0")}
+        {text || filler}
       </span>
     </span>
   );

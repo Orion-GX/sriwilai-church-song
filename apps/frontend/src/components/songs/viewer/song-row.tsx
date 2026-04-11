@@ -13,7 +13,7 @@ type SongRowProps = {
 
 export function SongRow({ row, showChords, fontScale }: SongRowProps) {
   return (
-    <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1">
+    <div className="mb-2 flex flex-wrap gap-0">
       {row.segments.map((segment, index) => (
         <SongSegment
           key={`${row.id}-${index}`}

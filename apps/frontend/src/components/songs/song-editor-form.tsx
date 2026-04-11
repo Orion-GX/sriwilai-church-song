@@ -1,6 +1,7 @@
 "use client";
 
 import { ChordproPreviewModal } from "@/components/songs/chordpro-preview-modal";
+import { ConvertLyricsModal } from "@/components/songs/convert-lyrics-modal";
 import { SongFormatHelpModal } from "@/components/songs/song-format-help-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,6 +156,7 @@ export function SongEditorForm({
   const [tagDraft, setTagDraft] = React.useState("");
   const [tagFieldError, setTagFieldError] = React.useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [convertOpen, setConvertOpen] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -514,6 +516,17 @@ export function SongEditorForm({
                   type="button"
                   variant="outline"
                   size="sm"
+                  onClick={() => setConvertOpen(true)}
+                  data-testid="song-chordpro-convert-toggle"
+                  aria-haspopup="dialog"
+                  aria-expanded={convertOpen}
+                >
+                  Convert to ChordPro
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setHelpOpen(true)}
                   data-testid="song-chordpro-help-toggle"
                   aria-haspopup="dialog"
@@ -545,6 +558,11 @@ export function SongEditorForm({
             <SongFormatHelpModal
               open={helpOpen}
               onClose={() => setHelpOpen(false)}
+            />
+            <ConvertLyricsModal
+              open={convertOpen}
+              onClose={() => setConvertOpen(false)}
+              onApplyResult={(nextChordPro) => setChordproBody(nextChordPro)}
             />
             <ChordproPreviewModal
               open={previewOpen}

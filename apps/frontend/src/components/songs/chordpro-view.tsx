@@ -66,7 +66,7 @@ export function ChordproView({
               return (
                 <h3
                   key={i}
-                  className="mb-2 mt-4 text-sm font-semibold text-primary"
+                  className="mb-2 mt-4 text-sm font-bold text-primary"
                 >
                   {label}
                 </h3>
