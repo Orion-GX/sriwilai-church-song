@@ -11,6 +11,7 @@ import { PermissionEntity } from '../../modules/rbac/entities/permission.entity'
 import { RolePermissionEntity } from '../../modules/rbac/entities/role-permission.entity';
 import { RoleEntity } from '../../modules/rbac/entities/role.entity';
 import { UserRoleEntity } from '../../modules/rbac/entities/user-role.entity';
+import { PersonalSetlistItemEntity } from '../../modules/setlists/entities/personal-setlist-item.entity';
 import { PersonalSetlistEntity } from '../../modules/setlists/entities/personal-setlist.entity';
 import { SongCategoryEntity } from '../../modules/songs/entities/song-category.entity';
 import { SongTagEntity } from '../../modules/songs/entities/song-tag.entity';
@@ -43,6 +44,7 @@ export const AppDataSource = new DataSource({
     RolePermissionEntity,
     UserRoleEntity,
     PersonalSetlistEntity,
+    PersonalSetlistItemEntity,
     SongEntity,
     SongCategoryEntity,
     SongTagEntity,

@@ -1,40 +1,66 @@
+"use client";
+
+import Link from "next/link";
+
 import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { useSetlistsRepository } from "@/lib/setlists";
 
 export default function DashboardSetlistsPage() {
+  const repository = useSetlistsRepository();
+  const setlists = repository.listQuery.data ?? [];
+
   return (
     <>
-      <SetDashboardTitle title="เซ็ตลิสต์" />
+      <SetDashboardTitle title="Setlists" />
       <PageContainer data-testid="page-setlists">
-        <SectionHeader
-          title="เซ็ตลิสต์"
-          description="เซ็ตลิสต์ส่วนตัว — เชื่อมต่อ API แล้วจะแสดงรายการจริง"
-        />
-        <Card>
-          <CardHeader>
-            <CardTitle>รายการของคุณ</CardTitle>
-            <CardDescription>
-              ดึงจาก{" "}
-              <code className="rounded-md bg-muted px-1.5 py-0.5 text-xs">
-                NEXT_PUBLIC_API_URL
-              </code>{" "}
-              เมื่อต่อสายแล้ว
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-body text-muted-foreground">
-              ยังไม่มีข้อมูล — เพิ่มชั้นข้อมูล (เช่น TanStack Query + Bearer) ในขั้นถัดไป
-            </p>
-          </CardContent>
-        </Card>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <SectionHeader
+            title="Setlists"
+            description="Build and manage worship set flow for your team."
+          />
+          <Button
+            type="button"
+            onClick={() =>
+              repository.createMutation.mutate({
+                title: "Sunday Morning",
+                location: "Main Sanctuary",
+                durationMinutes: 45,
+                teamName: "Worship Team",
+              })
+            }
+            disabled={repository.createMutation.isPending}
+          >
+            New Setlist
+          </Button>
+        </div>
+        <div className="space-y-3">
+          {setlists.map((setlist) => (
+            <Link key={setlist.id} href={`/dashboard/setlists/${setlist.id}`}>
+              <Card className="transition hover:translate-y-[-1px]">
+                <CardHeader className="pb-2">
+                  <CardTitle>{setlist.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  {(setlist.serviceDate
+                    ? new Date(setlist.serviceDate).toLocaleDateString()
+                    : "No date") +
+                    ` • ${setlist.location ?? "Main Sanctuary"} • ${setlist.totalItems} songs`}
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+          {setlists.length === 0 ? (
+            <Card variant="flat">
+              <CardContent className="pt-5 text-sm text-muted-foreground">
+                No setlists yet. Create your first worship setlist.
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
       </PageContainer>
     </>
   );

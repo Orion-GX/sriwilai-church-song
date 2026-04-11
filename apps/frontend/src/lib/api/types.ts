@@ -183,3 +183,71 @@ export type LiveErrorPayload = {
   message: string;
   details?: unknown;
 };
+
+export type SetlistPresentationLayout = "vertical" | "horizontal";
+
+export type SetlistSongItem = {
+  id: string;
+  songId: string;
+  title: string;
+  artist: string | null;
+  originalKey: string | null;
+  selectedKey: string | null;
+  bpm: number | null;
+  order: number;
+  transitionNotes: string | null;
+  notes: string | null;
+  capo: number | null;
+  duration: number | null;
+  arrangement: string | null;
+  version: string | null;
+  updatedAt?: string;
+};
+
+export type SetlistDetail = {
+  id: string;
+  ownerUserId?: string;
+  title: string;
+  description: string | null;
+  serviceDate: string | null;
+  location: string | null;
+  durationMinutes: number | null;
+  totalItems: number;
+  teamName: string | null;
+  isPublic: boolean;
+  publicSlug: string | null;
+  publicToken?: string | null;
+  publicUrl: string | null;
+  presentationLayout: SetlistPresentationLayout;
+  createdBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  songs: SetlistSongItem[];
+};
+
+export type CreateSetlistSongInput = {
+  songId: string;
+  title: string;
+  artist?: string;
+  originalKey?: string;
+  selectedKey?: string;
+  bpm?: number;
+  transitionNotes?: string;
+  notes?: string;
+  capo?: number;
+  duration?: number;
+  arrangement?: string;
+  version?: string;
+};
+
+export type CreateSetlistInput = {
+  title: string;
+  description?: string;
+  serviceDate?: string;
+  location?: string;
+  durationMinutes?: number;
+  teamName?: string;
+  isPublic?: boolean;
+  presentationLayout?: SetlistPresentationLayout;
+  songs?: CreateSetlistSongInput[];
+};

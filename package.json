@@ -22,7 +22,14 @@
     "test:backend": "yarn workspace @app/backend test",
     "test:frontend": "yarn workspace @app/frontend test",
     "seed:e2e": "yarn workspace @app/backend seed:e2e",
-    "dev:stack": "yarn dev"
+    "dev:stack": "yarn dev",
+    "migration:generate": "yarn workspace @app/backend migration:generate",
+    "migration:run": "yarn workspace @app/backend migration:run",
+    "migration:run:test": "yarn workspace @app/backend migration:run:test",
+    "migration:run:prod": "yarn workspace @app/backend migration:run:prod",
+    "migration:revert": "yarn workspace @app/backend migration:revert",
+    "migration:revert:test": "yarn workspace @app/backend migration:revert:test",
+    "migration:revert:prod": "yarn workspace @app/backend migration:revert:prod"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

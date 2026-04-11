@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { endLiveSession, fetchLiveSessionState } from "@/lib/api/live";
 import { fetchSongById } from "@/lib/api/songs";
-import { buildDisplayVersions } from "@/lib/songs/song-content";
+import { buildDisplayDocument } from "@/lib/songs/song-content";
 import {
   applySyncToView,
   useLiveSocket,
@@ -407,7 +407,7 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
           ) : null}
           {songDetail ? (
             <SongViewer
-              versions={buildDisplayVersions(songDetail)}
+              document={buildDisplayDocument(songDetail)}
               title={songDetail.title}
               originalKey={songDetail.originalKey}
               tempo={songDetail.tempo}

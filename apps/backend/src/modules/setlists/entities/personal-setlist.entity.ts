@@ -1,4 +1,14 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+import { PersonalSetlistItemEntity } from './personal-setlist-item.entity';
 
 @Entity({ name: 'personal_setlists' })
 export class PersonalSetlistEntity {
@@ -19,6 +29,21 @@ export class PersonalSetlistEntity {
   @Column({ type: 'text', nullable: true })
   description!: string | null;
 
+  @Column({ name: 'service_date', type: 'timestamptz', nullable: true })
+  serviceDate!: Date | null;
+
+  @Column({ type: 'varchar', length: 180, nullable: true })
+  location!: string | null;
+
+  @Column({ name: 'duration_minutes', type: 'integer', nullable: true })
+  durationMinutes!: number | null;
+
+  @Column({ name: 'team_name', type: 'varchar', length: 180, nullable: true })
+  teamName!: string | null;
+
+  @Column({ name: 'presentation_layout', type: 'varchar', length: 16, default: 'vertical' })
+  presentationLayout!: 'vertical' | 'horizontal';
+
   @Column({ name: 'is_public', type: 'boolean', default: false })
   isPublic!: boolean;
 
@@ -34,4 +59,7 @@ export class PersonalSetlistEntity {
 
   @Column({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt!: Date | null;
+
+  @OneToMany(() => PersonalSetlistItemEntity, (item) => item.setlist)
+  items!: PersonalSetlistItemEntity[];
 }

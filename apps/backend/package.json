@@ -16,6 +16,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.config.cjs --runInBand",
     "seed:e2e": "cross-env SRIWILAI_DOTENV=.env.test ts-node --project tsconfig.spec.json -r tsconfig-paths/register scripts/e2e-seed.ts",
     "test:cov": "jest --config jest.config.cjs --coverage",
+    "migration:generate": "sh -c 'name=\"$1\"; shift; typeorm-ts-node-commonjs -d src/infrastructure/database/data-source.ts migration:generate \"src/infrastructure/database/migrations/${name}\" \"$@\"' --",
     "migration:run": "typeorm-ts-node-commonjs -d src/infrastructure/database/data-source.ts migration:run",
     "migration:run:test": "cross-env SRIWILAI_DOTENV=.env.test typeorm-ts-node-commonjs -d src/infrastructure/database/data-source.ts migration:run",
     "migration:run:prod": "node ./node_modules/typeorm/cli.js migration:run -d dist/infrastructure/database/data-source.js",
