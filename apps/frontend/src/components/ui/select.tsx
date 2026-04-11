@@ -19,14 +19,14 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between gap-2 rounded-lg bg-surface-highest px-3 py-2 text-sm font-semibold ring-1 ring-transparent ring-offset-background transition-all ui-focus-ring data-[placeholder]:text-muted-foreground focus-visible:bg-surface-lowest focus-visible:ring-2 focus-visible:ring-outline-variant/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "flex h-10 w-full items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold ring-1 ring-transparent ring-offset-background transition-all ui-focus-ring data-[placeholder]:text-muted-foreground focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-outline-variant/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className,
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+      <ChevronDown className="h-4 w-4 shrink-0" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -75,7 +75,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg bg-card/80 text-card-foreground shadow-elevated backdrop-blur-lg",
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg bg-white text-card-foreground shadow-elevated ring-1 ring-outline-variant/20",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className,

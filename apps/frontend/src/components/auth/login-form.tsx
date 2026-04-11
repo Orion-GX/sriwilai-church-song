@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,8 +12,11 @@ import {
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiPostAuth, ApiError } from "@/lib/api/client";
+import { ApiError, apiPostAuth } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 type LoginFormProps = {
   /** หลังล็อกอินสำเร็จ — ต้องเป็นพาธภายในเว็บ (เริ่มด้วย / ไม่ใช่ //) */
@@ -56,12 +56,10 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md" data-testid="login-form">
+    <Card className="w-full max-w-md box-shadow-card" data-testid="login-form">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">เข้าสู่ระบบ</CardTitle>
-        <CardDescription>
-          ใช้อีเมลและรหัสผ่านที่ลงทะเบียนกับเซิร์ฟเวอร์
-        </CardDescription>
+        <CardDescription>ใช้อีเมลและรหัสผ่านที่ลงทะเบียนกับ</CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
@@ -69,7 +67,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             <FormErrorBanner data-testid="login-error">{error}</FormErrorBanner>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="email">อีเมล</Label>
+            <Label htmlFor="email" className="text-foreground font-bold">
+              อีเมล
+            </Label>
             <Input
               id="email"
               name="email"
@@ -82,7 +82,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">รหัสผ่าน</Label>
+            <Label htmlFor="password" className="text-foreground font-bold">
+              รหัสผ่าน
+            </Label>
             <Input
               id="password"
               name="password"
@@ -109,7 +111,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           ยังไม่มีบัญชี?{" "}
           <Link
             href="/register"
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="text-primary underline-offset-4 hover:underline hover:text-primary-dim font-bold"
           >
             ลงทะเบียน
           </Link>

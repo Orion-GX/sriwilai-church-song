@@ -1,22 +1,19 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
-const cardVariants = cva(
-  "rounded-lg text-card-foreground transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "bg-card shadow-card",
-        elevated: "bg-card shadow-elevated",
-        flat: "bg-muted shadow-none",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
+const cardVariants = cva("rounded-lg text-card-foreground transition-colors", {
+  variants: {
+    variant: {
+      default: "bg-card shadow-card",
+      elevated: "bg-card shadow-elevated",
+      flat: "bg-muted shadow-none",
     },
   },
-);
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
 export type CardProps = React.HTMLAttributes<HTMLDivElement> &
   VariantProps<typeof cardVariants>;
@@ -66,7 +63,10 @@ export function CardContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("px-5 pb-5 pt-0 md:px-6 md:pb-6", className)}
+      className={cn(
+        "rounded-[inherit] px-5 pb-5 pt-0 transition-shadow hover:shadow-card active:shadow-soft md:px-6 md:pb-6",
+        className,
+      )}
       {...props}
     />
   );

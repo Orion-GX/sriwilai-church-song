@@ -146,7 +146,7 @@ export function ComboboxChips({
         onClick={() => setOpen((v) => !v)}
         onKeyDown={onTriggerKeyDown}
         className={cn(
-          "flex min-h-10 w-full items-center justify-between gap-2 rounded-lg bg-surface-highest px-3 py-2 text-left text-sm transition-all ui-focus-ring focus-visible:bg-surface-lowest focus-visible:ring-2 focus-visible:ring-outline-variant/30",
+          "flex min-h-10 w-full items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-left text-sm transition-all ui-focus-ring focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-outline-variant/30",
         )}
       >
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
@@ -154,7 +154,11 @@ export function ComboboxChips({
             <span className="text-muted-foreground">{placeholder}</span>
           ) : (
             selectedOptions.map((option) => (
-              <Badge key={option.value} variant="secondary" className="gap-1 pr-1">
+              <Badge
+                key={option.value}
+                variant="default"
+                className="gap-1 pr-1 text-primary-foreground"
+              >
                 <span>{option.label}</span>
                 <span
                   role="button"
@@ -178,18 +182,18 @@ export function ComboboxChips({
             ))
           )}
         </div>
-        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+        <ChevronsUpDown className="h-4 w-4 shrink-0" aria-hidden />
       </button>
 
       {open ? (
-        <div className="absolute z-50 mt-1 w-full rounded-lg bg-card/80 p-2 shadow-elevated backdrop-blur-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg bg-white p-2 shadow-elevated ring-1 ring-outline-variant/20">
           <input
             ref={searchInputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onSearchInputKeyDown}
             placeholder={searchPlaceholder}
-            className="mb-2 h-9 w-full rounded-md bg-surface-highest px-2 text-sm outline-none transition-colors focus:bg-surface-lowest focus:ring-2 focus:ring-outline-variant/30"
+            className="mb-2 h-9 w-full rounded-md bg-white px-2 text-sm outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-outline-variant/30"
           />
           <div id={listboxId} role="listbox" className="max-h-56 overflow-auto">
             {filteredOptions.length === 0 ? (
@@ -222,7 +226,7 @@ export function ComboboxChips({
                     }
                   >
                     <span>{option.label}</span>
-                    {selected ? <Check className="h-4 w-4 text-foreground/70" /> : null}
+                    {selected ? <Check className="h-4 w-4 text-foreground" /> : null}
                   </button>
                 );
               })

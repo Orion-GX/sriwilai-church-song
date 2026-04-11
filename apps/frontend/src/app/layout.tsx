@@ -1,3 +1,4 @@
+import { HomepageFooter } from "@/components/homepage/homepage-footer";
 import { FavoritesBootstrap } from "@/components/providers/favorites-bootstrap";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -35,6 +36,7 @@ export default function RootLayout({
           <QueryProvider>
             <FavoritesBootstrap />
             {children}
+            <HomepageFooter />
           </QueryProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ComboboxChips } from "@/components/ui/combobox-chips";
 import {
@@ -62,30 +61,29 @@ export function SongFilterSidebar({
       <div className="space-y-6">
         <section className="space-y-2">
           <p className="text-form-label uppercase text-muted-foreground">
-            Musical Key
+            คีย์เพลง
           </p>
-          <div className="grid grid-cols-4 gap-2">
-            {MUSICAL_KEYS.map((keyName) => {
-              const active = selectedKey === keyName;
-              return (
-                <Button
-                  key={keyName}
-                  type="button"
-                  size="sm"
-                  variant={active ? "primary" : "outline"}
-                  className="h-8 rounded-full px-0"
-                  onClick={() => onSelectKey(active ? "" : keyName)}
-                >
+          <Select
+            value={selectedKey || "all"}
+            onValueChange={(value) => onSelectKey(value === "all" ? "" : value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="เลือกคีย์เพลง" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทุกคีย์</SelectItem>
+              {MUSICAL_KEYS.map((keyName) => (
+                <SelectItem key={keyName} value={keyName}>
                   {keyName}
-                </Button>
-              );
-            })}
-          </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </section>
 
         <section className="space-y-2">
           <p className="text-form-label uppercase text-muted-foreground">
-            Category
+            หมวดหมู่
           </p>
           <Select
             value={draftCategorySlug || "all"}
@@ -109,7 +107,7 @@ export function SongFilterSidebar({
 
         <section className="space-y-2">
           <p className="text-form-label uppercase text-muted-foreground">
-            Common Tags
+            ป้ายกำกับ
           </p>
           <ComboboxChips
             ariaLabel="เลือกแท็กเพลง"
@@ -138,9 +136,7 @@ export function SongFilterSidebar({
             <Heart
               className={cn(
                 "mr-1 h-2 w-2",
-                favoritesOnly
-                  ? "text-primary-fixed-dim"
-                  : "text-muted-foreground",
+                favoritesOnly ? "text-red-500 fill-red-500" : null,
               )}
               aria-hidden
             />
@@ -159,7 +155,7 @@ export function SongFilterSidebar({
           ) : null}
         </section>
 
-        {draftTagSlugs.length > 0 ? (
+        {/* {draftTagSlugs.length > 0 ? (
           <section className="space-y-2">
             <p className="text-form-label uppercase text-muted-foreground">
               แท็กที่เลือก
@@ -176,7 +172,7 @@ export function SongFilterSidebar({
               })}
             </div>
           </section>
-        ) : null}
+        ) : null} */}
       </div>
     </aside>
   );

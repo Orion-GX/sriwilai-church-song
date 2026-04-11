@@ -28,7 +28,7 @@ export function SongResultCard({ song, handleClick }: SongResultCardProps) {
             <div className="min-w-0">
               <Link
                 href={`/songs/${song.id}`}
-                className="block truncate font-display text-lg font-semibold tracking-tight text-foreground hover:underline"
+                className="block truncate font-display text-base font-semibold tracking-tight text-foreground hover:underline md:text-[1.05rem]"
               >
                 {song.title}
               </Link>
@@ -39,16 +39,22 @@ export function SongResultCard({ song, handleClick }: SongResultCardProps) {
                 </span>
               </p> */}
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="uppercase tracking-wide">
-                  Key: {song.originalKey ?? "-"}
+                <Badge
+                  variant="outline"
+                  className="text-[10px] tracking-normal md:text-xs"
+                >
+                  คีย์: {song.originalKey ?? "-"}
                 </Badge>
-                <Badge variant="outline" className="uppercase tracking-wide">
+                {/* <Badge
+                  variant="outline"
+                  className="text-[10px] uppercase tracking-normal md:text-xs"
+                >
                   Views: {song.viewCount}
-                </Badge>
-                {song.category ? (
+                </Badge> */}
+                {/* {song.category ? (
                   <Badge
                     variant="secondary"
-                    className="uppercase tracking-wide"
+                    className="text-[10px] uppercase tracking-normal md:text-xs"
                   >
                     {song.category.name}
                   </Badge>
@@ -57,23 +63,21 @@ export function SongResultCard({ song, handleClick }: SongResultCardProps) {
                   <Badge
                     key={tag.id}
                     variant="outline"
-                    className="uppercase tracking-wide"
+                    className="text-[10px] uppercase tracking-normal md:text-xs"
                   >
                     {tag.name}
                   </Badge>
-                ))}
+                ))} */}
               </div>
             </div>
           </div>
 
-          <div className="absolute right-4 top-4 flex items-center gap-2 md:static">
+          <div
+            className="absolute right-4 top-4 flex items-center gap-2 md:static shadow-card"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
             <FavoriteButton songId={song.id} />
-            {/* <Link
-              href={`/songs/${song.id}`}
-              className={buttonClassName("default", "sm", "min-w-24")}
-            >
-              ดูคอร์ด
-            </Link> */}
           </div>
         </div>
       </CardContent>

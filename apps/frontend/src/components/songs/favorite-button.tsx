@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useFavoritesStore } from "@/lib/stores/favorites-store";
+import { cn } from "@/lib/utils";
+import { Heart } from "lucide-react";
+import * as React from "react";
 
 type FavoriteButtonProps = {
   songId: string;
@@ -59,9 +59,12 @@ export function FavoriteButton({
       }}
     >
       <Heart
-        className={cn(large ? "h-7 w-7" : "h-4 w-4", on && "fill-primary text-primary")}
+        className={cn(
+          large ? "h-7 w-7" : "h-4 w-4",
+          on && "fill-red-500 text-red-500",
+        )}
       />
-      {large ? (on ? "โปรดแล้ว" : "โปรด") : compactLabel ?? null}
+      {large ? (on ? "โปรดแล้ว" : "โปรด") : (compactLabel ?? null)}
     </Button>
   );
 }

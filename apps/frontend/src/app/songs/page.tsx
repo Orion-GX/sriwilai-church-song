@@ -205,11 +205,11 @@ export default function SongsListPage() {
             className="mb-5 space-y-3 lg:mb-0 lg:flex lg:items-center lg:gap-3 lg:space-y-0"
             data-testid="song-search-form"
           >
-            <div className="relative lg:flex-1">
+            <div className="relative lg:flex-1 bg-background border border-border rounded-lg shadow-card">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="pl-9"
-                placeholder="Search songs, artists..."
+                className="pl-9 bg-background text-foreground focus-visible:ring-primary"
+                placeholder="ค้นหาเพลงนมัสการตามชื่อ, ศิลปิน, คีย์, หมวดหมู่..."
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 data-testid="song-search-input"
@@ -390,20 +390,6 @@ export default function SongsListPage() {
           </div>
         </PageContainer>
       </main>
-
-      <footer className="mt-14 bg-muted/70">
-        <PageContainer maxWidth="layout" className="items-center py-8">
-          <div className="flex flex-wrap items-center justify-center gap-5 text-xs uppercase tracking-wide text-muted-foreground">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Support</span>
-            <span>Contact</span>
-          </div>
-          <p className="text-xs tracking-wide text-muted-foreground">
-            © 2024 Sriwilai Song Management
-          </p>
-        </PageContainer>
-      </footer>
     </div>
   );
 }

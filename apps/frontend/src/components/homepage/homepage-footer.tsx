@@ -10,7 +10,7 @@ const footerLinks = [
 
 export function HomepageFooter() {
   return (
-    <footer className="px-4 pb-12 pt-5 sm:px-6">
+    <footer className="mt-14 px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 md:pb-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-5 border-t border-[#d9dfdc] pt-8">
         <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           {footerLinks.map((label) => (
