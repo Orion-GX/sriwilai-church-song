@@ -13,6 +13,7 @@ type PresentationModeScreenProps = {
   setlist: SetlistDetail;
   open: boolean;
   layout: "vertical" | "horizontal";
+  allowReorder?: boolean;
   showMetadata: boolean;
   showChords: boolean;
   fontScale: number;
@@ -21,13 +22,14 @@ type PresentationModeScreenProps = {
   onToggleMetadata: () => void;
   onToggleChords: () => void;
   onFontScaleChange: (next: number) => void;
-  onReorder: (orderedSongIds: string[]) => void;
+  onReorder?: (orderedSongIds: string[]) => void;
 };
 
 export function PresentationModeScreen({
   setlist,
   open,
   layout,
+  allowReorder = true,
   showMetadata,
   showChords,
   fontScale,
@@ -47,6 +49,7 @@ export function PresentationModeScreen({
   if (!open) return null;
 
   const moveSong = (fromIndex: number, toIndex: number) => {
+    if (!allowReorder || !onReorder) return;
     const copy = [...songs];
     const [picked] = copy.splice(fromIndex, 1);
     copy.splice(toIndex, 0, picked);
@@ -61,6 +64,11 @@ export function PresentationModeScreen({
             Presentation mode
           </p>
           <h2 className="text-2xl font-semibold">{setlist.title}</h2>
+          {!allowReorder ? (
+            <p className="mt-1 inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+              Public view - read only
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -100,8 +108,14 @@ export function PresentationModeScreen({
         </label>
       </div>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 lg:flex-row">
-        <PresentationReorderDrawer songs={songs} onMove={moveSong} />
+      <div
+        className={`mx-auto flex max-w-6xl flex-col gap-4 ${
+          allowReorder ? "lg:flex-row" : ""
+        }`}
+      >
+        {allowReorder ? (
+          <PresentationReorderDrawer songs={songs} onMove={moveSong} />
+        ) : null}
         <main className="min-w-0 flex-1">
           {layout === "vertical" ? (
             <div className="space-y-3">

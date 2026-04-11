@@ -1,6 +1,9 @@
 "use client";
 
+import { PresentationModeButton } from "@/components/setlists/presentation-mode-button";
+import { PresentationModeScreen } from "@/components/setlists/presentation-mode-screen";
 import { usePublicSetlist } from "@/lib/setlists";
+import { usePresentationMode } from "@/lib/setlists/hooks";
 
 export default function PublicSetlistPage({
   params,
@@ -30,6 +33,7 @@ export default function PublicSetlistPage({
 
   const setlist = query.data;
   const songs = [...setlist.songs].sort((a, b) => a.order - b.order);
+  const presentation = usePresentationMode(setlist.presentationLayout);
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-5">
@@ -45,6 +49,7 @@ export default function PublicSetlistPage({
             ` • ${setlist.location ?? "Main Sanctuary"}`}
         </p>
       </header>
+      <PresentationModeButton onClick={presentation.open} />
       <section className="space-y-3">
         {songs.map((song, idx) => (
           <article key={song.id} className="rounded-2xl bg-card p-4 shadow-card">
@@ -64,6 +69,20 @@ export default function PublicSetlistPage({
           </article>
         ))}
       </section>
+      <PresentationModeScreen
+        open={presentation.isOpen}
+        setlist={setlist}
+        layout={presentation.layout}
+        allowReorder={false}
+        showMetadata={presentation.showMetadata}
+        showChords={presentation.showChords}
+        fontScale={presentation.fontScale}
+        onClose={presentation.close}
+        onLayoutChange={presentation.setLayout}
+        onToggleMetadata={presentation.toggleMetadata}
+        onToggleChords={presentation.toggleChords}
+        onFontScaleChange={presentation.setFontScale}
+      />
     </main>
   );
 }
