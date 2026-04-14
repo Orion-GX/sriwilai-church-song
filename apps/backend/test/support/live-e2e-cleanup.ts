@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
 
-import { LIVE_E2E_CHURCH_SLUG, LIVE_E2E_EMAILS, LIVE_E2E_SESSION_TITLE_PREFIX } from './live-e2e.fixtures';
+import { LIVE_E2E_CHURCH_CODE, LIVE_E2E_EMAILS, LIVE_E2E_SESSION_TITLE_PREFIX } from './live-e2e.fixtures';
 
-const SONG_SLUG_PATTERN = 'se2e-live-%';
+const SONG_CODE_PATTERN = 'se2e-live-%';
 
 export async function cleanupLiveE2EFixtures(dataSource: DataSource): Promise<void> {
   const schema = process.env.DB_SCHEMA ?? 'public';
@@ -34,28 +34,28 @@ export async function cleanupLiveE2EFixtures(dataSource: DataSource): Promise<vo
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'song' AND "resource_id" IN (
-       SELECT "id" FROM "${schema}"."songs" WHERE "slug" LIKE $1
+       SELECT "id" FROM "${schema}"."songs" WHERE "code" LIKE $1
      )`,
-    [SONG_SLUG_PATTERN],
+    [SONG_CODE_PATTERN],
   );
 
-  await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "slug" LIKE $1`, [SONG_SLUG_PATTERN]);
+  await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "code" LIKE $1`, [SONG_CODE_PATTERN]);
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "scope_church_id" IN (
-       SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+       SELECT "id" FROM "${schema}"."churches" WHERE "code" = $1
      )`,
-    [LIVE_E2E_CHURCH_SLUG],
+    [LIVE_E2E_CHURCH_CODE],
   );
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'church' AND "resource_id" IN (
-       SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+       SELECT "id" FROM "${schema}"."churches" WHERE "code" = $1
      )`,
-    [LIVE_E2E_CHURCH_SLUG],
+    [LIVE_E2E_CHURCH_CODE],
   );
 
-  await dataSource.query(`DELETE FROM "${schema}"."churches" WHERE "slug" = $1`, [LIVE_E2E_CHURCH_SLUG]);
+  await dataSource.query(`DELETE FROM "${schema}"."churches" WHERE "code" = $1`, [LIVE_E2E_CHURCH_CODE]);
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "actor_user_id" IN (

@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 
-import { FAVOURITES_E2E_EMAILS, FAVOURITES_E2E_SLUG_PREFIX } from './favourites-e2e.fixtures';
+import { FAVOURITES_E2E_EMAILS, FAVOURITES_E2E_CODE_PREFIX } from './favourites-e2e.fixtures';
 
 export async function cleanupFavouritesE2EFixtures(dataSource: DataSource): Promise<void> {
   const schema = process.env.DB_SCHEMA ?? 'public';
@@ -8,24 +8,24 @@ export async function cleanupFavouritesE2EFixtures(dataSource: DataSource): Prom
     throw new Error('Invalid DB_SCHEMA for favourites E2E cleanup');
   }
 
-  const slugPattern = `${FAVOURITES_E2E_SLUG_PREFIX}%`;
+  const codePattern = `${FAVOURITES_E2E_CODE_PREFIX}%`;
   const emails = Object.values(FAVOURITES_E2E_EMAILS);
 
   await dataSource.query(
     `DELETE FROM "${schema}"."user_song_favorites" WHERE "song_id" IN (
-       SELECT "id" FROM "${schema}"."songs" WHERE "slug" LIKE $1
+       SELECT "id" FROM "${schema}"."songs" WHERE "code" LIKE $1
      )`,
-    [slugPattern],
+    [codePattern],
   );
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'song' AND "resource_id" IN (
-       SELECT "id" FROM "${schema}"."songs" WHERE "slug" LIKE $1
+       SELECT "id" FROM "${schema}"."songs" WHERE "code" LIKE $1
      )`,
-    [slugPattern],
+    [codePattern],
   );
 
-  await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "slug" LIKE $1`, [slugPattern]);
+  await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "code" LIKE $1`, [codePattern]);
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "actor_user_id" IN (

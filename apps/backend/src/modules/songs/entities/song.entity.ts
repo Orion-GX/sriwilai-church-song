@@ -37,7 +37,7 @@ export class SongEntity {
   title!: string;
 
   @Column({ type: 'varchar', length: 180 })
-  slug!: string;
+  code!: string;
 
   @Column({ name: 'chordpro_body', type: 'text' })
   chordproBody!: string;

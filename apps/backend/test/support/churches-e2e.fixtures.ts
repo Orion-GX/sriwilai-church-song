@@ -1,7 +1,7 @@
 /**
- * slug ขึ้นต้นด้วย ce2e- เพื่อลบทิ้งใน cleanup (ฐานข้อมูล test เท่านั้น)
+ * code ขึ้นต้นด้วย ce2e- เพื่อลบทิ้งใน cleanup (ฐานข้อมูล test เท่านั้น)
  */
-export const CHURCHES_E2E_SLUG_PREFIX = 'ce2e-';
+export const CHURCHES_E2E_CODE_PREFIX = 'ce2e-';
 
 export const CHURCHES_E2E_EMAILS = {
   owner: 'churches-e2e-owner@example.test',
@@ -10,7 +10,7 @@ export const CHURCHES_E2E_EMAILS = {
   plainMember: 'churches-e2e-plain-member@example.test',
 } as const;
 
-export const CHURCHES_E2E_SLUGS = {
+export const CHURCHES_E2E_CODES = {
   alpha: 'ce2e-alpha',
   beta: 'ce2e-beta',
   accessAlpha: 'ce2e-access-alpha',

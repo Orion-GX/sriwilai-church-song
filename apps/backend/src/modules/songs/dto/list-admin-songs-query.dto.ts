@@ -32,7 +32,7 @@ export class ListAdminSongsQueryDto {
   @IsOptional()
   @IsString()
   @MaxLength(80)
-  categorySlug?: string;
+  categoryCode?: string;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -52,7 +52,7 @@ export class ListAdminSongsQueryDto {
   })
   @IsArray()
   @IsString({ each: true })
-  tagSlugs?: string[];
+  tagCodes?: string[];
 
   @IsOptional()
   @IsString()

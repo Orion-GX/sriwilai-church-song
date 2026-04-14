@@ -13,7 +13,7 @@ export class CreateSongCategoryDto {
   @IsString()
   @MinLength(2)
   @MaxLength(80)
-  slug?: string;
+  code?: string;
 
   @IsOptional()
   @IsString()
@@ -39,7 +39,7 @@ export class UpdateSongCategoryDto {
   @IsString()
   @MinLength(2)
   @MaxLength(80)
-  slug?: string;
+  code?: string;
 
   @IsOptional()
   @IsString()

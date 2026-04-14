@@ -341,7 +341,7 @@ export class LiveService {
         songId: r.songId,
         sortOrder: r.sortOrder,
         title: r.song?.title ?? '',
-        slug: r.song?.slug ?? '',
+        code: r.song?.code ?? '',
       }));
 
     return {
@@ -372,7 +372,7 @@ export class LiveService {
         songId: r.songId,
         sortOrder: r.sortOrder,
         title: r.song?.title ?? '',
-        slug: r.song?.slug ?? '',
+        code: r.song?.code ?? '',
       })),
     };
   }

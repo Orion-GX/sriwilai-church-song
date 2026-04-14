@@ -166,10 +166,10 @@ export class SongsService {
       await this.getActiveCategoryOrThrow(dto.categoryId);
     }
 
-    const baseSlug = dto.slug ?? this.slugify(dto.title, 180);
-    const slug = await this.ensureUniqueSongSlug(baseSlug, scopeChurchId);
+    const baseCode = dto.code ?? this.codeify(dto.title, 180);
+    const code = await this.ensureUniqueSongCode(baseCode, scopeChurchId);
 
-    const tags = await this.resolveTagEntities(dto.tagSlugs ?? []);
+    const tags = await this.resolveTagEntities(dto.tagCodes ?? []);
 
     const contentJson =
       dto.contentJson !== undefined
@@ -182,7 +182,7 @@ export class SongsService {
       churchId: scopeChurchId,
       visibility: scopeChurchId ? SONG_VISIBILITY.CHURCH : SONG_VISIBILITY.PUBLIC,
       title: dto.title,
-      slug,
+      code,
       chordproBody: dto.chordproBody,
       contentJson,
       originalKey: dto.originalKey ?? null,
@@ -214,7 +214,7 @@ export class SongsService {
       beforeData: null,
       afterData: {
         title: saved.title,
-        slug: saved.slug,
+        code: saved.code,
         churchId: saved.churchId,
         visibility: saved.visibility,
         contentJson: saved.contentJson,
@@ -223,7 +223,7 @@ export class SongsService {
         timeSignature: saved.timeSignature,
         coverImageUrl: saved.coverImageUrl,
         categoryId: saved.categoryId,
-        tagSlugs: tags.map((t) => t.slug),
+        tagCodes: tags.map((t) => t.code),
         isPublished: saved.isPublished,
       },
     });
@@ -255,8 +255,8 @@ export class SongsService {
     if (dto.chordproBody !== undefined) {
       song.chordproBody = dto.chordproBody;
     }
-    if (dto.slug !== undefined) {
-      song.slug = await this.ensureUniqueSongSlug(dto.slug, song.churchId, song.id);
+    if (dto.code !== undefined) {
+      song.code = await this.ensureUniqueSongCode(dto.code, song.churchId, song.id);
     }
     if (dto.categoryId !== undefined) {
       if (dto.categoryId === null) {
@@ -266,8 +266,8 @@ export class SongsService {
         song.categoryId = dto.categoryId;
       }
     }
-    if (dto.tagSlugs !== undefined) {
-      song.tags = await this.resolveTagEntities(dto.tagSlugs);
+    if (dto.tagCodes !== undefined) {
+      song.tags = await this.resolveTagEntities(dto.tagCodes);
     }
     if (dto.isPublished !== undefined) {
       song.isPublished = dto.isPublished;
@@ -351,12 +351,12 @@ export class SongsService {
     meta?: SongRequestMeta,
   ): Promise<SongCategoryResponseDto> {
     await this.assertGlobalMetadataAdmin(actorUserId);
-    const slug = dto.slug ?? this.slugify(dto.name, 80);
-    await this.assertCategorySlugAvailable(slug);
+    const code = dto.code ?? this.codeify(dto.name, 80);
+    await this.assertCategoryCodeAvailable(code);
 
     const row = await this.categoryRepo.save(
       this.categoryRepo.create({
-        slug,
+        code,
         name: dto.name,
         description: dto.description ?? null,
         sortOrder: dto.sortOrder ?? 0,
@@ -374,7 +374,7 @@ export class SongsService {
       ipAddress: meta?.ipAddress,
       userAgent: meta?.userAgent,
       beforeData: null,
-      afterData: { slug: row.slug, name: row.name },
+      afterData: { code: row.code, name: row.name },
     });
 
     return SongCategoryResponseDto.fromEntity(row);
@@ -389,7 +389,7 @@ export class SongsService {
     await this.assertGlobalMetadataAdmin(actorUserId);
     if (
       dto.name === undefined &&
-      dto.slug === undefined &&
+      dto.code === undefined &&
       dto.description === undefined &&
       dto.sortOrder === undefined
     ) {
@@ -400,14 +400,14 @@ export class SongsService {
     if (!row) {
       throw new NotFoundException('Category not found');
     }
-    const before = { slug: row.slug, name: row.name };
+    const before = { code: row.code, name: row.name };
 
     if (dto.name !== undefined) {
       row.name = dto.name;
     }
-    if (dto.slug !== undefined && dto.slug !== row.slug) {
-      await this.assertCategorySlugAvailable(dto.slug, row.id);
-      row.slug = dto.slug;
+    if (dto.code !== undefined && dto.code !== row.code) {
+      await this.assertCategoryCodeAvailable(dto.code, row.id);
+      row.code = dto.code;
     }
     if (dto.description !== undefined) {
       row.description = dto.description;
@@ -428,7 +428,7 @@ export class SongsService {
       ipAddress: meta?.ipAddress,
       userAgent: meta?.userAgent,
       beforeData: before,
-      afterData: { slug: saved.slug, name: saved.name },
+      afterData: { code: saved.code, name: saved.name },
     });
 
     return SongCategoryResponseDto.fromEntity(saved);
@@ -440,7 +440,7 @@ export class SongsService {
     if (!row) {
       throw new NotFoundException('Category not found');
     }
-    const before = { slug: row.slug, name: row.name };
+    const before = { code: row.code, name: row.name };
 
     await this.songRepo
       .createQueryBuilder()
@@ -490,9 +490,9 @@ export class SongsService {
       qb.andWhere('s.visibility = :publicVisibility', { publicVisibility: SONG_VISIBILITY.PUBLIC });
     }
 
-    if (query.categorySlug) {
-      qb.andWhere('category.id IS NOT NULL AND category.slug = :catSlug', {
-        catSlug: query.categorySlug,
+    if (query.categoryCode) {
+      qb.andWhere('category.id IS NOT NULL AND category.code = :catCode', {
+        catCode: query.categoryCode,
       });
     }
 
@@ -500,18 +500,18 @@ export class SongsService {
       qb.andWhere('s.title ILIKE :q', { q: `%${query.q.trim()}%` });
     }
 
-    if (query.tagSlugs?.length) {
-      for (let i = 0; i < query.tagSlugs.length; i += 1) {
-        const ph = `tagSlug_${i}`;
+    if (query.tagCodes?.length) {
+      for (let i = 0; i < query.tagCodes.length; i += 1) {
+        const ph = `tagCode_${i}`;
         qb.andWhere(
           `EXISTS (
             SELECT 1 FROM ${junctionTable} sst
             INNER JOIN ${tagsTable} st ON st.id = sst.tag_id
-            AND st.slug = :${ph}
+            AND st.code = :${ph}
             AND st.deleted_at IS NULL
             WHERE sst.song_id = s.id
           )`,
-          { [ph]: query.tagSlugs[i] },
+          { [ph]: query.tagCodes[i] },
         );
       }
     }
@@ -532,9 +532,9 @@ export class SongsService {
       qb.andWhere('s.church_id = :churchId', { churchId: query.churchId });
     }
 
-    if (query.categorySlug) {
-      qb.andWhere('category.id IS NOT NULL AND category.slug = :catSlug', {
-        catSlug: query.categorySlug,
+    if (query.categoryCode) {
+      qb.andWhere('category.id IS NOT NULL AND category.code = :catCode', {
+        catCode: query.categoryCode,
       });
     }
 
@@ -546,18 +546,18 @@ export class SongsService {
       qb.andWhere('s.is_published = :isPublished', { isPublished: query.isPublished });
     }
 
-    if (query.tagSlugs?.length) {
-      for (let i = 0; i < query.tagSlugs.length; i += 1) {
-        const ph = `tagSlug_${i}`;
+    if (query.tagCodes?.length) {
+      for (let i = 0; i < query.tagCodes.length; i += 1) {
+        const ph = `tagCode_${i}`;
         qb.andWhere(
           `EXISTS (
             SELECT 1 FROM ${junctionTable} sst
             INNER JOIN ${tagsTable} st ON st.id = sst.tag_id
-            AND st.slug = :${ph}
+            AND st.code = :${ph}
             AND st.deleted_at IS NULL
             WHERE sst.song_id = s.id
           )`,
-          { [ph]: query.tagSlugs[i] },
+          { [ph]: query.tagCodes[i] },
         );
       }
     }
@@ -614,24 +614,24 @@ export class SongsService {
     return row;
   }
 
-  private async assertCategorySlugAvailable(slug: string, excludeId?: string): Promise<void> {
+  private async assertCategoryCodeAvailable(code: string, excludeId?: string): Promise<void> {
     const existing = await this.categoryRepo.findOne({
       where: {
-        slug,
+        code,
         deletedAt: IsNull(),
         ...(excludeId ? { id: Not(excludeId) } : {}),
       },
       select: { id: true },
     });
     if (existing) {
-      throw new BadRequestException('Category slug already in use');
+      throw new BadRequestException('Category code already in use');
     }
   }
 
   private snapshotSongAudit(song: SongEntity): Record<string, unknown> {
     return {
       title: song.title,
-      slug: song.slug,
+      code: song.code,
       churchId: song.churchId,
       visibility: song.visibility,
       contentJson: song.contentJson,
@@ -640,12 +640,12 @@ export class SongsService {
       timeSignature: song.timeSignature,
       coverImageUrl: song.coverImageUrl,
       categoryId: song.categoryId,
-      tagSlugs: (song.tags ?? []).map((t) => t.slug),
+      tagCodes: (song.tags ?? []).map((t) => t.code),
       isPublished: song.isPublished,
     };
   }
 
-  private slugify(input: string, maxLen: number): string {
+  private codeify(input: string, maxLen: number): string {
     const base = input
       .normalize('NFKD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -657,7 +657,7 @@ export class SongsService {
     return base.length > 0 ? base : 'song';
   }
 
-  private async ensureUniqueSongSlug(
+  private async ensureUniqueSongCode(
     desired: string,
     churchId: string | null,
     excludeSongId?: string,
@@ -666,7 +666,7 @@ export class SongsService {
     for (let i = 0; i < 25; i += 1) {
       const existing = await this.songRepo.findOne({
         where: {
-          slug: candidate,
+          code: candidate,
           churchId: churchId === null ? IsNull() : churchId,
           deletedAt: IsNull(),
           ...(excludeSongId ? { id: Not(excludeSongId) } : {}),
@@ -679,19 +679,19 @@ export class SongsService {
       const suffix = `${Date.now().toString(36)}${i}`.slice(-6);
       candidate = `${desired.slice(0, 170)}-${suffix}`.slice(0, 180);
     }
-    throw new BadRequestException('Could not allocate a unique slug');
+    throw new BadRequestException('Could not allocate a unique code');
   }
 
-  private async resolveTagEntities(slugs: string[]): Promise<SongTagEntity[]> {
-    const normalized = [...new Set(slugs.map((s) => this.normalizeTagSlug(s)).filter(Boolean))];
+  private async resolveTagEntities(codes: string[]): Promise<SongTagEntity[]> {
+    const normalized = [...new Set(codes.map((s) => this.normalizeTagCode(s)).filter(Boolean))];
     const out: SongTagEntity[] = [];
-    for (const slug of normalized) {
-      let tag = await this.tagRepo.findOne({ where: { slug, deletedAt: IsNull() } });
+    for (const code of normalized) {
+      let tag = await this.tagRepo.findOne({ where: { code, deletedAt: IsNull() } });
       if (!tag) {
-        const name = slug.replace(/-/g, ' ');
+        const name = code.replace(/-/g, ' ');
         tag = await this.tagRepo.save(
           this.tagRepo.create({
-            slug,
+            code,
             name: name.charAt(0).toUpperCase() + name.slice(1),
             deletedAt: null,
           }),
@@ -702,8 +702,8 @@ export class SongsService {
     return out;
   }
 
-  private normalizeTagSlug(raw: string): string {
-    const s = this.slugify(raw, 80);
+  private normalizeTagCode(raw: string): string {
+    const s = this.codeify(raw, 80);
     return s || 'tag';
   }
 }

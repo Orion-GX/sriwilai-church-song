@@ -15,12 +15,12 @@ export class SongTagEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Index('idx_song_tags_slug_active', ['slug'], {
+  @Index('idx_song_tags_code_active', ['code'], {
     unique: true,
     where: '"deleted_at" IS NULL',
   })
   @Column({ type: 'varchar', length: 80 })
-  slug!: string;
+  code!: string;
 
   @Column({ type: 'varchar', length: 120 })
   name!: string;

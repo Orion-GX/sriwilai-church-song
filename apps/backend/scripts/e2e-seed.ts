@@ -26,7 +26,7 @@ type E2eSeedConfig = {
     liveLeader: { email: string; displayName: string };
     liveFollower: { email: string; displayName: string };
   };
-  songs: { slug: string; title: string; chordproBody: string }[];
+  songs: { code: string; title: string; chordproBody: string }[];
 };
 
 function loadSeedConfig(): E2eSeedConfig {
@@ -68,10 +68,10 @@ async function ensureSong(
   songsService: SongsService,
   songRepo: Repository<SongEntity>,
   actorUserId: string,
-  row: { slug: string; title: string; chordproBody: string },
+  row: { code: string; title: string; chordproBody: string },
 ): Promise<void> {
   const found = await songRepo.findOne({
-    where: { slug: row.slug, churchId: IsNull(), deletedAt: IsNull() },
+    where: { code: row.code, churchId: IsNull(), deletedAt: IsNull() },
   });
   if (found) {
     return;
@@ -79,7 +79,7 @@ async function ensureSong(
   await songsService.createSong(actorUserId, null, {
     title: row.title,
     chordproBody: row.chordproBody,
-    slug: row.slug,
+    code: row.code,
     isPublished: true,
   });
 }

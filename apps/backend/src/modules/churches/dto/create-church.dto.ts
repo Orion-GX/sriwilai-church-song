@@ -14,7 +14,7 @@ export class CreateChurchDto {
   @MinLength(2)
   @MaxLength(120)
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'slug must be lowercase alphanumeric with single hyphens',
+    message: 'code must be lowercase alphanumeric with single hyphens',
   })
-  slug?: string;
+  code?: string;
 }

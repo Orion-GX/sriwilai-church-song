@@ -52,13 +52,13 @@ export class AdminService {
       where: { deletedAt: IsNull(), isPublished: true },
       order: { viewCount: 'DESC' },
       take: 10,
-      select: { id: true, title: true, slug: true, viewCount: true },
+      select: { id: true, title: true, code: true, viewCount: true },
     });
 
     const topViewedSongs: AdminTopSongDto[] = topRows.map((r) => ({
       id: r.id,
       title: r.title,
-      slug: r.slug,
+      code: r.code,
       viewCount: r.viewCount,
     }));
 

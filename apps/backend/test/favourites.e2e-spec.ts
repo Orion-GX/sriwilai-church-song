@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 import { authBearerHeaders, createHttpServerRequest } from './support/auth-test.helper';
 import { authE2ERegisterBody } from './support/auth-e2e.fixtures';
 import { cleanupFavouritesE2EFixtures } from './support/favourites-e2e-cleanup';
-import { FAVOURITES_E2E_EMAILS, FAVOURITES_E2E_SLUGS } from './support/favourites-e2e.fixtures';
+import { FAVOURITES_E2E_EMAILS, FAVOURITES_E2E_CODES } from './support/favourites-e2e.fixtures';
 import { assignSystemAdminRole } from './support/rbac-e2e.helper';
 import { createConfiguredTestApplication } from './support/test-app.factory';
 
@@ -46,7 +46,7 @@ describe('Favourites API (e2e)', () => {
 
   async function seedPublishedSong(
     adminTok: string,
-    slug: string,
+    code: string,
     title: string,
   ): Promise<{ id: string }> {
     const res = await createHttpServerRequest(app)
@@ -54,7 +54,7 @@ describe('Favourites API (e2e)', () => {
       .set(authBearerHeaders(adminTok))
       .send({
         title,
-        slug,
+        code,
         chordproBody: `{title: ${title}}`,
         isPublished: true,
       })
@@ -64,7 +64,7 @@ describe('Favourites API (e2e)', () => {
 
   it('ผู้ใช้ที่ login เพิ่มเพลงในรายการโปรดได้ — POST /favourites คืน 201 และรายการมีเพลงนั้น', async () => {
     const adminTok = await systemAdminToken();
-    const { id: songId } = await seedPublishedSong(adminTok, FAVOURITES_E2E_SLUGS.songA, 'Fav A');
+    const { id: songId } = await seedPublishedSong(adminTok, FAVOURITES_E2E_CODES.songA, 'Fav A');
 
     const userATok = await registerFreshUserA();
     const add = await createHttpServerRequest(app)
@@ -87,7 +87,7 @@ describe('Favourites API (e2e)', () => {
 
   it('ผู้ใช้ที่ login ลบรายการโปรดได้ — DELETE /favourites/:songId แล้วรายการว่าง', async () => {
     const adminTok = await systemAdminToken();
-    const { id: songId } = await seedPublishedSong(adminTok, FAVOURITES_E2E_SLUGS.songA, 'Fav A');
+    const { id: songId } = await seedPublishedSong(adminTok, FAVOURITES_E2E_CODES.songA, 'Fav A');
 
     const userATok = await registerFreshUserA();
     await createHttpServerRequest(app)
@@ -112,8 +112,8 @@ describe('Favourites API (e2e)', () => {
 
   it('GET /favourites คืนเฉพาะรายการของผู้ใช้และเรียงลำดับถูกต้อง (หลายเพลง)', async () => {
     const adminTok = await systemAdminToken();
-    const { id: idA } = await seedPublishedSong(adminTok, FAVOURITES_E2E_SLUGS.songA, 'Fav A');
-    const { id: idB } = await seedPublishedSong(adminTok, FAVOURITES_E2E_SLUGS.songB, 'Fav B');
+    const { id: idA } = await seedPublishedSong(adminTok, FAVOURITES_E2E_CODES.songA, 'Fav A');
+    const { id: idB } = await seedPublishedSong(adminTok, FAVOURITES_E2E_CODES.songB, 'Fav B');
 
     const userATok = await registerFreshUserA();
 
@@ -155,7 +155,7 @@ describe('Favourites API (e2e)', () => {
 
   it('เพิ่มโปรดซ้ำ — ได้ 200 duplicate: true และใน DB มีแถวเดียว', async () => {
     const adminTok = await systemAdminToken();
-    const { id: songId } = await seedPublishedSong(adminTok, FAVOURITES_E2E_SLUGS.songA, 'Fav A');
+    const { id: songId } = await seedPublishedSong(adminTok, FAVOURITES_E2E_CODES.songA, 'Fav A');
     const userATok = await registerFreshUserA();
 
     await createHttpServerRequest(app)

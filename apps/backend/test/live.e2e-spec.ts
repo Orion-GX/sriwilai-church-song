@@ -13,10 +13,10 @@ import {
 } from './support/live-event-contract';
 import { cleanupLiveE2EFixtures } from './support/live-e2e-cleanup';
 import {
-  LIVE_E2E_CHURCH_SLUG,
+  LIVE_E2E_CHURCH_CODE,
   LIVE_E2E_EMAILS,
   LIVE_E2E_SESSION_TITLE,
-  LIVE_E2E_SONG_SLUGS,
+  LIVE_E2E_SONG_CODES,
 } from './support/live-e2e.fixtures';
 import {
   connectLiveSocket,
@@ -70,7 +70,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
     const churchRes = await createHttpServerRequest(app)
       .post('/api/v1/app/churches')
       .set(authBearerHeaders(ownerToken))
-      .send({ name: 'LE2E Chapel', slug: LIVE_E2E_CHURCH_SLUG })
+      .send({ name: 'LE2E Chapel', code: LIVE_E2E_CHURCH_CODE })
       .expect(HttpStatus.CREATED);
     const churchId = churchRes.body.id as string;
 
@@ -104,7 +104,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
       .set(CHURCH_ID_HEADER, churchId)
       .send({
         title: 'LE2E A',
-        slug: LIVE_E2E_SONG_SLUGS.a,
+        code: LIVE_E2E_SONG_CODES.a,
         chordproBody: '{title: A}',
         isPublished: true,
       })
@@ -116,7 +116,7 @@ describe('Live module — REST + WebSocket (e2e)', () => {
       .set(CHURCH_ID_HEADER, churchId)
       .send({
         title: 'LE2E B',
-        slug: LIVE_E2E_SONG_SLUGS.b,
+        code: LIVE_E2E_SONG_CODES.b,
         chordproBody: '{title: B}',
         isPublished: true,
       })

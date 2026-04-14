@@ -3,7 +3,7 @@ import { ChurchEntity } from '../entities/church.entity';
 export class ChurchResponseDto {
   id!: string;
   name!: string;
-  slug!: string;
+  code!: string;
   ownerUserId!: string | null;
   createdAt!: Date;
   updatedAt!: Date;
@@ -12,7 +12,7 @@ export class ChurchResponseDto {
     const dto = new ChurchResponseDto();
     dto.id = row.id;
     dto.name = row.name;
-    dto.slug = row.slug;
+    dto.code = row.code;
     dto.ownerUserId = row.ownerUserId;
     dto.createdAt = row.createdAt;
     dto.updatedAt = row.updatedAt;

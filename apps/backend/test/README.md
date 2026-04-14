@@ -69,7 +69,7 @@ yarn test:e2e --testPathPattern=live.e2e-spec
 
 | กลุ่ม | สิ่งที่ Covered |
 |--------|------------------|
-| สร้างคริสตจักร | ผู้ลงทะเบียนสร้างได้; หลายคริสตจักร slug ไม่ซ้ำ; ไม่มี JWT 401 |
+| สร้างคริสตจักร | ผู้ลงทะเบียนสร้างได้; หลายคริสตจักร code ไม่ซ้ำ; ไม่มี JWT 401 |
 | สิทธิ์เจ้าของ / สมาชิก / ภายนอก | owner อัปเดตได้; คนนอกอัปเดต 404; กฎสมาชิก (member ไม่มี church.read → get รายละเอียด 404) |
 | บทบาท | `church_admin` ลบไม่ได้ (404); `church_owner` soft delete ได้ |
 
@@ -79,8 +79,8 @@ yarn test:e2e --testPathPattern=live.e2e-spec
 |--------|------------------|
 | Guest | list เพลง published; อ่าน detail + ChordPro; draft ไม่โผล่ list และ detail 404; สร้างเพลง 401 |
 | Church scope | owner สร้างเพลงด้วย `x-church-id` แล้วผูก `churchId`; ไม่มี header แต่มี JWT ยังสร้างได้ (ค่า `churchId = null`); owner patch; member ไม่มี song.update → 403 |
-| ค้นหา | `q`, `categorySlug`, `tagSlugs`, `churchId` |
-| หมวด/แท็ก | categoryId + tagSlugs บันทึกและแสดงใน detail |
+| ค้นหา | `q`, `categoryCode`, `tagCodes`, `churchId` |
+| หมวด/แท็ก | categoryId + tagCodes บันทึกและแสดงใน detail |
 | Soft delete | ลบแล้ว public ไม่เห็น |
 | View count | แต่ละ GET detail เพิ่ม viewCount |
 
@@ -119,7 +119,7 @@ yarn test:e2e --testPathPattern=live.e2e-spec
 | `test-app.factory.ts` | สร้างแอปตาม production bootstrap; `createListeningTestApplication()` สำหรับ Live |
 | `auth-test.helper.ts`, `auth-e2e.fixtures.ts` | supertest, Bearer, register/login fixture |
 | `rbac-e2e.helper.ts` | เช่น `assignSystemAdminRole` |
-| `*-e2e.fixtures.ts` / `*-e2e-cleanup.ts` | อีเมล/slug คงที่ + ลบข้อมูลเทสจาก DB ตามลำดับ FK |
+| `*-e2e.fixtures.ts` / `*-e2e-cleanup.ts` | อีเมล/code คงที่ + ลบข้อมูลเทสจาก DB ตามลำดับ FK |
 | `live-event-contract.ts` | เอกสารอ้างอิง event / room ของ Live |
 | `live-ws.helper.ts` | `connectLiveSocket`, `joinLiveSession`, `onceSocketEvent`, ฯลฯ |
 

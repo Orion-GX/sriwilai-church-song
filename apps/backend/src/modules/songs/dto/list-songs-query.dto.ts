@@ -22,7 +22,7 @@ export class ListPublicSongsQueryDto {
   @IsOptional()
   @IsString()
   @MaxLength(80)
-  categorySlug?: string;
+  categoryCode?: string;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -42,7 +42,7 @@ export class ListPublicSongsQueryDto {
   })
   @IsArray()
   @IsString({ each: true })
-  tagSlugs?: string[];
+  tagCodes?: string[];
 
   @IsOptional()
   @IsString()

@@ -28,7 +28,7 @@ export interface LiveSessionSongRowPayload {
   songId: string;
   sortOrder: number;
   title: string;
-  slug: string;
+  code: string;
 }
 
 export interface LiveSessionStateServerPayload extends LiveWsEnvelope {

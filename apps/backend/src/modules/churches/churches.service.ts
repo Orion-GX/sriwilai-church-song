@@ -72,8 +72,8 @@ export class ChurchesService {
     dto: CreateChurchDto,
     meta?: ChurchRequestMeta,
   ): Promise<ChurchResponseDto> {
-    const baseSlug = dto.slug ?? this.slugify(dto.name);
-    const slug = await this.ensureUniqueSlug(baseSlug);
+    const baseCode = dto.code ?? this.codeify(dto.name);
+    const code = await this.ensureUniqueCode(baseCode);
 
     const adminRole = await this.roleRepo.findOne({
       where: { code: CHURCH_ROLE_CODES.CHURCH_ADMIN, deletedAt: IsNull() },
@@ -89,7 +89,7 @@ export class ChurchesService {
     try {
       const church = queryRunner.manager.create(ChurchEntity, {
         name: dto.name,
-        slug,
+        code,
         ownerUserId: actorUserId,
         deletedAt: null,
       });
@@ -118,7 +118,7 @@ export class ChurchesService {
         ipAddress: meta?.ipAddress,
         userAgent: meta?.userAgent,
         beforeData: null,
-        afterData: { name: saved.name, slug: saved.slug, ownerUserId: saved.ownerUserId },
+        afterData: { name: saved.name, code: saved.code, ownerUserId: saved.ownerUserId },
       });
 
       return ChurchResponseDto.fromEntity(saved);
@@ -136,21 +136,21 @@ export class ChurchesService {
     dto: UpdateChurchDto,
     meta?: ChurchRequestMeta,
   ): Promise<ChurchResponseDto> {
-    if (dto.name === undefined && dto.slug === undefined) {
+    if (dto.name === undefined && dto.code === undefined) {
       throw new BadRequestException('No changes provided');
     }
 
     await this.assertChurchPermission(actorUserId, churchId, [SYSTEM_PERMISSION_CODES.CHURCH_UPDATE]);
     const church = await this.getActiveChurchOrThrow(churchId);
 
-    const before = { name: church.name, slug: church.slug };
+    const before = { name: church.name, code: church.code };
 
     if (dto.name !== undefined) {
       church.name = dto.name;
     }
-    if (dto.slug !== undefined) {
-      const next = await this.ensureUniqueSlug(dto.slug, church.id);
-      church.slug = next;
+    if (dto.code !== undefined) {
+      const next = await this.ensureUniqueCode(dto.code, church.id);
+      church.code = next;
     }
 
     const saved = await this.churchRepo.save(church);
@@ -166,7 +166,7 @@ export class ChurchesService {
       ipAddress: meta?.ipAddress,
       userAgent: meta?.userAgent,
       beforeData: before,
-      afterData: { name: saved.name, slug: saved.slug },
+      afterData: { name: saved.name, code: saved.code },
     });
 
     return ChurchResponseDto.fromEntity(saved);
@@ -176,7 +176,7 @@ export class ChurchesService {
     await this.assertChurchPermission(actorUserId, churchId, [SYSTEM_PERMISSION_CODES.CHURCH_DELETE]);
     const church = await this.getActiveChurchOrThrow(churchId);
 
-    const before = { name: church.name, slug: church.slug, ownerUserId: church.ownerUserId };
+    const before = { name: church.name, code: church.code, ownerUserId: church.ownerUserId };
 
     church.deletedAt = new Date();
     await this.churchRepo.save(church);
@@ -431,7 +431,7 @@ export class ChurchesService {
     return role;
   }
 
-  private slugify(name: string): string {
+  private codeify(name: string): string {
     const base = name
       .normalize('NFKD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -443,12 +443,12 @@ export class ChurchesService {
     return base.length > 0 ? base : 'church';
   }
 
-  private async ensureUniqueSlug(desired: string, excludeChurchId?: string): Promise<string> {
+  private async ensureUniqueCode(desired: string, excludeChurchId?: string): Promise<string> {
     let candidate = desired.slice(0, 120);
     for (let i = 0; i < 20; i += 1) {
       const existing = await this.churchRepo.findOne({
         where: {
-          slug: candidate,
+          code: candidate,
           deletedAt: IsNull(),
           ...(excludeChurchId ? { id: Not(excludeChurchId) } : {}),
         },
@@ -460,6 +460,6 @@ export class ChurchesService {
       const suffix = `${Date.now().toString(36)}${i}`.slice(-6);
       candidate = `${desired.slice(0, 110)}-${suffix}`.slice(0, 120);
     }
-    throw new ConflictException('Could not allocate a unique slug');
+    throw new ConflictException('Could not allocate a unique code');
   }
 }

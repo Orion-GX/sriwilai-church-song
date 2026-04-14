@@ -9,9 +9,9 @@ import { assignSystemAdminRole } from './support/rbac-e2e.helper';
 import { cleanupSongsE2EFixtures } from './support/songs-e2e-cleanup';
 import {
   SONGS_E2E_CHORDPRO,
-  SONGS_E2E_CHURCH_SLUG,
+  SONGS_E2E_CHURCH_CODE,
   SONGS_E2E_EMAILS,
-  SONGS_E2E_SLUGS,
+  SONGS_E2E_CODES,
 } from './support/songs-e2e.fixtures';
 import { createConfiguredTestApplication } from './support/test-app.factory';
 
@@ -54,16 +54,16 @@ describe('Songs API (e2e)', () => {
     const res = await createHttpServerRequest(app)
       .post('/api/v1/app/churches')
       .set(authBearerHeaders(ownerToken))
-      .send({ name: 'SE2E Songs Chapel', slug: SONGS_E2E_CHURCH_SLUG })
+      .send({ name: 'SE2E Songs Chapel', code: SONGS_E2E_CHURCH_CODE })
       .expect(HttpStatus.CREATED);
     return res.body.id as string;
   }
 
   async function worshipCategoryId(): Promise<string> {
     const res = await createHttpServerRequest(app).get('/api/v1/app/songs/categories').expect(HttpStatus.OK);
-    const worship = (res.body as { id: string; slug: string }[]).find((c) => c.slug === 'worship');
+    const worship = (res.body as { id: string; code: string }[]).find((c) => c.code === 'worship');
     if (!worship) {
-      throw new Error('migration ต้องมี song category slug worship');
+      throw new Error('migration ต้องมี song category code worship');
     }
     return worship.id;
   }
@@ -76,14 +76,14 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E เพลงสาธารณะ',
-          slug: SONGS_E2E_SLUGS.globalPublished,
+          code: SONGS_E2E_CODES.globalPublished,
           chordproBody: SONGS_E2E_CHORDPRO,
           isPublished: true,
         })
         .expect(HttpStatus.CREATED);
 
       const list = await createHttpServerRequest(app).get('/api/v1/app/songs').expect(HttpStatus.OK);
-      expect(list.body.items.some((s: { slug: string }) => s.slug === SONGS_E2E_SLUGS.globalPublished)).toBe(true);
+      expect(list.body.items.some((s: { code: string }) => s.code === SONGS_E2E_CODES.globalPublished)).toBe(true);
     });
 
     it('guest อ่านรายละเอียดเพลงที่เผยแพร่ได้ — chordpro อยู่ใน body', async () => {
@@ -93,7 +93,7 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E Detail',
-          slug: SONGS_E2E_SLUGS.globalPublished,
+          code: SONGS_E2E_CODES.globalPublished,
           chordproBody: SONGS_E2E_CHORDPRO,
           isPublished: true,
         })
@@ -112,7 +112,7 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E Draft Only',
-          slug: SONGS_E2E_SLUGS.globalDraft,
+          code: SONGS_E2E_CODES.globalDraft,
           chordproBody: '{title: x}',
           isPublished: false,
         })
@@ -147,7 +147,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'SE2E Church Song',
-          slug: SONGS_E2E_SLUGS.churchSong,
+          code: SONGS_E2E_CODES.churchSong,
           chordproBody: SONGS_E2E_CHORDPRO,
           isPublished: true,
         })
@@ -164,7 +164,7 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(tok))
         .send({
           title: 'ไม่ควรสำเร็จ',
-          slug: SONGS_E2E_SLUGS.churchSong,
+          code: SONGS_E2E_CODES.churchSong,
           chordproBody: 'x',
         })
         .expect(HttpStatus.FORBIDDEN);
@@ -179,7 +179,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'ก่อนแก้',
-          slug: SONGS_E2E_SLUGS.churchEdit,
+          code: SONGS_E2E_CODES.churchEdit,
           chordproBody: '{title: old}',
           isPublished: true,
         })
@@ -218,7 +218,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'ของคริสตจักร',
-          slug: SONGS_E2E_SLUGS.churchEdit,
+          code: SONGS_E2E_CODES.churchEdit,
           chordproBody: 'x',
           isPublished: true,
         })
@@ -236,7 +236,7 @@ describe('Songs API (e2e)', () => {
   });
 
   describe('ค้นหา / filter', () => {
-    it('q (title ILIKE), categorySlug, tagSlugs และ churchId — ทำงานกับ listPublic', async () => {
+    it('q (title ILIKE), categoryCode, tagCodes และ churchId — ทำงานกับ listPublic', async () => {
       const adminTok = await systemAdminToken();
       const ownerTok = await registerToken(SONGS_E2E_EMAILS.owner);
       const churchId = await createSongsChapel(ownerTok);
@@ -247,11 +247,11 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E filter unique title XYZ 123',
-          slug: SONGS_E2E_SLUGS.filterUnique,
+          code: SONGS_E2E_CODES.filterUnique,
           chordproBody: 'x',
           isPublished: true,
           categoryId: catId,
-          tagSlugs: ['se2e-filter-tag'],
+          tagCodes: ['se2e-filter-tag'],
         })
         .expect(HttpStatus.CREATED);
 
@@ -259,19 +259,19 @@ describe('Songs API (e2e)', () => {
         .get('/api/v1/app/songs')
         .query({ q: 'filter unique title XYZ' })
         .expect(HttpStatus.OK);
-      expect(byQ.body.items.some((s: { slug: string }) => s.slug === SONGS_E2E_SLUGS.filterUnique)).toBe(true);
+      expect(byQ.body.items.some((s: { code: string }) => s.code === SONGS_E2E_CODES.filterUnique)).toBe(true);
 
       const byCat = await createHttpServerRequest(app)
         .get('/api/v1/app/songs')
-        .query({ categorySlug: 'worship' })
+        .query({ categoryCode: 'worship' })
         .expect(HttpStatus.OK);
-      expect(byCat.body.items.some((s: { slug: string }) => s.slug === SONGS_E2E_SLUGS.filterUnique)).toBe(true);
+      expect(byCat.body.items.some((s: { code: string }) => s.code === SONGS_E2E_CODES.filterUnique)).toBe(true);
 
       const byTag = await createHttpServerRequest(app)
         .get('/api/v1/app/songs')
-        .query({ tagSlugs: 'se2e-filter-tag' })
+        .query({ tagCodes: 'se2e-filter-tag' })
         .expect(HttpStatus.OK);
-      expect(byTag.body.items.some((s: { slug: string }) => s.slug === SONGS_E2E_SLUGS.filterUnique)).toBe(true);
+      expect(byTag.body.items.some((s: { code: string }) => s.code === SONGS_E2E_CODES.filterUnique)).toBe(true);
 
       await createHttpServerRequest(app)
         .post('/api/v1/app/admin/songs')
@@ -279,7 +279,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'ในคริสตจักรเท่านั้น',
-          slug: 'se2e-only-chapel',
+          code: 'se2e-only-chapel',
           chordproBody: 'x',
           isPublished: true,
         })
@@ -291,8 +291,8 @@ describe('Songs API (e2e)', () => {
         .expect(HttpStatus.OK);
       expect(
         byChurch.body.items.some(
-          (s: { slug: string; churchId: string | null }) =>
-            s.slug === 'se2e-only-chapel' && s.churchId === churchId,
+          (s: { code: string; churchId: string | null }) =>
+            s.code === 'se2e-only-chapel' && s.churchId === churchId,
         ),
       ).toBe(true);
     });
@@ -309,7 +309,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'published song',
-          slug: 'se2e-admin-list-published',
+          code: 'se2e-admin-list-published',
           chordproBody: 'x',
           isPublished: true,
         })
@@ -321,7 +321,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'draft song',
-          slug: 'se2e-admin-list-draft',
+          code: 'se2e-admin-list-draft',
           chordproBody: 'x',
           isPublished: false,
         })
@@ -334,14 +334,14 @@ describe('Songs API (e2e)', () => {
         .query({ churchId })
         .expect(HttpStatus.OK);
 
-      const slugs = (list.body.items as { slug: string }[]).map((x) => x.slug);
-      expect(slugs).toContain('se2e-admin-list-published');
-      expect(slugs).toContain('se2e-admin-list-draft');
+      const codes = (list.body.items as { code: string }[]).map((x) => x.code);
+      expect(codes).toContain('se2e-admin-list-published');
+      expect(codes).toContain('se2e-admin-list-draft');
     });
   });
 
   describe('หมวดหมู่ / แท็ก (ความสัมพันธ์)', () => {
-    it('บันทึก categoryId และ tagSlugs — GET detail แสดง category + tags', async () => {
+    it('บันทึก categoryId และ tagCodes — GET detail แสดง category + tags', async () => {
       const adminTok = await systemAdminToken();
       const catId = await worshipCategoryId();
 
@@ -350,20 +350,20 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E Meta',
-          slug: SONGS_E2E_SLUGS.metaSong,
+          code: SONGS_E2E_CODES.metaSong,
           chordproBody: SONGS_E2E_CHORDPRO,
           isPublished: true,
           categoryId: catId,
-          tagSlugs: ['se2e-rel-tag-a', 'se2e-rel-tag-b'],
+          tagCodes: ['se2e-rel-tag-a', 'se2e-rel-tag-b'],
         })
         .expect(HttpStatus.CREATED);
 
       const id = created.body.id as string;
       const detail = await createHttpServerRequest(app).get(`/api/v1/app/songs/${id}`).expect(HttpStatus.OK);
 
-      expect(detail.body.category?.slug).toBe('worship');
-      const tagSlugs = (detail.body.tags as { slug: string }[]).map((t) => t.slug).sort();
-      expect(tagSlugs).toEqual(['se2e-rel-tag-a', 'se2e-rel-tag-b'].sort());
+      expect(detail.body.category?.code).toBe('worship');
+      const tagCodes = (detail.body.tags as { code: string }[]).map((t) => t.code).sort();
+      expect(tagCodes).toEqual(['se2e-rel-tag-a', 'se2e-rel-tag-b'].sort());
     });
   });
 
@@ -378,7 +378,7 @@ describe('Songs API (e2e)', () => {
         .set(CHURCH_ID_HEADER, churchId)
         .send({
           title: 'จะถูกลบ',
-          slug: SONGS_E2E_SLUGS.toDelete,
+          code: SONGS_E2E_CODES.toDelete,
           chordproBody: 'x',
           isPublished: true,
         })
@@ -408,7 +408,7 @@ describe('Songs API (e2e)', () => {
         .set(authBearerHeaders(adminTok))
         .send({
           title: 'SE2E View',
-          slug: SONGS_E2E_SLUGS.viewCount,
+          code: SONGS_E2E_CODES.viewCount,
           chordproBody: 'x',
           isPublished: true,
         })

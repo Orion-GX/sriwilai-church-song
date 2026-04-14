@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 
-import { SONGS_E2E_CHURCH_SLUG, SONGS_E2E_EMAILS, SONGS_E2E_SLUG_PREFIX } from './songs-e2e.fixtures';
+import { SONGS_E2E_CHURCH_CODE, SONGS_E2E_EMAILS, SONGS_E2E_CODE_PREFIX } from './songs-e2e.fixtures';
 
 export async function cleanupSongsE2EFixtures(dataSource: DataSource): Promise<void> {
   const schema = process.env.DB_SCHEMA ?? 'public';
@@ -9,47 +9,47 @@ export async function cleanupSongsE2EFixtures(dataSource: DataSource): Promise<v
   }
 
   const emails = Object.values(SONGS_E2E_EMAILS);
-  const songSlugPattern = `${SONGS_E2E_SLUG_PREFIX}%`;
+  const songCodePattern = `${SONGS_E2E_CODE_PREFIX}%`;
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'song' AND "resource_id" IN (
-       SELECT "id" FROM "${schema}"."songs" WHERE "slug" LIKE $1
+       SELECT "id" FROM "${schema}"."songs" WHERE "code" LIKE $1
      )`,
-    [songSlugPattern],
+    [songCodePattern],
   );
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'song' AND "resource_id" IN (
        SELECT "id" FROM "${schema}"."songs" WHERE "church_id" IN (
-         SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+         SELECT "id" FROM "${schema}"."churches" WHERE "code" = $1
        )
      )`,
-    [SONGS_E2E_CHURCH_SLUG],
+    [SONGS_E2E_CHURCH_CODE],
   );
 
-  await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "slug" LIKE $1`, [songSlugPattern]);
+  await dataSource.query(`DELETE FROM "${schema}"."songs" WHERE "code" LIKE $1`, [songCodePattern]);
   await dataSource.query(
     `DELETE FROM "${schema}"."songs" WHERE "church_id" IN (
-       SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+       SELECT "id" FROM "${schema}"."churches" WHERE "code" = $1
      )`,
-    [SONGS_E2E_CHURCH_SLUG],
+    [SONGS_E2E_CHURCH_CODE],
   );
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "scope_church_id" IN (
-       SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+       SELECT "id" FROM "${schema}"."churches" WHERE "code" = $1
      )`,
-    [SONGS_E2E_CHURCH_SLUG],
+    [SONGS_E2E_CHURCH_CODE],
   );
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "resource_type" = 'church' AND "resource_id" IN (
-       SELECT "id" FROM "${schema}"."churches" WHERE "slug" = $1
+       SELECT "id" FROM "${schema}"."churches" WHERE "code" = $1
      )`,
-    [SONGS_E2E_CHURCH_SLUG],
+    [SONGS_E2E_CHURCH_CODE],
   );
 
-  await dataSource.query(`DELETE FROM "${schema}"."churches" WHERE "slug" = $1`, [SONGS_E2E_CHURCH_SLUG]);
+  await dataSource.query(`DELETE FROM "${schema}"."churches" WHERE "code" = $1`, [SONGS_E2E_CHURCH_CODE]);
 
   await dataSource.query(
     `DELETE FROM "${schema}"."audit_logs" WHERE "actor_user_id" IN (

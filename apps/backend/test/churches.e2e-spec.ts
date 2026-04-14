@@ -10,7 +10,7 @@ import { authE2ERegisterBody } from './support/auth-e2e.fixtures';
 import { cleanupChurchesE2EFixtures } from './support/churches-e2e-cleanup';
 import {
   CHURCHES_E2E_EMAILS,
-  CHURCHES_E2E_SLUGS,
+  CHURCHES_E2E_CODES,
 } from './support/churches-e2e.fixtures';
 import { assignSystemAdminRole } from './support/rbac-e2e.helper';
 import { createConfiguredTestApplication } from './support/test-app.factory';
@@ -50,14 +50,14 @@ describe('Churches API (e2e)', () => {
         .set(authBearerHeaders(token))
         .send({
           name: 'CE2E คริสตจักรทดสอบ',
-          slug: CHURCHES_E2E_SLUGS.alpha,
+          code: CHURCHES_E2E_CODES.alpha,
         })
         .expect(HttpStatus.CREATED);
 
       expect(res.body).toMatchObject({
         id: expect.any(String),
         name: 'CE2E คริสตจักรทดสอบ',
-        slug: CHURCHES_E2E_SLUGS.alpha,
+        code: CHURCHES_E2E_CODES.alpha,
       });
 
       const mine = await createHttpServerRequest(app)
@@ -66,7 +66,7 @@ describe('Churches API (e2e)', () => {
         .expect(HttpStatus.OK);
 
       expect(Array.isArray(mine.body)).toBe(true);
-      expect(mine.body.some((c: { slug: string }) => c.slug === CHURCHES_E2E_SLUGS.alpha)).toBe(true);
+      expect(mine.body.some((c: { code: string }) => c.code === CHURCHES_E2E_CODES.alpha)).toBe(true);
 
       const audit = await dataSource.getRepository(AuditLogEntity).findOne({
         where: {
@@ -78,19 +78,19 @@ describe('Churches API (e2e)', () => {
       expect(audit).not.toBeNull();
     });
 
-    it('ผู้ใช้คนเดียวสร้างหลายคริสตจักรได้ — slug ไม่ซ้ำ', async () => {
+    it('ผู้ใช้คนเดียวสร้างหลายคริสตจักรได้ — code ไม่ซ้ำ', async () => {
       const token = await registerAccessToken(CHURCHES_E2E_EMAILS.owner);
 
       await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(token))
-        .send({ name: 'CE2E แรก', slug: CHURCHES_E2E_SLUGS.alpha })
+        .send({ name: 'CE2E แรก', code: CHURCHES_E2E_CODES.alpha })
         .expect(HttpStatus.CREATED);
 
       await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(token))
-        .send({ name: 'CE2E สอง', slug: CHURCHES_E2E_SLUGS.beta })
+        .send({ name: 'CE2E สอง', code: CHURCHES_E2E_CODES.beta })
         .expect(HttpStatus.CREATED);
 
       const mine = await createHttpServerRequest(app)
@@ -99,14 +99,14 @@ describe('Churches API (e2e)', () => {
         .expect(HttpStatus.OK);
 
       expect(mine.body.length).toBeGreaterThanOrEqual(2);
-      const slugs = mine.body.map((c: { slug: string }) => c.slug);
-      expect(slugs).toEqual(expect.arrayContaining([CHURCHES_E2E_SLUGS.alpha, CHURCHES_E2E_SLUGS.beta]));
+      const codes = mine.body.map((c: { code: string }) => c.code);
+      expect(codes).toEqual(expect.arrayContaining([CHURCHES_E2E_CODES.alpha, CHURCHES_E2E_CODES.beta]));
     });
 
     it('ไม่มี JWT — 401', async () => {
       await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
-        .send({ name: 'ไม่ควรสร้าง', slug: CHURCHES_E2E_SLUGS.alpha })
+        .send({ name: 'ไม่ควรสร้าง', code: CHURCHES_E2E_CODES.alpha })
         .expect(HttpStatus.UNAUTHORIZED);
     });
   });
@@ -117,7 +117,7 @@ describe('Churches API (e2e)', () => {
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'ชื่อเดิม', slug: CHURCHES_E2E_SLUGS.alpha })
+        .send({ name: 'ชื่อเดิม', code: CHURCHES_E2E_CODES.alpha })
         .expect(HttpStatus.CREATED);
 
       const id = created.body.id as string;
@@ -144,7 +144,7 @@ describe('Churches API (e2e)', () => {
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'ของเจ้าของ', slug: CHURCHES_E2E_SLUGS.alpha })
+        .send({ name: 'ของเจ้าของ', code: CHURCHES_E2E_CODES.alpha })
         .expect(HttpStatus.CREATED);
 
       const res = await createHttpServerRequest(app)
@@ -164,7 +164,7 @@ describe('Churches API (e2e)', () => {
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'CE2E Access', slug: CHURCHES_E2E_SLUGS.accessAlpha })
+        .send({ name: 'CE2E Access', code: CHURCHES_E2E_CODES.accessAlpha })
         .expect(HttpStatus.CREATED);
 
       const churchId = created.body.id as string;
@@ -229,7 +229,7 @@ describe('Churches API (e2e)', () => {
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'CE2E override', slug: CHURCHES_E2E_SLUGS.deleteDemo })
+        .send({ name: 'CE2E override', code: CHURCHES_E2E_CODES.deleteDemo })
         .expect(HttpStatus.CREATED);
 
       await createHttpServerRequest(app)
@@ -246,7 +246,7 @@ describe('Churches API (e2e)', () => {
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'CE2E ลบ', slug: CHURCHES_E2E_SLUGS.deleteDemo })
+        .send({ name: 'CE2E ลบ', code: CHURCHES_E2E_CODES.deleteDemo })
         .expect(HttpStatus.CREATED);
 
       const churchId = created.body.id as string;
@@ -273,7 +273,7 @@ describe('Churches API (e2e)', () => {
       const created = await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'CE2E จะถูกลบ', slug: CHURCHES_E2E_SLUGS.deleteDemo })
+        .send({ name: 'CE2E จะถูกลบ', code: CHURCHES_E2E_CODES.deleteDemo })
         .expect(HttpStatus.CREATED);
 
       const churchId = created.body.id as string;
@@ -305,7 +305,7 @@ describe('Churches API (e2e)', () => {
       await createHttpServerRequest(app)
         .post('/api/v1/app/churches')
         .set(authBearerHeaders(ownerToken))
-        .send({ name: 'ใหม่หลังลบ', slug: CHURCHES_E2E_SLUGS.afterDelete })
+        .send({ name: 'ใหม่หลังลบ', code: CHURCHES_E2E_CODES.afterDelete })
         .expect(HttpStatus.CREATED);
     });
   });

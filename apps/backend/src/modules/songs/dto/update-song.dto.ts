@@ -33,7 +33,7 @@ export class UpdateSongDto {
   @IsString()
   @MinLength(2)
   @MaxLength(180)
-  slug?: string;
+  code?: string;
 
   @IsOptional()
   @ValidateIf((_: unknown, v: unknown) => v !== null && v !== undefined)
@@ -44,7 +44,7 @@ export class UpdateSongDto {
   @IsArray()
   @IsString({ each: true })
   @MaxLength(80, { each: true })
-  tagSlugs?: string[];
+  tagCodes?: string[];
 
   @IsOptional()
   @IsBoolean()

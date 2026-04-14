@@ -6,7 +6,7 @@ export class AdminSongDailyCountDto {
 export class AdminTopSongDto {
   id!: string;
   title!: string;
-  slug!: string;
+  code!: string;
   viewCount!: number;
 }
 

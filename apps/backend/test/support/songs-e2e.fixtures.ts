@@ -1,5 +1,5 @@
-/** slug เพลงใช้ prefix se2e- เพื่อ cleanup */
-export const SONGS_E2E_SLUG_PREFIX = 'se2e-';
+/** code เพลงใช้ prefix se2e- เพื่อ cleanup */
+export const SONGS_E2E_CODE_PREFIX = 'se2e-';
 
 export const SONGS_E2E_EMAILS = {
   admin: 'songs-e2e-admin@example.test',
@@ -8,9 +8,9 @@ export const SONGS_E2E_EMAILS = {
 } as const;
 
 /** คริสตจักรเฉพาะชุดเทสเพลง — แยกจาก churches-e2e */
-export const SONGS_E2E_CHURCH_SLUG = 'se2e-songs-chapel';
+export const SONGS_E2E_CHURCH_CODE = 'se2e-songs-chapel';
 
-export const SONGS_E2E_SLUGS = {
+export const SONGS_E2E_CODES = {
   globalPublished: 'se2e-global-published',
   globalDraft: 'se2e-global-draft',
   churchSong: 'se2e-church-song',

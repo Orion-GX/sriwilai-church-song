@@ -8,9 +8,9 @@ export class ChurchEntity {
   @Column({ type: 'varchar', length: 200 })
   name!: string;
 
-  @Index('idx_churches_slug', { unique: true })
+  @Index('idx_churches_code', { unique: true })
   @Column({ type: 'varchar', length: 120 })
-  slug!: string;
+  code!: string;
 
   @Column({ name: 'owner_user_id', type: 'uuid', nullable: true })
   ownerUserId!: string | null;

@@ -30,7 +30,7 @@ export class CreateSongDto {
   @IsString()
   @MinLength(2)
   @MaxLength(180)
-  slug?: string;
+  code?: string;
 
   @IsOptional()
   @IsUUID('4')
@@ -40,7 +40,7 @@ export class CreateSongDto {
   @IsArray()
   @IsString({ each: true })
   @MaxLength(80, { each: true })
-  tagSlugs?: string[];
+  tagCodes?: string[];
 
   @IsOptional()
   @IsBoolean()

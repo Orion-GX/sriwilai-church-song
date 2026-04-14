@@ -3,20 +3,20 @@ import { SongContentDocument } from '../types/song-content.type';
 
 export class SongCategorySnippetDto {
   id!: string;
-  slug!: string;
+  code!: string;
   name!: string;
 }
 
 export class SongTagSnippetDto {
   id!: string;
-  slug!: string;
+  code!: string;
   name!: string;
 }
 
 export class SongPublicListItemDto {
   id!: string;
   title!: string;
-  slug!: string;
+  code!: string;
   churchId!: string | null;
   originalKey!: string | null;
   coverImageUrl!: string | null;
@@ -32,16 +32,16 @@ export class SongPublicListItemDto {
     const dto = new SongPublicListItemDto();
     dto.id = row.id;
     dto.title = row.title;
-    dto.slug = row.slug;
+    dto.code = row.code;
     dto.churchId = row.churchId;
     dto.originalKey = row.originalKey ?? null;
     dto.coverImageUrl = row.coverImageUrl ?? null;
     dto.visibility = row.visibility;
     dto.isPublished = row.isPublished;
     dto.category = row.category
-      ? { id: row.category.id, slug: row.category.slug, name: row.category.name }
+      ? { id: row.category.id, code: row.category.code, name: row.category.name }
       : null;
-    dto.tags = (row.tags ?? []).map((t) => ({ id: t.id, slug: t.slug, name: t.name }));
+    dto.tags = (row.tags ?? []).map((t) => ({ id: t.id, code: t.code, name: t.name }));
     dto.viewCount = opts?.viewCount ?? row.viewCount ?? 0;
     dto.createdAt = row.createdAt;
     dto.updatedAt = row.updatedAt;
@@ -62,7 +62,7 @@ export class SongPublicDetailDto extends SongPublicListItemDto {
     const dto = new SongPublicDetailDto();
     dto.id = list.id;
     dto.title = list.title;
-    dto.slug = list.slug;
+    dto.code = list.code;
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
     dto.visibility = list.visibility;
@@ -88,7 +88,7 @@ export class SongAdminListItemDto extends SongPublicListItemDto {
     const dto = new SongAdminListItemDto();
     dto.id = list.id;
     dto.title = list.title;
-    dto.slug = list.slug;
+    dto.code = list.code;
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
     dto.visibility = list.visibility;
@@ -116,7 +116,7 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
     const dto = new SongAdminDetailDto();
     dto.id = list.id;
     dto.title = list.title;
-    dto.slug = list.slug;
+    dto.code = list.code;
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
     dto.isPublished = list.isPublished;
@@ -142,7 +142,7 @@ export { SongAdminDetailDto as SongDetailDto, SongPublicListItemDto as SongListI
 
 export class SongCategoryResponseDto {
   id!: string;
-  slug!: string;
+  code!: string;
   name!: string;
   description!: string | null;
   sortOrder!: number;
@@ -152,7 +152,7 @@ export class SongCategoryResponseDto {
   ): SongCategoryResponseDto {
     const dto = new SongCategoryResponseDto();
     dto.id = row.id;
-    dto.slug = row.slug;
+    dto.code = row.code;
     dto.name = row.name;
     dto.description = row.description;
     dto.sortOrder = row.sortOrder;
@@ -162,13 +162,13 @@ export class SongCategoryResponseDto {
 
 export class SongTagResponseDto {
   id!: string;
-  slug!: string;
+  code!: string;
   name!: string;
 
   static fromEntity(row: import('../entities/song-tag.entity').SongTagEntity): SongTagResponseDto {
     const dto = new SongTagResponseDto();
     dto.id = row.id;
-    dto.slug = row.slug;
+    dto.code = row.code;
     dto.name = row.name;
     return dto;
   }
