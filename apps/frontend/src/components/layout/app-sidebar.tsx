@@ -77,12 +77,9 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const items: SidebarNavItem[] = [
     ...coreItems,
     ...(canAccessAdmin ? [adminItem] : []),
-    ...(canManageSongs
+    ...(canManageSongs || canCreateSongs || canAccessAdmin
       ? [{ href: "/dashboard/songs", label: "จัดการเพลง", icon: ListMusic }]
       : []),
-    // ...(canCreateSongs
-    //   ? [{ href: "/dashboard/songs/new", label: "สร้างเพลง", icon: PlusCircle }]
-    //   : []),
     ...(canAccessLive
       ? [{ href: "/dashboard/live", label: "ไลฟ์", icon: Radio }]
       : []),
@@ -94,7 +91,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <Sidebar
-      brand={{ title: "Sriwilai Song", href: "/" }}
+      brand={{ title: "Chord Praise", href: "/" }}
       items={items}
       isActive={isActive}
       onNavigate={onNavigate}

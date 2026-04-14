@@ -58,7 +58,7 @@ export function Sidebar({
         href={brand.href}
         onClick={onNavigate}
         className={cn(
-          "mb-3 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold tracking-tight text-sidebar-foreground transition-colors hover:bg-sidebar-accent",
+          "mb-3 flex items-center gap-2 rounded-lg px-3 py-2.5 text-lg font-semibold tracking-tight transition-colors text-primary-foreground",
           collapsed && "justify-center px-0",
         )}
         title={collapsed ? brand.title : undefined}
@@ -89,7 +89,7 @@ export function Sidebar({
                 collapsed && "justify-center px-0",
                 active
                   ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-sm"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
+                  : "text-sidebar /80 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
               )}
             >
               <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
@@ -100,19 +100,19 @@ export function Sidebar({
       </nav>
 
       {showCollapse && shell ? (
-        <div className="hidden shrink-0 border-t border-sidebar-border pt-2 lg:block">
+        <div className="hidden shrink-0 border-t border-sidebar-border pt-2 lg:block ">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="w-full"
+            className="w-full text-primary-input hover:bg-sidebar-accent hover:text-primary"
             aria-label={shell.collapsed ? "ขยายเมนู" : "ย่อเมนู"}
             onClick={() => shell.toggleCollapsed()}
           >
             {shell.collapsed ? (
-              <ChevronRight className="h-4 w-4" aria-hidden />
+              <ChevronRight className="h-4 w-4" />
             ) : (
-              <ChevronLeft className="h-4 w-4" aria-hidden />
+              <ChevronLeft className="h-4 w-4" />
             )}
           </Button>
         </div>
