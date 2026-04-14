@@ -97,7 +97,7 @@ export function SongFilterSidebar({
             <SelectContent>
               <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
               {categories.map((category) => (
-                <SelectItem key={category.id} value={category.slug}>
+                <SelectItem key={category.id} value={category.code}>
                   {category.name}
                 </SelectItem>
               ))}
@@ -117,7 +117,7 @@ export function SongFilterSidebar({
             placeholder="เลือกแท็กเพลง"
             searchPlaceholder="ค้นหาแท็ก..."
             options={tags.map((tag) => ({
-              value: tag.slug,
+              value: tag.code,
               label: tag.name,
             }))}
           />

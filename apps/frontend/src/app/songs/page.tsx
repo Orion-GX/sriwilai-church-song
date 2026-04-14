@@ -112,7 +112,7 @@ export default function SongsListPage() {
   });
 
   const categoryNameBySlug = React.useMemo(
-    () => new Map(categories.map((category) => [category.slug, category.name])),
+    () => new Map(categories.map((category) => [category.code, category.name])),
     [categories],
   );
 

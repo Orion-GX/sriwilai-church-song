@@ -1,19 +1,19 @@
 export type SongCategorySnippet = {
   id: string;
-  slug: string;
+  code: string;
   name: string;
 };
 
 export type SongTagSnippet = {
   id: string;
-  slug: string;
+  code: string;
   name: string;
 };
 
 /** รายการหมวดจาก GET /app/songs/categories */
 export type SongCategoryCatalogItem = {
   id: string;
-  slug: string;
+  code: string;
   name: string;
   description: string | null;
   sortOrder: number;
@@ -22,7 +22,7 @@ export type SongCategoryCatalogItem = {
 /** รายการแท็กจาก GET /app/songs/tags */
 export type SongTagCatalogItem = {
   id: string;
-  slug: string;
+  code: string;
   name: string;
 };
 
@@ -65,7 +65,7 @@ export type SongVersion = {
 export type SongListItem = {
   id: string;
   title: string;
-  slug: string;
+  code: string;
   churchId: string | null;
   originalKey: string | null;
   coverImageUrl: string | null;

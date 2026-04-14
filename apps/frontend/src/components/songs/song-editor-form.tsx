@@ -31,7 +31,11 @@ import {
   fetchSongTagsCatalog,
   updateSong,
 } from "@/lib/api/songs";
-import type { SongCategorySnippet, SongVersion } from "@/lib/api/types";
+import type {
+  SongCategorySnippet,
+  SongTagCatalogItem,
+  SongVersion,
+} from "@/lib/api/types";
 import { slugifySongTag } from "@/lib/songs/tag-slug";
 import { useQuery } from "@tanstack/react-query";
 import { ImagePlus, Trash2, Upload, X } from "lucide-react";
@@ -210,13 +214,13 @@ export function SongEditorForm({
   const tagCatalogBySlug = React.useMemo(() => {
     const m = new Map<string, string>();
     for (const t of tagCatalog) {
-      m.set(t.slug, t.name);
+      m.set(t.code, t.name);
     }
     return m;
   }, [tagCatalog]);
 
   const suggestedTags = React.useMemo(
-    () => tagCatalog.filter((t) => !tagSlugs.includes(t.slug)),
+    () => tagCatalog.filter((t) => !tagSlugs.includes(t.code)),
     [tagCatalog, tagSlugs],
   );
 
@@ -659,15 +663,15 @@ export function SongEditorForm({
                     ) : null}
                     {suggestedTags.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
-                        {suggestedTags.map((t) => (
+                        {suggestedTags.map((t: SongTagCatalogItem) => (
                           <Button
                             key={t.id}
                             type="button"
                             size="sm"
                             variant="outline"
-                            className={`h-8 text-xs ${getPastelTagButtonClass(t.slug)}`}
-                            onClick={() => addTagSlug(t.slug)}
-                            data-testid={`song-suggest-tag-${t.slug}`}
+                            className={`h-8 text-xs ${getPastelTagButtonClass(t.code)}`}
+                            onClick={() => addTagSlug(t.code)}
+                            data-testid={`song-suggest-tag-${t.code}`}
                           >
                             + {t.name}
                           </Button>

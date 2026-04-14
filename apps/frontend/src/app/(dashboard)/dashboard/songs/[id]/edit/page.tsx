@@ -1,7 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@/components/layout/page-container";
 import { SetDashboardTitle } from "@/components/layout/set-dashboard-title";
 import { SongEditorForm } from "@/components/songs/song-editor-form";
@@ -9,9 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchSongById } from "@/lib/api/songs";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { useCan } from "@/lib/auth/use-can";
-import { fetchSongById } from "@/lib/api/songs";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 
 export default function EditSongPage() {
   const canEditSong = useCan(PERMISSIONS.SONG_UPDATE);
@@ -60,7 +60,7 @@ export default function EditSongPage() {
             initialChordpro={data.chordproBody}
             initialVersions={data.versions}
             initialCategory={data.category}
-            initialTagSlugs={data.tags.map((t) => t.slug)}
+            initialTagSlugs={data.tags.map((t) => t.code)}
             initialOriginalKey={data.originalKey}
             initialTempo={data.tempo}
             initialTimeSignature={data.timeSignature}
