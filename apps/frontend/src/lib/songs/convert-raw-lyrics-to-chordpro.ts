@@ -47,7 +47,10 @@ function findLyricAnchorStart(lyricLine: string): number {
   return (match[1] ?? "").length;
 }
 
-export function mergeChordAndLyricLines(chordLine: string, lyricLine: string): string {
+export function mergeChordAndLyricLines(
+  chordLine: string,
+  lyricLine: string,
+): string {
   const hits = detectChordHits(chordLine);
   if (hits.length === 0) return lyricLine.trimEnd();
 
@@ -55,7 +58,10 @@ export function mergeChordAndLyricLines(chordLine: string, lyricLine: string): s
   const anchorStart = findLyricAnchorStart(out);
   let offset = 0;
   for (const hit of hits) {
-    const boundedPos = Math.max(anchorStart, Math.min(hit.index, lyricLine.length));
+    const boundedPos = Math.max(
+      anchorStart,
+      Math.min(hit.index, lyricLine.length),
+    );
     const insertPos = boundedPos + offset;
     out = `${out.slice(0, insertPos)}[${hit.chord}]${out.slice(insertPos)}`;
     offset += hit.chord.length + 2;
@@ -89,7 +95,9 @@ function parseProgressionDirectiveLine(
   line: string,
   label: Exclude<ProgressionDirective, "intro">,
 ): string | null {
-  const match = line.trim().match(new RegExp(`^${label}\\b\\s*:?\\s*(.+)$`, "i"));
+  const match = line
+    .trim()
+    .match(new RegExp(`^${label}\\b\\s*:?\\s*(.+)$`, "i"));
   if (!match) return null;
   return buildProgressionDirective(label, match[1] ?? "");
 }

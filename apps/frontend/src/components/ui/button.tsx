@@ -14,7 +14,7 @@ export const buttonVariants = cva(
         secondary:
           "bg-secondary-container text-secondary hover:brightness-95 active:brightness-90",
         outline:
-          "bg-surface-lowest text-foreground ring-1 ring-outline-variant/15 hover:bg-surface-low",
+          "border border-outline-variant/40 bg-surface-lowest text-foreground hover:bg-surface-low",
         ghost: "text-foreground hover:bg-surface-low",
         destructive:
           "bg-destructive text-destructive-foreground shadow-soft hover:brightness-95",

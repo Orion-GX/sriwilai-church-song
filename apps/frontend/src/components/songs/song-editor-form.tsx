@@ -1,5 +1,6 @@
 "use client";
 
+import { ChordEditorToolbar } from "@/components/songs/chord-editor-toolbar";
 import { ChordproPreviewModal } from "@/components/songs/chordpro-preview-modal";
 import { ConvertLyricsModal } from "@/components/songs/convert-lyrics-modal";
 import { SongFormatHelpModal } from "@/components/songs/song-format-help-modal";
@@ -123,8 +124,8 @@ const CHORDPRO_PLACEHOLDER = `{intro: [Gmaj7] / [Cmaj7] x2}
 [Gmaj7]ทุกวันเวลา ข้าอยากอยู่ใกล้[Cmaj7]ชิดพระองค์
 [Gmaj7]ทุกวันเวลา อยู่ในความ[Cmaj7]รักของพระองค์
 {chorus: 1}
-[Gmaj7]ทุกวันเวลา [Cmaj7]ข้าอยากอยู่ใกล้ชิดพระองค์ [D][G]
-[Gmaj7]ทุกวันเวลา [Cmaj7]อยู่ในความรักของพระองค์ [D][G]
+[Gmaj7]ทุกวันเวลา [Cmaj7]ข้าอยากอยู่ใกล้ชิดพระองค์
+[Gmaj7]ทุกวันเวลา [Cmaj7]อยู่ในความรักของพระองค์
 {outro: [Gmaj7] / [Cmaj7] x2}`;
 
 export function SongEditorForm({
@@ -192,6 +193,7 @@ export function SongEditorForm({
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const coverInputRef = React.useRef<HTMLInputElement | null>(null);
+  const chordproTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["songCategoriesCatalog"],
@@ -311,6 +313,33 @@ export function SongEditorForm({
     setTagSlugs((prev) => prev.filter((s) => s !== slug));
   }
 
+  const insertIntoChordEditor = React.useCallback((text: string) => {
+    const textarea = chordproTextareaRef.current;
+    if (!textarea) {
+      setChordproBody((prev) => `${prev}${text}`);
+      return;
+    }
+
+    const cursorStart = textarea.selectionStart ?? 0;
+    const cursorEnd = textarea.selectionEnd ?? cursorStart;
+    const nextCursorPos = cursorStart + text.length;
+
+    setChordproBody((prev) => {
+      const before = prev.slice(0, cursorStart);
+      const after = prev.slice(cursorEnd);
+      return `${before}${text}${after}`;
+    });
+
+    requestAnimationFrame(() => {
+      const nextTextarea = chordproTextareaRef.current;
+      if (!nextTextarea) {
+        return;
+      }
+      nextTextarea.focus();
+      nextTextarea.setSelectionRange(nextCursorPos, nextCursorPos);
+    });
+  }, []);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -396,7 +425,7 @@ export function SongEditorForm({
             <div className="space-y-4">
               <Card>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-base">Song Identity</CardTitle>
+                  <CardTitle className="text-base">ข้อมูลเพลง</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -413,7 +442,7 @@ export function SongEditorForm({
                       required
                       minLength={1}
                       data-testid="song-input-title"
-                      placeholder="e.g. Way Maker"
+                      placeholder="เช่น ทุกวันเวลา"
                     />
                   </div>
 
@@ -651,8 +680,8 @@ export function SongEditorForm({
 
               <Card>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-base">Add Cover Image</CardTitle>
-                  <CardDescription>Optional visual reference</CardDescription>
+                  <CardTitle className="text-base">เพิ่มรูปปก</CardTitle>
+                  <CardDescription>รูปปกสำหรับอ้างอิง</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <input
@@ -680,7 +709,7 @@ export function SongEditorForm({
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="primary"
                       onClick={openCoverPicker}
                     >
                       <Upload className="h-4 w-4" aria-hidden />
@@ -689,7 +718,7 @@ export function SongEditorForm({
                     {coverImageUrl ? (
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="destructive"
                         onClick={clearCoverImage}
                       >
                         <Trash2 className="h-4 w-4" aria-hidden />
@@ -710,9 +739,9 @@ export function SongEditorForm({
               <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <CardTitle>Chord Sheet & Lyrics</CardTitle>
+                    <CardTitle>คอร์ด / เนื้อเพลง</CardTitle>
                     <CardDescription>
-                      Use bracket notation for chords (e.g. [G])
+                      ใช้วงเล็บเหลี่ยมสำหรับคอร์ด (e.g. [G])
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
@@ -725,11 +754,11 @@ export function SongEditorForm({
                       aria-haspopup="dialog"
                       aria-expanded={convertOpen}
                     >
-                      Convert to ChordPro
+                      แปลงเนื้อเพลง
                     </Button>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="primary"
                       size="sm"
                       onClick={() => setHelpOpen(true)}
                       data-testid="song-chordpro-help-toggle"
@@ -740,7 +769,7 @@ export function SongEditorForm({
                     </Button>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="primary"
                       size="sm"
                       onClick={() => setPreviewOpen(true)}
                       data-testid="song-chordpro-preview-toggle"
@@ -773,14 +802,16 @@ export function SongEditorForm({
                   timeSignature={timeSignature || undefined}
                   contextTitle={`${title.trim() || "เพลง"}`}
                 />
+                <ChordEditorToolbar onInsert={insertIntoChordEditor} />
                 <Textarea
                   id="song-chordpro"
+                  ref={chordproTextareaRef}
                   value={chordproBody}
                   onChange={(e) => setChordproBody(e.target.value)}
                   required
                   minLength={1}
                   rows={28}
-                  className="min-h-[620px] font-mono text-sm placeholder:text-muted-foreground"
+                  className="min-h-[620px] text-sm font-semibold placeholder:text-muted-foreground placeholder:font-normal"
                   data-testid="song-input-chordpro"
                   placeholder={CHORDPRO_PLACEHOLDER}
                 />
@@ -795,14 +826,14 @@ export function SongEditorForm({
               onClick={() => router.push("/dashboard/songs")}
               data-testid="song-cancel"
             >
-              Cancel
+              ยกเลิก
             </Button>
             <Button type="submit" disabled={loading} data-testid="song-submit">
               {loading
                 ? mode === "create"
                   ? "กำลังสร้าง…"
                   : "กำลังบันทึก…"
-                : "Save Song"}
+                : "บันทึก"}
             </Button>
           </div>
         </CardContent>
