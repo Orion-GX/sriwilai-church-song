@@ -1,6 +1,6 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const tableContainerVariants = cva(
   "relative w-full overflow-x-auto rounded-lg border bg-card",
@@ -77,7 +77,7 @@ export function TableFooter({
   return (
     <tfoot
       className={cn(
-        "border-t border-border bg-muted/40 font-medium [&>tr]:last:border-b-0",
+        " bg-muted/40 font-medium [&>tr]:last:border-b-0",
         className,
       )}
       {...props}

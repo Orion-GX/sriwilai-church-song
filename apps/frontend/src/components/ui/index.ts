@@ -8,6 +8,7 @@ export {
   buttonVariants,
   type ButtonProps,
 } from "@/components/ui/button";
+export { Checkbox } from "@/components/ui/checkbox";
 export {
   Card,
   CardContent,

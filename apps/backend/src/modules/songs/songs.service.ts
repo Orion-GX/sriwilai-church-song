@@ -78,6 +78,10 @@ export class SongsService {
   async listAdminSongs(query: ListAdminSongsQueryDto): Promise<PaginatedSongsDto> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
+    const sortBy = query.sortBy ?? 'createdAt';
+    const sortOrder = query.sortOrder ?? 'DESC';
+    const orderByColumn =
+      sortBy === 'title' ? 's.title' : sortBy === 'viewCount' ? 's.viewCount' : 's.createdAt';
 
     const totalRow = await this.buildAdminListQuery(query)
       .select('COUNT(DISTINCT s.id)', 'cnt')
@@ -85,7 +89,8 @@ export class SongsService {
     const total = Number(totalRow?.cnt ?? 0);
 
     const rows = await this.buildAdminListQuery(query)
-      .orderBy('s.createdAt', 'DESC')
+      .orderBy(orderByColumn, sortOrder)
+      .addOrderBy('s.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();

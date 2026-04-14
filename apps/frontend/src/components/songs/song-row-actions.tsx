@@ -53,7 +53,7 @@ export function SongRowActions({
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem asChild>
           <Link
-            href={`/dashboard/songs/${song.id}/edit`}
+            href={`/dashboard/songs/${song.id}?mode=edit`}
             className="cursor-pointer"
             data-testid={`song-admin-edit-${song.id}`}
           >

@@ -12,7 +12,9 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
 import {
   deleteSong,
+  fetchSongAdminCategories,
   fetchSongAdminList,
+  fetchSongAdminTagsCatalog,
   updateSong,
   updateSongStatus,
 } from "@/lib/api/songs";
@@ -22,6 +24,7 @@ import { useCan } from "@/lib/auth/use-can";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 const PAGE_LIMIT = 10;
@@ -30,17 +33,34 @@ export default function SongManagementPage() {
   const canAccessAdmin = useCan(PERMISSIONS.SYSTEM_ADMIN);
   const canManageSongs = useCan(PERMISSIONS.SONG_UPDATE) || canAccessAdmin;
   const canCreateSong = useCan(PERMISSIONS.SONG_CREATE) || canAccessAdmin;
+  const router = useRouter();
   const currentChurchId = useAuthStore((s) => s.currentChurchId);
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
   const [searchDraft, setSearchDraft] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"title" | "viewCount" | null>(
+    null,
+  );
+  const [sortOrder, setSortOrder] = React.useState<"ASC" | "DESC" | null>(null);
   const [statusFilter, setStatusFilter] = React.useState<
     "ALL" | "ACTIVE" | "INACTIVE"
   >("ALL");
   const [statusPendingSongId, setStatusPendingSongId] = React.useState<
     string | null
   >(null);
+  const [categoryFilter, setCategoryFilter] = React.useState<
+    string | undefined
+  >(undefined);
+  const [keyFilter, setKeyFilter] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [tagFilter, setTagFilter] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [rowSelection, setRowSelection] = React.useState<
+    Record<string, boolean>
+  >({});
   const [deletePendingSongId, setDeletePendingSongId] = React.useState<
     string | null
   >(null);
@@ -56,6 +76,10 @@ export default function SongManagementPage() {
     currentChurchId ?? "no-church",
     page,
     search,
+    sortBy ?? "none",
+    sortOrder ?? "none",
+    categoryFilter,
+    tagFilter,
   ];
   const { data, isLoading, isFetching, isError, error } = useQuery({
     queryKey,
@@ -64,7 +88,26 @@ export default function SongManagementPage() {
         page,
         limit: PAGE_LIMIT,
         q: search || undefined,
+        sortBy: sortBy ?? undefined,
+        sortOrder: sortOrder ?? undefined,
+        categoryCode: categoryFilter,
+        tagCodes: tagFilter ? [tagFilter] : undefined,
       }),
+    enabled: canManageSongs,
+  });
+  const { data: categories = [] } = useQuery({
+    queryKey: [
+      "dashboard",
+      "songs",
+      "categories",
+      currentChurchId ?? "no-church",
+    ],
+    queryFn: fetchSongAdminCategories,
+    enabled: canManageSongs,
+  });
+  const { data: tags = [] } = useQuery({
+    queryKey: ["dashboard", "songs", "tags", currentChurchId ?? "no-church"],
+    queryFn: fetchSongAdminTagsCatalog,
     enabled: canManageSongs,
   });
 
@@ -128,22 +171,79 @@ export default function SongManagementPage() {
     return "โหลดรายการเพลงไม่สำเร็จ";
   }, [error, isError]);
 
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setPage(1);
+      setSearch(searchDraft.trim());
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [searchDraft]);
+
+  React.useEffect(() => {
+    setRowSelection({});
+  }, [page, data?.items]);
+
   const items = React.useMemo(() => {
     const rows = data?.items ?? [];
-    if (statusFilter === "ALL") return rows;
-    if (statusFilter === "ACTIVE")
-      return rows.filter((song) => song.isPublished);
-    return rows.filter((song) => !song.isPublished);
-  }, [data?.items, statusFilter]);
+    const statusFiltered =
+      statusFilter === "ALL"
+        ? rows
+        : statusFilter === "ACTIVE"
+          ? rows.filter((song) => song.isPublished)
+          : rows.filter((song) => !song.isPublished);
+    if (!keyFilter) return statusFiltered;
+    return statusFiltered.filter(
+      (song) => (song.originalKey ?? "-") === keyFilter,
+    );
+  }, [data?.items, keyFilter, statusFilter]);
+
+  const selectedSongs = React.useMemo(() => {
+    if (!items.length) return [];
+    const selectedIds = new Set(
+      Object.entries(rowSelection)
+        .filter(([, selected]) => selected)
+        .map(([id]) => id),
+    );
+    return items.filter((song) => selectedIds.has(song.id));
+  }, [items, rowSelection]);
+
+  const categoryOptions = React.useMemo(
+    () => [
+      { value: "ALL", label: "ทั้งหมด" },
+      ...categories.map((category) => ({
+        value: category.code,
+        label: category.name,
+      })),
+    ],
+    [categories],
+  );
+  const keyOptions = React.useMemo(() => {
+    const unique = new Set(
+      (data?.items ?? [])
+        .map((song) => song.originalKey ?? "-")
+        .filter(Boolean),
+    );
+    return [
+      { value: "ALL", label: "ทั้งหมด" },
+      ...Array.from(unique)
+        .sort((a, b) => a.localeCompare(b))
+        .map((key) => ({ value: key, label: key })),
+    ];
+  }, [data?.items]);
+  const tagOptions = React.useMemo(
+    () => [
+      { value: "ALL", label: "ทั้งหมด" },
+      ...tags.map((tag) => ({
+        value: tag.code,
+        label: tag.name,
+      })),
+    ],
+    [tags],
+  );
 
   const total = data?.total ?? 0;
   const limit = data?.limit ?? PAGE_LIMIT;
   const totalPages = Math.max(1, Math.ceil(total / limit));
-
-  function onSubmitSearch() {
-    setPage(1);
-    setSearch(searchDraft.trim());
-  }
 
   function handleToggleStatus(song: SongListItem) {
     setConfirmStatusSong(song);
@@ -153,10 +253,8 @@ export default function SongManagementPage() {
     setConfirmDeleteSong(song);
   }
 
-  function handleBulkAction(
-    action: "PUBLISH" | "UNPUBLISH" | "DELETE",
-    songs: SongListItem[],
-  ) {
+  function handleBulkAction(action: "PUBLISH" | "UNPUBLISH" | "DELETE") {
+    const songs = selectedSongs;
     if (!songs.length || bulkMutation.isPending) return;
     const actionLabel =
       action === "PUBLISH"
@@ -210,13 +308,33 @@ export default function SongManagementPage() {
             <SongTableToolbar
               searchDraft={searchDraft}
               onSearchDraftChange={setSearchDraft}
-              onSearchSubmit={onSubmitSearch}
-              statusFilter={statusFilter}
-              onStatusFilterChange={(next) => {
-                setStatusFilter(next);
+              onClearSearch={() => {
+                setSearchDraft("");
+                setCategoryFilter(undefined);
+                setKeyFilter(undefined);
+                setTagFilter(undefined);
                 setPage(1);
               }}
-              isSearching={isFetching}
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={(next) => {
+                setCategoryFilter(next === "ALL" ? undefined : next);
+                setPage(1);
+              }}
+              categoryOptions={categoryOptions}
+              keyFilter={keyFilter}
+              onKeyFilterChange={(next) =>
+                setKeyFilter(next === "ALL" ? undefined : next)
+              }
+              keyOptions={keyOptions}
+              tagFilter={tagFilter}
+              onTagFilterChange={(next) => {
+                setTagFilter(next === "ALL" ? undefined : next);
+                setPage(1);
+              }}
+              tagOptions={tagOptions}
+              selectedCount={selectedSongs.length}
+              bulkPending={bulkPending}
+              onBulkAction={handleBulkAction}
             />
 
             <SongManagementTable
@@ -224,15 +342,23 @@ export default function SongManagementPage() {
               isLoading={isLoading}
               isFetching={isFetching}
               errorMessage={errorMessage}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={(nextSortBy, nextSortOrder) => {
+                setSortBy(nextSortBy);
+                setSortOrder(nextSortOrder);
+                setPage(1);
+              }}
               page={page}
               totalPages={totalPages}
               onPageChange={setPage}
               statusPendingSongId={statusPendingSongId}
               deletePendingSongId={deletePendingSongId}
-              bulkPending={bulkPending}
               onToggleStatus={handleToggleStatus}
               onDelete={handleDelete}
-              onBulkAction={handleBulkAction}
+              onViewSong={(song) => router.push(`/dashboard/songs/${song.id}`)}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
             />
           </DataTableCard>
         ) : null}

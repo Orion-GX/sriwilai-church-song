@@ -2,6 +2,7 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -80,4 +81,22 @@ export class ListAdminSongsQueryDto {
   })
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsIn(['title', 'viewCount', 'createdAt'])
+  sortBy?: 'title' | 'viewCount' | 'createdAt';
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    if (typeof value !== 'string') {
+      return value;
+    }
+    const normalized = value.trim().toUpperCase();
+    return normalized === 'ASC' || normalized === 'DESC' ? normalized : value;
+  })
+  @IsIn(['ASC', 'DESC'])
+  sortOrder?: 'ASC' | 'DESC';
 }

@@ -29,3 +29,7 @@ export async function updateMyProfile(
     body: JSON.stringify(payload),
   });
 }
+
+export async function fetchUserById(id: string): Promise<UserProfile> {
+  return apiFetch<UserProfile>(`/app/users/${id}`);
+}

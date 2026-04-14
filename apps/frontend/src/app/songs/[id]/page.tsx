@@ -75,7 +75,7 @@ export default function SongDetailPage() {
                 <div className="flex w-full flex-wrap items-center gap-2 self-start sm:w-auto sm:justify-end">
                   {accessToken ? (
                     <Link
-                      href={`/dashboard/songs/${data.id}/edit`}
+                      href={`/dashboard/songs/${data.id}?mode=edit`}
                       className={buttonClassName("outline", "sm")}
                       data-testid="song-link-edit"
                     >

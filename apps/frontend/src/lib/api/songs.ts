@@ -13,9 +13,13 @@ export type ListSongsParams = {
   limit?: number;
   churchId?: string;
   categorySlug?: string;
+  categoryCode?: string;
   tagSlugs?: string[];
+  tagCodes?: string[];
   q?: string;
   isPublished?: boolean;
+  sortBy?: "title" | "viewCount" | "createdAt";
+  sortOrder?: "ASC" | "DESC";
 };
 
 function toQuery(p: ListSongsParams): string {
@@ -23,10 +27,14 @@ function toQuery(p: ListSongsParams): string {
   if (p.page != null) q.set("page", String(p.page));
   if (p.limit != null) q.set("limit", String(p.limit));
   if (p.churchId) q.set("churchId", p.churchId);
-  if (p.categorySlug) q.set("categorySlug", p.categorySlug);
-  if (p.tagSlugs?.length) q.set("tagSlugs", p.tagSlugs.join(","));
+  if (p.categoryCode) q.set("categoryCode", p.categoryCode);
+  else if (p.categorySlug) q.set("categorySlug", p.categorySlug);
+  if (p.tagCodes?.length) q.set("tagCodes", p.tagCodes.join(","));
+  else if (p.tagSlugs?.length) q.set("tagSlugs", p.tagSlugs.join(","));
   if (p.q) q.set("q", p.q);
   if (p.isPublished != null) q.set("isPublished", String(p.isPublished));
+  if (p.sortBy) q.set("sortBy", p.sortBy);
+  if (p.sortOrder) q.set("sortOrder", p.sortOrder);
   const s = q.toString();
   return s ? `?${s}` : "";
 }

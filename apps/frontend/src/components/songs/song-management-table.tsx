@@ -3,12 +3,7 @@
 import { SongRowActions } from "@/components/songs/song-row-actions";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -26,7 +21,7 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { ChevronDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import * as React from "react";
 
 type SongManagementTableProps = {
@@ -34,18 +29,22 @@ type SongManagementTableProps = {
   isLoading: boolean;
   isFetching?: boolean;
   errorMessage?: string | null;
+  sortBy: "title" | "viewCount" | null;
+  sortOrder: "ASC" | "DESC" | null;
+  onSortChange: (
+    sortBy: "title" | "viewCount" | null,
+    sortOrder: "ASC" | "DESC" | null,
+  ) => void;
   page: number;
   totalPages: number;
   onPageChange: (nextPage: number) => void;
   statusPendingSongId?: string | null;
   deletePendingSongId?: string | null;
-  bulkPending?: boolean;
   onToggleStatus: (song: SongListItem) => void;
   onDelete: (song: SongListItem) => void;
-  onBulkAction: (
-    action: "PUBLISH" | "UNPUBLISH" | "DELETE",
-    songs: SongListItem[],
-  ) => void;
+  onViewSong: (song: SongListItem) => void;
+  rowSelection: Record<string, boolean>;
+  onRowSelectionChange: (next: Record<string, boolean>) => void;
 };
 
 export function SongManagementTable({
@@ -53,53 +52,97 @@ export function SongManagementTable({
   isLoading,
   isFetching = false,
   errorMessage,
+  sortBy,
+  sortOrder,
+  onSortChange,
   page,
   totalPages,
   onPageChange,
   statusPendingSongId,
   deletePendingSongId,
-  bulkPending = false,
   onToggleStatus,
   onDelete,
-  onBulkAction,
+  onViewSong,
+  rowSelection,
+  onRowSelectionChange,
 }: SongManagementTableProps) {
-  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>(
-    {},
+  const toggleSort = React.useCallback(
+    (column: "title" | "viewCount") => {
+      if (sortBy !== column) {
+        onSortChange(column, "ASC");
+        return;
+      }
+      if (sortOrder === "ASC") {
+        onSortChange(column, "DESC");
+        return;
+      }
+      if (sortOrder === "DESC") {
+        onSortChange(null, null);
+        return;
+      }
+      onSortChange(column, "ASC");
+    },
+    [onSortChange, sortBy, sortOrder],
   );
-
-  React.useEffect(() => {
-    setRowSelection({});
-  }, [items, page]);
 
   const columns = React.useMemo<ColumnDef<SongListItem>[]>(
     () => [
       {
         id: "select",
         header: ({ table }) => (
-          <input
-            type="checkbox"
+          <Checkbox
             aria-label="เลือกทั้งหมด"
-            className="h-4 w-4 accent-primary"
-            checked={table.getIsAllPageRowsSelected()}
-            onChange={(event) => table.toggleAllPageRowsSelected(event.target.checked)}
+            checked={
+              table.getIsAllPageRowsSelected()
+                ? true
+                : table.getIsSomePageRowsSelected()
+                  ? "indeterminate"
+                  : false
+            }
+            onCheckedChange={(checked) =>
+              table.toggleAllPageRowsSelected(checked === true)
+            }
           />
         ),
         cell: ({ row }) => (
-          <input
-            type="checkbox"
+          <Checkbox
             aria-label={`เลือกเพลง ${row.original.title}`}
-            className="h-4 w-4 accent-primary"
             checked={row.getIsSelected()}
-            onChange={(event) => row.toggleSelected(event.target.checked)}
+            onCheckedChange={(checked) => row.toggleSelected(checked === true)}
           />
         ),
       },
       {
         accessorKey: "title",
-        header: "ชื่อเพลง",
+        header: () => (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-left font-semibold"
+            onClick={() => toggleSort("title")}
+            data-testid="song-admin-sort-title"
+          >
+            ชื่อเพลง
+            <span className="text-xs text-muted-foreground">
+              {sortBy === "title" && sortOrder === "ASC"
+                ? "↑"
+                : sortBy === "title" && sortOrder === "DESC"
+                  ? "↓"
+                  : "↕"}
+            </span>
+          </button>
+        ),
         cell: ({ row }) => (
           <span className="line-clamp-1 max-w-[280px] font-medium">
             {row.original.title}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "originalKey",
+        header: "คีย์",
+        cell: ({ row }) => (
+          <span className="line-clamp-1 max-w-[280px] font-medium">
+            {row.original.originalKey}
           </span>
         ),
       },
@@ -125,7 +168,25 @@ export function SongManagementTable({
       },
       {
         accessorKey: "viewCount",
-        header: () => <div className="text-right">ยอดดู</div>,
+        header: () => (
+          <div className="text-right">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-right font-semibold"
+              onClick={() => toggleSort("viewCount")}
+              data-testid="song-admin-sort-view-count"
+            >
+              ยอดดู
+              <span className="text-xs text-muted-foreground">
+                {sortBy === "viewCount" && sortOrder === "ASC"
+                  ? "↑"
+                  : sortBy === "viewCount" && sortOrder === "DESC"
+                    ? "↓"
+                    : "↕"}
+              </span>
+            </button>
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="text-right text-muted-foreground">
             {row.original.viewCount.toLocaleString()}
@@ -160,7 +221,15 @@ export function SongManagementTable({
         ),
       },
     ],
-    [deletePendingSongId, onDelete, onToggleStatus, statusPendingSongId],
+    [
+      deletePendingSongId,
+      onDelete,
+      onToggleStatus,
+      statusPendingSongId,
+      sortBy,
+      sortOrder,
+      toggleSort,
+    ],
   );
 
   const table = useReactTable({
@@ -168,14 +237,14 @@ export function SongManagementTable({
     columns,
     getRowId: (row) => row.id,
     state: { rowSelection },
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      onRowSelectionChange(next);
+    },
     enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
   });
-
-  const selectedSongs = table
-    .getSelectedRowModel()
-    .rows.map((row) => row.original);
 
   if (isLoading) {
     return (
@@ -210,49 +279,10 @@ export function SongManagementTable({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <p className="text-sm text-muted-foreground">
-          เลือกแล้ว {selectedSongs.length} รายการ
-        </p>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={buttonClassName("outline", "sm")}
-              disabled={selectedSongs.length === 0 || bulkPending}
-              data-testid="song-admin-bulk-action-trigger"
-            >
-              Bulk Action
-              <ChevronDown aria-hidden className="ml-2 h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem
-              onClick={() => onBulkAction("PUBLISH", selectedSongs)}
-              data-testid="song-admin-bulk-publish"
-            >
-              เปิดใช้งานที่เลือก
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onBulkAction("UNPUBLISH", selectedSongs)}
-              data-testid="song-admin-bulk-unpublish"
-            >
-              ปิดใช้งานที่เลือก
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onBulkAction("DELETE", selectedSongs)}
-              className="text-destructive focus:text-destructive"
-              data-testid="song-admin-bulk-delete"
-            >
-              ลบที่เลือก
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
       <Table data-testid="song-admin-table">
-        <TableHeader>
+        <TableHeader className="[&_tr]:border-0">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="border-0 hover:bg-transparent">
               {headerGroup.headers.map((header) => (
                 <TableHead key={header.id}>
                   {header.isPlaceholder
@@ -270,7 +300,19 @@ export function SongManagementTable({
           {table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.original.id}
+              className="border-0"
               data-testid={`song-admin-row-${row.original.id}`}
+              onClick={(event) => {
+                const target = event.target as HTMLElement;
+                if (
+                  target.closest(
+                    'button, a, input, [role="checkbox"], [data-row-ignore-click="true"]',
+                  )
+                ) {
+                  return;
+                }
+                onViewSong(row.original);
+              }}
             >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
@@ -281,7 +323,7 @@ export function SongManagementTable({
           ))}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-between border-t border-border p-4">
+      <div className="flex items-center justify-between p-4">
         <p className="text-sm text-muted-foreground">
           หน้า {page} จาก {totalPages}
         </p>

@@ -121,6 +121,10 @@ type SongEditorFormProps = {
   initialCoverImageUrl?: string | null;
   /** ใช้เมื่อหน้าใส่ SectionHeader แล้ว — ซ่อนหัวการ์ดซ้ำ */
   hideCardHeader?: boolean;
+  /** โหมดอ่านอย่างเดียว: แสดงค่าเดิมทั้งหมด แต่แก้ไขไม่ได้ */
+  readOnly?: boolean;
+  /** ข้อความเสริมด้านบนฟอร์มสำหรับโหมดอ่านอย่างเดียว */
+  readOnlyNote?: string;
 };
 
 const CHORDPRO_PLACEHOLDER = `{intro: [Gmaj7] / [Cmaj7] x2}
@@ -144,6 +148,8 @@ export function SongEditorForm({
   initialTimeSignature = null,
   initialCoverImageUrl = null,
   hideCardHeader = false,
+  readOnly = false,
+  readOnlyNote,
 }: SongEditorFormProps) {
   type EditorVersion = {
     id?: string;
@@ -346,6 +352,7 @@ export function SongEditorForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (readOnly) return;
     setError(null);
     setLoading(true);
     try {
@@ -416,16 +423,22 @@ export function SongEditorForm({
         </CardHeader>
       ) : null}
       <form onSubmit={onSubmit}>
-        <CardContent
-          className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}
-        >
-          {error ? (
-            <FormErrorBanner data-testid="song-editor-error">
-              {error}
-            </FormErrorBanner>
-          ) : null}
+        <fieldset disabled={readOnly}>
+          <CardContent
+            className={hideCardHeader ? "space-y-4 pt-5" : "space-y-4"}
+          >
+            {readOnly && readOnlyNote ? (
+              <FormErrorBanner data-testid="song-editor-readonly-note">
+                {readOnlyNote}
+              </FormErrorBanner>
+            ) : null}
+            {error ? (
+              <FormErrorBanner data-testid="song-editor-error">
+                {error}
+              </FormErrorBanner>
+            ) : null}
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
             <div className="space-y-4">
               <Card>
                 <CardHeader className="pb-4">
@@ -823,24 +836,27 @@ export function SongEditorForm({
             </Card>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/dashboard/songs")}
-              data-testid="song-cancel"
-            >
-              ยกเลิก
-            </Button>
-            <Button type="submit" disabled={loading} data-testid="song-submit">
-              {loading
-                ? mode === "create"
-                  ? "กำลังสร้าง…"
-                  : "กำลังบันทึก…"
-                : "บันทึก"}
-            </Button>
-          </div>
-        </CardContent>
+            {!readOnly ? (
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/songs")}
+                  data-testid="song-cancel"
+                >
+                  ยกเลิก
+                </Button>
+                <Button type="submit" disabled={loading} data-testid="song-submit">
+                  {loading
+                    ? mode === "create"
+                      ? "กำลังสร้าง…"
+                      : "กำลังบันทึก…"
+                    : "บันทึก"}
+                </Button>
+              </div>
+            ) : null}
+          </CardContent>
+        </fieldset>
       </form>
     </Card>
   );
