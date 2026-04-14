@@ -151,3 +151,9 @@ apps/backend/.env.*
 !apps/backend/.env.example
 !apps/backend/.env.test.example
 !.env.example
+
+# Cursor files
+.cursor/
+
+# DS_Store
+*.DS_Store
