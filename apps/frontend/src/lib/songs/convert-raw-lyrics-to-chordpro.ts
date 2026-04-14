@@ -20,7 +20,8 @@ const LYRIC_PREFIX_RE = /^(\s*(?:\d+|[A-Za-z])\s*:\s*)/;
 function detectChordHits(line: string): ChordHit[] {
   const hits: ChordHit[] = [];
   const re = /(^|\s)([A-G](?:#|b)?[A-Za-z0-9#b]*(?:\/[A-G](?:#|b)?)?)(?=\s|$)/g;
-  for (const match of line.matchAll(re)) {
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(line)) !== null) {
     const token = (match[2] ?? "").trim();
     if (!token || !CHORD_SYMBOL_RE.test(token)) continue;
     const full = match[0] ?? token;

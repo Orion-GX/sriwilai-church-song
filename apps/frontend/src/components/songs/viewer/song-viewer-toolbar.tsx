@@ -89,7 +89,7 @@ export function SongViewerToolbar({
             className={cn(
               "relative inline-flex h-6 w-11 items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               showChords
-                ? "border-primary bg-primary/30"
+                ? "border-primary bg-primary"
                 : "border-input bg-muted",
             )}
             onClick={() => onShowChordsChange(!showChords)}
@@ -97,8 +97,10 @@ export function SongViewerToolbar({
           >
             <span
               className={cn(
-                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow transition-transform",
-                showChords ? "translate-x-5" : "translate-x-0.5",
+                "pointer-events-none inline-block h-5 w-5 transform rounded-full shadow transition-transform",
+                showChords
+                  ? "translate-x-5 bg-primary-foreground"
+                  : "translate-x-0.5 bg-background",
               )}
               aria-hidden
             />

@@ -39,6 +39,20 @@ import * as React from "react";
 
 const CATEGORY_NONE = "__none__";
 const EMPTY_TAG_SLUGS: string[] = [];
+const PASTEL_TAG_BUTTON_CLASSES = [
+  "bg-primary-input text-foreground ring-1 ring-outline-variant/20 hover:bg-accent/70",
+  "bg-accent/70 text-foreground ring-1 ring-outline-variant/20 hover:bg-accent",
+  "bg-secondary-container/50 text-secondary ring-1 ring-secondary/15 hover:bg-secondary-container/70",
+  "bg-muted text-foreground ring-1 ring-outline-variant/20 hover:bg-surface-high",
+] as const;
+
+function getPastelTagButtonClass(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return PASTEL_TAG_BUTTON_CLASSES[hash % PASTEL_TAG_BUTTON_CLASSES.length];
+}
 
 const MUSIC_KEYS = [
   "C",
@@ -102,6 +116,15 @@ type SongEditorFormProps = {
   /** ใช้เมื่อหน้าใส่ SectionHeader แล้ว — ซ่อนหัวการ์ดซ้ำ */
   hideCardHeader?: boolean;
 };
+
+const CHORDPRO_PLACEHOLDER = `{intro: [Gmaj7] / [Cmaj7] x2}
+{verse: 1}
+[Gmaj7]ทุกวันเวลา ข้าอยากอยู่ใกล้[Cmaj7]ชิดพระองค์
+[Gmaj7]ทุกวันเวลา อยู่ในความ[Cmaj7]รักของพระองค์
+{chorus: 1}
+[Gmaj7]ทุกวันเวลา [Cmaj7]ข้าอยากอยู่ใกล้ชิดพระองค์ [D][G]
+[Gmaj7]ทุกวันเวลา [Cmaj7]อยู่ในความรักของพระองค์ [D][G]
+{outro: [Gmaj7] / [Cmaj7] x2}`;
 
 export function SongEditorForm({
   mode,
@@ -311,7 +334,12 @@ export function SongEditorForm({
             </FormErrorBanner>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="song-title">ชื่อเพลง</Label>
+            <Label
+              className="text-sm font-semibold text-primary"
+              htmlFor="song-title"
+            >
+              ชื่อเพลง
+            </Label>
             <Input
               id="song-title"
               value={title}
@@ -323,7 +351,12 @@ export function SongEditorForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="song-category">กลุ่ม / หมวดหมู่</Label>
+            <Label
+              className="text-sm font-semibold text-primary"
+              htmlFor="song-category"
+            >
+              กลุ่ม / หมวดหมู่
+            </Label>
             {categoriesLoading ? (
               <Skeleton className="h-10 w-full max-w-md rounded-lg" />
             ) : (
@@ -362,7 +395,12 @@ export function SongEditorForm({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="song-original-key">Original Key</Label>
+              <Label
+                className="text-sm font-semibold text-primary"
+                htmlFor="song-original-key"
+              >
+                คีย์
+              </Label>
               <Select
                 value={originalKey || "__none__"}
                 onValueChange={(v) => setOriginalKey(v === "__none__" ? "" : v)}
@@ -386,7 +424,12 @@ export function SongEditorForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="song-tempo">Tempo (BPM)</Label>
+              <Label
+                className="text-sm font-semibold text-primary"
+                htmlFor="song-tempo"
+              >
+                ความเร็ว (BPM)
+              </Label>
               <Input
                 id="song-tempo"
                 type="number"
@@ -400,7 +443,12 @@ export function SongEditorForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="song-time-signature">Time Signature</Label>
+              <Label
+                className="text-sm font-semibold text-primary"
+                htmlFor="song-time-signature"
+              >
+                Time Signature
+              </Label>
               <Select
                 value={timeSignature || "__none__"}
                 onValueChange={(v) =>
@@ -427,17 +475,24 @@ export function SongEditorForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="song-tags-input">แท็ก</Label>
+            <Label
+              htmlFor="song-tags-input"
+              className="text-sm font-semibold text-primary"
+            >
+              แท็ก
+            </Label>
             <div className="flex flex-wrap gap-2">
               {tagSlugs.map((slug) => (
                 <span
                   key={slug}
-                  className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-sm"
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-sm ${getPastelTagButtonClass(
+                    slug,
+                  )}`}
                 >
                   <span>{tagCatalogBySlug.get(slug) ?? slug}</span>
                   <button
                     type="button"
-                    className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                    className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
                     aria-label={`ลบแท็ก ${slug}`}
                     onClick={() => removeTag(slug)}
                   >
@@ -445,11 +500,11 @@ export function SongEditorForm({
                   </button>
                 </span>
               ))}
-              {tagSlugs.length === 0 ? (
+              {/* {tagSlugs.length === 0 ? (
                 <span className="text-sm text-muted-foreground">
                   ยังไม่มีแท็ก
                 </span>
-              ) : null}
+              ) : null} */}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
               <Input
@@ -466,12 +521,12 @@ export function SongEditorForm({
                   }
                 }}
                 placeholder="เช่น praise, worship"
-                className="max-w-md"
+                className="max-w-md text-sm font-normal"
                 data-testid="song-input-tag-draft"
               />
               <Button
                 type="button"
-                variant="secondary"
+                variant="primary"
                 className="shrink-0"
                 onClick={addTagFromDraft}
                 data-testid="song-add-tag"
@@ -486,9 +541,9 @@ export function SongEditorForm({
             ) : null}
             {suggestedTags.length > 0 ? (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">
+                {/* <p className="text-xs font-medium text-muted-foreground">
                   เลือกจากแท็กที่มีในระบบ
-                </p>
+                </p> */}
                 <div className="flex flex-wrap gap-1.5">
                   {suggestedTags.map((t) => (
                     <Button
@@ -496,7 +551,7 @@ export function SongEditorForm({
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="h-8 text-xs"
+                      className={`h-8 text-xs ${getPastelTagButtonClass(t.slug)}`}
                       onClick={() => addTagSlug(t.slug)}
                       data-testid={`song-suggest-tag-${t.slug}`}
                     >
@@ -550,7 +605,7 @@ export function SongEditorForm({
             <div className="flex flex-wrap items-center gap-2">
               <Label
                 htmlFor="song-version-name"
-                className="text-xs text-muted-foreground"
+                className="text-xs font-semibold text-primary"
               >
                 คอร์ดเพลง
               </Label>
@@ -580,8 +635,9 @@ export function SongEditorForm({
               required
               minLength={1}
               rows={14}
-              className="font-mono text-sm"
+              className="font-mono text-sm placeholder:text-muted-foreground"
               data-testid="song-input-chordpro"
+              placeholder={CHORDPRO_PLACEHOLDER}
             />
           </div>
           <Button type="submit" disabled={loading} data-testid="song-submit">

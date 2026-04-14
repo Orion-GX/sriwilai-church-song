@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -138,6 +138,11 @@ export function usePresentationMode(initialLayout: SetlistPresentationLayout = "
   const [fontScale, setFontScale] = useState(1);
   const [showChords, setShowChords] = useState(true);
   const [showMetadata, setShowMetadata] = useState(true);
+
+  useEffect(() => {
+    setLayout(initialLayout);
+  }, [initialLayout]);
+
   return {
     isOpen,
     layout,

@@ -11,6 +11,9 @@ export default function PublicSetlistPage({
   params: { slug: string };
 }) {
   const query = usePublicSetlist(params.slug);
+  const presentation = usePresentationMode(
+    query.data?.presentationLayout ?? "vertical",
+  );
 
   if (query.isLoading) {
     return (
@@ -33,8 +36,6 @@ export default function PublicSetlistPage({
 
   const setlist = query.data;
   const songs = [...setlist.songs].sort((a, b) => a.order - b.order);
-  const presentation = usePresentationMode(setlist.presentationLayout);
-
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-5">
       <header>
