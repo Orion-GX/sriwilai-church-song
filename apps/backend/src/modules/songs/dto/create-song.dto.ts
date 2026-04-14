@@ -70,4 +70,9 @@ export class CreateSongDto {
   @IsString()
   @MaxLength(16)
   timeSignature?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2_000_000)
+  coverImageUrl?: string;
 }

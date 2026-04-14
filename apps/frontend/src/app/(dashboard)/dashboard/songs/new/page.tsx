@@ -15,7 +15,7 @@ export default function NewSongPage() {
       <SetDashboardTitle title="สร้างเพลง" />
       <PageContainer
         constrained={false}
-        className="max-w-4xl"
+        className="max-w-[1280px]"
         data-testid="page-song-new"
       >
         <SectionHeader

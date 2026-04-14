@@ -54,6 +54,9 @@ export class SongEntity {
   @Column({ name: 'time_signature', type: 'varchar', length: 16, nullable: true })
   timeSignature!: string | null;
 
+  @Column({ name: 'cover_image_url', type: 'text', nullable: true })
+  coverImageUrl!: string | null;
+
   @Index('idx_songs_category')
   @Column({ name: 'category_id', type: 'uuid', nullable: true })
   categoryId!: string | null;

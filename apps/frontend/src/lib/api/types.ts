@@ -68,6 +68,7 @@ export type SongListItem = {
   slug: string;
   churchId: string | null;
   originalKey: string | null;
+  coverImageUrl: string | null;
   isPublished: boolean;
   category: SongCategorySnippet | null;
   tags: SongTagSnippet[];
@@ -83,6 +84,7 @@ export type SongDetail = SongListItem & {
   originalKey: string | null;
   tempo: number | null;
   timeSignature: string | null;
+  coverImageUrl: string | null;
   createdBy: string | null;
   updatedBy: string | null;
 };

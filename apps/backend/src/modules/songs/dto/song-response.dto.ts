@@ -19,6 +19,7 @@ export class SongPublicListItemDto {
   slug!: string;
   churchId!: string | null;
   originalKey!: string | null;
+  coverImageUrl!: string | null;
   visibility!: SongEntity['visibility'];
   isPublished!: boolean;
   category!: SongCategorySnippetDto | null;
@@ -34,6 +35,7 @@ export class SongPublicListItemDto {
     dto.slug = row.slug;
     dto.churchId = row.churchId;
     dto.originalKey = row.originalKey ?? null;
+    dto.coverImageUrl = row.coverImageUrl ?? null;
     dto.visibility = row.visibility;
     dto.isPublished = row.isPublished;
     dto.category = row.category
@@ -53,6 +55,7 @@ export class SongPublicDetailDto extends SongPublicListItemDto {
   originalKey!: string | null;
   tempo!: number | null;
   timeSignature!: string | null;
+  coverImageUrl!: string | null;
 
   static fromEntity(row: SongEntity, opts?: { viewCount?: number }): SongPublicDetailDto {
     const list = SongPublicListItemDto.fromEntity(row, opts);
@@ -74,6 +77,7 @@ export class SongPublicDetailDto extends SongPublicListItemDto {
     dto.originalKey = row.originalKey ?? null;
     dto.tempo = row.tempo ?? null;
     dto.timeSignature = row.timeSignature ?? null;
+    dto.coverImageUrl = row.coverImageUrl ?? null;
     return dto;
   }
 }
@@ -103,6 +107,7 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
   originalKey!: string | null;
   tempo!: number | null;
   timeSignature!: string | null;
+  coverImageUrl!: string | null;
   createdBy!: string | null;
   updatedBy!: string | null;
 
@@ -125,6 +130,7 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
     dto.originalKey = row.originalKey ?? null;
     dto.tempo = row.tempo ?? null;
     dto.timeSignature = row.timeSignature ?? null;
+    dto.coverImageUrl = row.coverImageUrl ?? null;
     dto.createdBy = row.createdBy;
     dto.updatedBy = row.updatedBy;
     return dto;

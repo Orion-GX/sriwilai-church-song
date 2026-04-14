@@ -79,4 +79,10 @@ export class UpdateSongDto {
   @IsString()
   @MaxLength(16)
   timeSignature?: string | null;
+
+  @IsOptional()
+  @ValidateIf((_: unknown, v: unknown) => v !== null && v !== undefined)
+  @IsString()
+  @MaxLength(2_000_000)
+  coverImageUrl?: string | null;
 }

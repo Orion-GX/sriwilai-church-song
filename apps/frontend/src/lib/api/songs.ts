@@ -77,6 +77,7 @@ export type CreateSongPayload = {
   originalKey?: string;
   tempo?: number;
   timeSignature?: string;
+  coverImageUrl?: string;
   versions?: Array<{
     id?: string;
     code: "th" | "en" | "custom";
@@ -101,6 +102,7 @@ export async function createSong(payload: CreateSongPayload): Promise<SongDetail
       ...(payload.originalKey ? { originalKey: payload.originalKey } : {}),
       ...(payload.tempo != null ? { tempo: payload.tempo } : {}),
       ...(payload.timeSignature ? { timeSignature: payload.timeSignature } : {}),
+      ...(payload.coverImageUrl ? { coverImageUrl: payload.coverImageUrl } : {}),
       ...(payload.versions?.length ? { versions: payload.versions } : {}),
     }),
   });
@@ -116,6 +118,7 @@ export type UpdateSongPayload = {
   originalKey?: string | null;
   tempo?: number | null;
   timeSignature?: string | null;
+  coverImageUrl?: string | null;
   versions?: Array<{
     id?: string;
     code: "th" | "en" | "custom";

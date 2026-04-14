@@ -33,7 +33,7 @@ import {
 import type { SongCategorySnippet, SongVersion } from "@/lib/api/types";
 import { slugifySongTag } from "@/lib/songs/tag-slug";
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { ImagePlus, Trash2, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -113,6 +113,7 @@ type SongEditorFormProps = {
   initialOriginalKey?: string | null;
   initialTempo?: number | null;
   initialTimeSignature?: string | null;
+  initialCoverImageUrl?: string | null;
   /** ใช้เมื่อหน้าใส่ SectionHeader แล้ว — ซ่อนหัวการ์ดซ้ำ */
   hideCardHeader?: boolean;
 };
@@ -136,6 +137,7 @@ export function SongEditorForm({
   initialOriginalKey = null,
   initialTempo = null,
   initialTimeSignature = null,
+  initialCoverImageUrl = null,
   hideCardHeader = false,
 }: SongEditorFormProps) {
   type EditorVersion = {
@@ -175,6 +177,12 @@ export function SongEditorForm({
   const [timeSignature, setTimeSignature] = React.useState<string>(
     initialTimeSignature ?? "",
   );
+  const [coverImageUrl, setCoverImageUrl] = React.useState<string>(
+    initialCoverImageUrl ?? "",
+  );
+  const [coverFieldError, setCoverFieldError] = React.useState<string | null>(
+    null,
+  );
   const [tagSlugs, setTagSlugs] = React.useState<string[]>(initialTagSlugs);
   const [tagDraft, setTagDraft] = React.useState("");
   const [tagFieldError, setTagFieldError] = React.useState<string | null>(null);
@@ -183,6 +191,7 @@ export function SongEditorForm({
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const coverInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["songCategoriesCatalog"],
@@ -216,6 +225,8 @@ export function SongEditorForm({
     setOriginalKey(initialOriginalKey ?? "");
     setTempo(initialTempo != null ? String(initialTempo) : "");
     setTimeSignature(initialTimeSignature ?? "");
+    setCoverImageUrl(initialCoverImageUrl ?? "");
+    setCoverFieldError(null);
   }, [
     initialTitle,
     initialChordpro,
@@ -224,8 +235,50 @@ export function SongEditorForm({
     initialOriginalKey,
     initialTempo,
     initialTimeSignature,
+    initialCoverImageUrl,
     createFallbackVersion,
   ]);
+
+  function openCoverPicker() {
+    setCoverFieldError(null);
+    coverInputRef.current?.click();
+  }
+
+  function clearCoverImage() {
+    setCoverFieldError(null);
+    setCoverImageUrl("");
+  }
+
+  function handleCoverFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setCoverFieldError("รองรับเฉพาะไฟล์รูปภาพ");
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setCoverFieldError("ขนาดรูปต้องไม่เกิน 3MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      if (!result) {
+        setCoverFieldError("ไม่สามารถอ่านไฟล์รูปได้");
+        return;
+      }
+      setCoverFieldError(null);
+      setCoverImageUrl(result);
+    };
+    reader.onerror = () => {
+      setCoverFieldError("ไม่สามารถอ่านไฟล์รูปได้");
+    };
+    reader.readAsDataURL(file);
+  }
 
   function addTagSlug(slug: string) {
     setTagFieldError(null);
@@ -264,6 +317,7 @@ export function SongEditorForm({
     setLoading(true);
     try {
       const parsedTempo = tempo.trim() ? Number(tempo) : null;
+      const normalizedCoverImageUrl = coverImageUrl.trim();
       if (mode === "create") {
         await createSong({
           title,
@@ -274,6 +328,9 @@ export function SongEditorForm({
           ...(originalKey ? { originalKey } : {}),
           ...(parsedTempo != null ? { tempo: parsedTempo } : {}),
           ...(timeSignature ? { timeSignature } : {}),
+          ...(normalizedCoverImageUrl
+            ? { coverImageUrl: normalizedCoverImageUrl }
+            : {}),
         });
         router.push(`/dashboard/songs`);
       } else if (songId) {
@@ -285,6 +342,7 @@ export function SongEditorForm({
           originalKey: originalKey || null,
           tempo: parsedTempo,
           timeSignature: timeSignature || null,
+          coverImageUrl: normalizedCoverImageUrl || null,
         });
         router.push(`/dashboard/songs`);
       }
@@ -313,7 +371,7 @@ export function SongEditorForm({
       : CATEGORY_NONE;
 
   return (
-    <Card className="mx-auto w-full max-w-3xl" data-testid="song-editor-form">
+    <Card className="mx-auto w-full max-w-none" data-testid="song-editor-form">
       {!hideCardHeader ? (
         <CardHeader>
           <CardTitle>
@@ -333,322 +391,420 @@ export function SongEditorForm({
               {error}
             </FormErrorBanner>
           ) : null}
-          <div className="space-y-2">
-            <Label
-              className="text-sm font-semibold text-primary"
-              htmlFor="song-title"
-            >
-              ชื่อเพลง
-            </Label>
-            <Input
-              id="song-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              minLength={1}
-              data-testid="song-input-title"
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label
-              className="text-sm font-semibold text-primary"
-              htmlFor="song-category"
-            >
-              กลุ่ม / หมวดหมู่
-            </Label>
-            {categoriesLoading ? (
-              <Skeleton className="h-10 w-full max-w-md rounded-lg" />
-            ) : (
-              <Select
-                value={categorySelectValue}
-                onValueChange={(v) =>
-                  setCategoryId(v === CATEGORY_NONE ? null : v)
-                }
-              >
-                <SelectTrigger
-                  id="song-category"
-                  className="w-full max-w-md"
-                  data-testid="song-category-select"
-                >
-                  <SelectValue placeholder="เลือกหมวด" />
-                </SelectTrigger>
-                <SelectContent position="popper" align="start" sideOffset={4}>
-                  <SelectItem value={CATEGORY_NONE}>ไม่ระบุกลุ่ม</SelectItem>
-                  {orphanCategory ? (
-                    <SelectItem value={orphanCategory.id}>
-                      {orphanCategory.name}
-                    </SelectItem>
-                  ) : null}
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <p className="text-xs text-muted-foreground">
-              จัดกลุ่มเพลงในหมวดเดียวกันเพื่อกรองหรือจัดรายการ
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label
-                className="text-sm font-semibold text-primary"
-                htmlFor="song-original-key"
-              >
-                คีย์
-              </Label>
-              <Select
-                value={originalKey || "__none__"}
-                onValueChange={(v) => setOriginalKey(v === "__none__" ? "" : v)}
-              >
-                <SelectTrigger
-                  id="song-original-key"
-                  className="w-full"
-                  data-testid="song-original-key-select"
-                >
-                  <SelectValue placeholder="เลือกคีย์" />
-                </SelectTrigger>
-                <SelectContent position="popper" align="start" sideOffset={4}>
-                  <SelectItem value="__none__">ไม่ระบุ</SelectItem>
-                  {MUSIC_KEYS.map((k) => (
-                    <SelectItem key={k} value={k}>
-                      {k}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                className="text-sm font-semibold text-primary"
-                htmlFor="song-tempo"
-              >
-                ความเร็ว (BPM)
-              </Label>
-              <Input
-                id="song-tempo"
-                type="number"
-                min={20}
-                max={300}
-                placeholder="เช่น 120"
-                value={tempo}
-                onChange={(e) => setTempo(e.target.value)}
-                data-testid="song-input-tempo"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                className="text-sm font-semibold text-primary"
-                htmlFor="song-time-signature"
-              >
-                Time Signature
-              </Label>
-              <Select
-                value={timeSignature || "__none__"}
-                onValueChange={(v) =>
-                  setTimeSignature(v === "__none__" ? "" : v)
-                }
-              >
-                <SelectTrigger
-                  id="song-time-signature"
-                  className="w-full"
-                  data-testid="song-time-signature-select"
-                >
-                  <SelectValue placeholder="เลือก Time Signature" />
-                </SelectTrigger>
-                <SelectContent position="popper" align="start" sideOffset={4}>
-                  <SelectItem value="__none__">ไม่ระบุ</SelectItem>
-                  {TIME_SIGNATURES.map((ts) => (
-                    <SelectItem key={ts} value={ts}>
-                      {ts}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="song-tags-input"
-              className="text-sm font-semibold text-primary"
-            >
-              แท็ก
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              {tagSlugs.map((slug) => (
-                <span
-                  key={slug}
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-sm ${getPastelTagButtonClass(
-                    slug,
-                  )}`}
-                >
-                  <span>{tagCatalogBySlug.get(slug) ?? slug}</span>
-                  <button
-                    type="button"
-                    className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
-                    aria-label={`ลบแท็ก ${slug}`}
-                    onClick={() => removeTag(slug)}
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                </span>
-              ))}
-              {/* {tagSlugs.length === 0 ? (
-                <span className="text-sm text-muted-foreground">
-                  ยังไม่มีแท็ก
-                </span>
-              ) : null} */}
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-              <Input
-                id="song-tags-input"
-                value={tagDraft}
-                onChange={(e) => {
-                  setTagDraft(e.target.value);
-                  setTagFieldError(null);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addTagFromDraft();
-                  }
-                }}
-                placeholder="เช่น praise, worship"
-                className="max-w-md text-sm font-normal"
-                data-testid="song-input-tag-draft"
-              />
-              <Button
-                type="button"
-                variant="primary"
-                className="shrink-0"
-                onClick={addTagFromDraft}
-                data-testid="song-add-tag"
-              >
-                เพิ่มแท็ก
-              </Button>
-            </div>
-            {tagFieldError ? (
-              <p className="text-sm text-destructive" role="alert">
-                {tagFieldError}
-              </p>
-            ) : null}
-            {suggestedTags.length > 0 ? (
-              <div className="space-y-1.5">
-                {/* <p className="text-xs font-medium text-muted-foreground">
-                  เลือกจากแท็กที่มีในระบบ
-                </p> */}
-                <div className="flex flex-wrap gap-1.5">
-                  {suggestedTags.map((t) => (
-                    <Button
-                      key={t.id}
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className={`h-8 text-xs ${getPastelTagButtonClass(t.slug)}`}
-                      onClick={() => addTagSlug(t.slug)}
-                      data-testid={`song-suggest-tag-${t.slug}`}
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base">Song Identity</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      className="text-sm font-semibold text-primary"
+                      htmlFor="song-title"
                     >
-                      + {t.name}
+                      ชื่อเพลง
+                    </Label>
+                    <Input
+                      id="song-title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                      minLength={1}
+                      data-testid="song-input-title"
+                      placeholder="e.g. Way Maker"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      className="text-sm font-semibold text-primary"
+                      htmlFor="song-category"
+                    >
+                      หมวดหมู่
+                    </Label>
+                    {categoriesLoading ? (
+                      <Skeleton className="h-10 w-full rounded-lg" />
+                    ) : (
+                      <Select
+                        value={categorySelectValue}
+                        onValueChange={(v) =>
+                          setCategoryId(v === CATEGORY_NONE ? null : v)
+                        }
+                      >
+                        <SelectTrigger
+                          id="song-category"
+                          className="w-full"
+                          data-testid="song-category-select"
+                        >
+                          <SelectValue placeholder="เลือกหมวด" />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          align="start"
+                          sideOffset={4}
+                        >
+                          <SelectItem value={CATEGORY_NONE}>
+                            ไม่ระบุกลุ่ม
+                          </SelectItem>
+                          {orphanCategory ? (
+                            <SelectItem value={orphanCategory.id}>
+                              {orphanCategory.name}
+                            </SelectItem>
+                          ) : null}
+                          {categories.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base">รายละเอียดเพลง</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                    <div className="space-y-2">
+                      <Label
+                        className="text-sm font-semibold text-primary"
+                        htmlFor="song-original-key"
+                      >
+                        คีย์
+                      </Label>
+                      <Select
+                        value={originalKey || "__none__"}
+                        onValueChange={(v) =>
+                          setOriginalKey(v === "__none__" ? "" : v)
+                        }
+                      >
+                        <SelectTrigger
+                          id="song-original-key"
+                          className="w-full"
+                          data-testid="song-original-key-select"
+                        >
+                          <SelectValue placeholder="เลือกคีย์" />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          align="start"
+                          sideOffset={4}
+                        >
+                          <SelectItem value="__none__">ไม่ระบุ</SelectItem>
+                          {MUSIC_KEYS.map((k) => (
+                            <SelectItem key={k} value={k}>
+                              {k}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        className="text-sm font-semibold text-primary"
+                        htmlFor="song-tempo"
+                      >
+                        ความเร็ว (BPM)
+                      </Label>
+                      <Input
+                        id="song-tempo"
+                        type="number"
+                        min={20}
+                        max={300}
+                        placeholder="72"
+                        value={tempo}
+                        onChange={(e) => setTempo(e.target.value)}
+                        data-testid="song-input-tempo"
+                      />
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2 xl:col-span-1">
+                      <Label
+                        className="text-sm font-semibold text-primary"
+                        htmlFor="song-time-signature"
+                      >
+                        Time Signature
+                      </Label>
+                      <Select
+                        value={timeSignature || "__none__"}
+                        onValueChange={(v) =>
+                          setTimeSignature(v === "__none__" ? "" : v)
+                        }
+                      >
+                        <SelectTrigger
+                          id="song-time-signature"
+                          className="w-full"
+                          data-testid="song-time-signature-select"
+                        >
+                          <SelectValue placeholder="เลือก Time Signature" />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          align="start"
+                          sideOffset={4}
+                        >
+                          <SelectItem value="__none__">ไม่ระบุ</SelectItem>
+                          {TIME_SIGNATURES.map((ts) => (
+                            <SelectItem key={ts} value={ts}>
+                              {ts}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base">กลุ่ม / หมวดหมู่</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="song-tags-input"
+                      className="text-sm font-semibold text-primary"
+                    >
+                      ป้ายกำกับ
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {tagSlugs.map((slug) => (
+                        <span
+                          key={slug}
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-sm ${getPastelTagButtonClass(
+                            slug,
+                          )}`}
+                        >
+                          <span>{tagCatalogBySlug.get(slug) ?? slug}</span>
+                          <button
+                            type="button"
+                            className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                            aria-label={`ลบแท็ก ${slug}`}
+                            onClick={() => removeTag(slug)}
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      <Input
+                        id="song-tags-input"
+                        value={tagDraft}
+                        onChange={(e) => {
+                          setTagDraft(e.target.value);
+                          setTagFieldError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addTagFromDraft();
+                          }
+                        }}
+                        placeholder="เช่น คริสตมาส, อีสเตอร์, ของพระคุณ.."
+                        className="w-full text-sm font-normal"
+                        data-testid="song-input-tag-draft"
+                      />
+                      <Button
+                        type="button"
+                        variant="primary"
+                        className="w-full"
+                        onClick={addTagFromDraft}
+                        data-testid="song-add-tag"
+                      >
+                        เพิ่มแท็ก
+                      </Button>
+                    </div>
+                    {tagFieldError ? (
+                      <p className="text-sm text-destructive" role="alert">
+                        {tagFieldError}
+                      </p>
+                    ) : null}
+                    {suggestedTags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {suggestedTags.map((t) => (
+                          <Button
+                            key={t.id}
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className={`h-8 text-xs ${getPastelTagButtonClass(t.slug)}`}
+                            onClick={() => addTagSlug(t.slug)}
+                            data-testid={`song-suggest-tag-${t.slug}`}
+                          >
+                            + {t.name}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base">Add Cover Image</CardTitle>
+                  <CardDescription>Optional visual reference</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverFileChange}
+                  />
+                  <div className="relative overflow-hidden rounded-xl border border-border bg-surface-low">
+                    <div className="aspect-[4/3]">
+                      {coverImageUrl ? (
+                        <div
+                          className="h-full w-full bg-cover bg-center"
+                          style={{ backgroundImage: `url(${coverImageUrl})` }}
+                        />
+                      ) : (
+                        <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                          <ImagePlus className="h-8 w-8" aria-hidden />
+                          <p className="text-sm">ยังไม่มีรูปปก</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={openCoverPicker}
+                    >
+                      <Upload className="h-4 w-4" aria-hidden />
+                      เลือกรูปภาพ
                     </Button>
-                  ))}
+                    {coverImageUrl ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={clearCoverImage}
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden />
+                        ลบรูป
+                      </Button>
+                    ) : null}
+                  </div>
+                  {coverFieldError ? (
+                    <p className="text-sm text-destructive" role="alert">
+                      {coverFieldError}
+                    </p>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="h-full">
+              <CardHeader>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>Chord Sheet & Lyrics</CardTitle>
+                    <CardDescription>
+                      Use bracket notation for chords (e.g. [G])
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setConvertOpen(true)}
+                      data-testid="song-chordpro-convert-toggle"
+                      aria-haspopup="dialog"
+                      aria-expanded={convertOpen}
+                    >
+                      Convert to ChordPro
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHelpOpen(true)}
+                      data-testid="song-chordpro-help-toggle"
+                      aria-haspopup="dialog"
+                      aria-expanded={helpOpen}
+                    >
+                      คำแนะนำ
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPreviewOpen(true)}
+                      data-testid="song-chordpro-preview-toggle"
+                      aria-haspopup="dialog"
+                      aria-expanded={previewOpen}
+                    >
+                      ดูตัวอย่าง
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              </CardHeader>
+              <CardContent>
+                <SongFormatHelpModal
+                  open={helpOpen}
+                  onClose={() => setHelpOpen(false)}
+                />
+                <ConvertLyricsModal
+                  open={convertOpen}
+                  onClose={() => setConvertOpen(false)}
+                  onApplyResult={(nextChordPro) =>
+                    setChordproBody(nextChordPro)
+                  }
+                />
+                <ChordproPreviewModal
+                  open={previewOpen}
+                  onClose={() => setPreviewOpen(false)}
+                  chordproBody={chordproBody}
+                  originalKey={originalKey || undefined}
+                  tempo={tempo.trim() ? Number(tempo) : undefined}
+                  timeSignature={timeSignature || undefined}
+                  contextTitle={`${title.trim() || "เพลง"}`}
+                />
+                <Textarea
+                  id="song-chordpro"
+                  value={chordproBody}
+                  onChange={(e) => setChordproBody(e.target.value)}
+                  required
+                  minLength={1}
+                  rows={28}
+                  className="min-h-[620px] font-mono text-sm placeholder:text-muted-foreground"
+                  data-testid="song-input-chordpro"
+                  placeholder={CHORDPRO_PLACEHOLDER}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <Label htmlFor="song-chordpro">ChordPro</Label>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setConvertOpen(true)}
-                  data-testid="song-chordpro-convert-toggle"
-                  aria-haspopup="dialog"
-                  aria-expanded={convertOpen}
-                >
-                  Convert to ChordPro
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setHelpOpen(true)}
-                  data-testid="song-chordpro-help-toggle"
-                  aria-haspopup="dialog"
-                  aria-expanded={helpOpen}
-                >
-                  คำแนะนำ
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPreviewOpen(true)}
-                  data-testid="song-chordpro-preview-toggle"
-                  aria-haspopup="dialog"
-                  aria-expanded={previewOpen}
-                >
-                  ดูตัวอย่าง
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Label
-                htmlFor="song-version-name"
-                className="text-xs font-semibold text-primary"
-              >
-                คอร์ดเพลง
-              </Label>
-            </div>
-            <SongFormatHelpModal
-              open={helpOpen}
-              onClose={() => setHelpOpen(false)}
-            />
-            <ConvertLyricsModal
-              open={convertOpen}
-              onClose={() => setConvertOpen(false)}
-              onApplyResult={(nextChordPro) => setChordproBody(nextChordPro)}
-            />
-            <ChordproPreviewModal
-              open={previewOpen}
-              onClose={() => setPreviewOpen(false)}
-              chordproBody={chordproBody}
-              originalKey={originalKey || undefined}
-              tempo={tempo.trim() ? Number(tempo) : undefined}
-              timeSignature={timeSignature || undefined}
-              contextTitle={`${title.trim() || "เพลง"}`}
-            />
-            <Textarea
-              id="song-chordpro"
-              value={chordproBody}
-              onChange={(e) => setChordproBody(e.target.value)}
-              required
-              minLength={1}
-              rows={14}
-              className="font-mono text-sm placeholder:text-muted-foreground"
-              data-testid="song-input-chordpro"
-              placeholder={CHORDPRO_PLACEHOLDER}
-            />
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/dashboard/songs")}
+              data-testid="song-cancel"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading} data-testid="song-submit">
+              {loading
+                ? mode === "create"
+                  ? "กำลังสร้าง…"
+                  : "กำลังบันทึก…"
+                : "Save Song"}
+            </Button>
           </div>
-          <Button type="submit" disabled={loading} data-testid="song-submit">
-            {loading
-              ? mode === "create"
-                ? "กำลังสร้าง…"
-                : "กำลังบันทึก…"
-              : mode === "create"
-                ? "สร้างเพลง"
-                : "บันทึก"}
-          </Button>
         </CardContent>
       </form>
     </Card>

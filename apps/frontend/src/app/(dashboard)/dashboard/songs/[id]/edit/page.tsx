@@ -29,7 +29,7 @@ export default function EditSongPage() {
       <SetDashboardTitle title="แก้ไขเพลง" />
       <PageContainer
         constrained={false}
-        className="max-w-4xl"
+        className="max-w-[1280px]"
         data-testid="page-song-edit"
       >
         <SectionHeader
@@ -64,6 +64,7 @@ export default function EditSongPage() {
             initialOriginalKey={data.originalKey}
             initialTempo={data.tempo}
             initialTimeSignature={data.timeSignature}
+            initialCoverImageUrl={data.coverImageUrl}
             hideCardHeader
           />
         ) : null}

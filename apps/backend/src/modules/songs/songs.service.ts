@@ -188,6 +188,7 @@ export class SongsService {
       originalKey: dto.originalKey ?? null,
       tempo: dto.tempo ?? null,
       timeSignature: dto.timeSignature ?? null,
+      coverImageUrl: dto.coverImageUrl ?? null,
       categoryId: dto.categoryId ?? null,
       isPublished: dto.isPublished ?? true,
       createdBy: actorUserId,
@@ -220,6 +221,7 @@ export class SongsService {
         originalKey: saved.originalKey,
         tempo: saved.tempo,
         timeSignature: saved.timeSignature,
+        coverImageUrl: saved.coverImageUrl,
         categoryId: saved.categoryId,
         tagSlugs: tags.map((t) => t.slug),
         isPublished: saved.isPublished,
@@ -287,6 +289,9 @@ export class SongsService {
     }
     if (dto.timeSignature !== undefined) {
       song.timeSignature = dto.timeSignature;
+    }
+    if (dto.coverImageUrl !== undefined) {
+      song.coverImageUrl = dto.coverImageUrl;
     }
 
     song.updatedBy = actorUserId;
@@ -633,6 +638,7 @@ export class SongsService {
       originalKey: song.originalKey,
       tempo: song.tempo,
       timeSignature: song.timeSignature,
+      coverImageUrl: song.coverImageUrl,
       categoryId: song.categoryId,
       tagSlugs: (song.tags ?? []).map((t) => t.slug),
       isPublished: song.isPublished,
