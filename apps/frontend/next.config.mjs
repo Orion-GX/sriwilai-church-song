@@ -33,6 +33,10 @@ const nextConfig = {
         source: "/api/v1/:path*",
         destination: `${backendInternal}/api/v1/:path*`,
       },
+      {
+        source: "/socket.io/:path*",
+        destination: `${backendInternal}/socket.io/:path*`,
+      },
     ];
   },
   env: {

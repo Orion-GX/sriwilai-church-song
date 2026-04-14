@@ -1,0 +1,25 @@
+# ngrok config-based example (used by service: ngrok-config)
+# Docs: https://ngrok.com/docs/agent/config/
+
+version: "3"
+
+agent:
+  # Keep token out of git by reading from .env.ngrok
+  authtoken: ${NGROK_AUTHTOKEN}
+
+tunnels:
+  app:
+    proto: http
+    # If app runs in a container within the same compose project, use service name:
+    # addr: http://web:3000
+    # addr: http://nginx:80
+    #
+    # If app runs on host machine:
+    # - Mac/Windows: host.docker.internal resolves by default.
+    # - Linux: add extra_hosts host-gateway mapping in compose (already included in this repo).
+    addr: ${NGROK_TARGET:-http://host.docker.internal:3000}
+
+    inspect: true
+
+    # Optional reserved domain:
+    # domain: your-subdomain.ngrok-free.app

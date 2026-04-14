@@ -1,0 +1,54 @@
+services:
+  # Example 1: simple HTTP tunnel to one target.
+  # Default target is host app on port 3000 (works on Mac/Windows).
+  # To tunnel a containerized app, set NGROK_TARGET to a service URL, e.g. http://web:3000.
+  ngrok-http:
+    image: ngrok/ngrok:latest
+    container_name: sriwilai-ngrok-http
+    restart: unless-stopped
+    env_file:
+      - .env.ngrok
+    # Use shell expansion inside container so NGROK_TARGET from .env.ngrok
+    # is always honored (compose variable interpolation happens too early).
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "ngrok http --log=stdout --log-format=json --inspect=true \"$${NGROK_TARGET:-http://host.docker.internal:3000}\""
+    ports:
+      # ngrok web inspection UI
+      - "4040:4040"
+    # Linux note: host.docker.internal may not exist on Docker Engine by default.
+    # This mapping enables the same hostname across Linux, Mac, and Windows.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - internal
+
+  # Example 2: config-based tunnel(s) defined in ngrok.yml.
+  # Run this service when you want richer options (multiple tunnels, domain, headers, etc).
+  ngrok-config:
+    image: ngrok/ngrok:latest
+    container_name: sriwilai-ngrok-config
+    restart: unless-stopped
+    env_file:
+      - .env.ngrok
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok/ngrok.yml"
+    volumes:
+      - "./ngrok.yml:/etc/ngrok/ngrok.yml:ro"
+    ports:
+      - "4040:4040"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - internal
+    profiles:
+      - config
+
+networks:
+  # Keep the same network key as root compose for easy layering:
+  # docker compose -f docker-compose.yml -f docker-compose.ngrok.yml up -d ngrok-http
+  internal:
+    driver: bridge

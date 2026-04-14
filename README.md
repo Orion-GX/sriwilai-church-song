@@ -89,3 +89,123 @@ docker compose up -d --build
 ```
 
 บิลด์ API ใช้ context ที่รากโปรเจกต์ (ดู `apps/backend/docker-compose.yml` และ `apps/backend/Dockerfile`)
+
+## Ngrok via Docker (dev/test)
+
+ตั้งค่าครั้งแรก:
+
+```bash
+cp .env.ngrok.example .env.ngrok
+```
+
+### แบบ 1: HTTP tunnel ตรงไปยัง local app (`port 3000`)
+
+```bash
+docker compose -f docker-compose.ngrok.yml up -d ngrok-http
+# หรือใช้ shortcut
+yarn ngrok:http
+```
+
+### แบบ 2: Config-based tunnel ผ่าน `ngrok.yml`
+
+```bash
+docker compose -f docker-compose.ngrok.yml --profile config up -d ngrok-config
+# หรือใช้ shortcut
+yarn ngrok:config
+```
+
+เปิด ngrok inspection UI ได้ที่ `http://localhost:4040`
+
+### Integrate กับ compose หลัก (ไม่กระทบของเดิม)
+
+รัน stack หลักพร้อม ngrok โดย compose layering:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ngrok.yml up -d nginx ngrok-http
+```
+
+### เลือก target ให้ถูกต้อง
+
+- ถ้า app รันใน container: ตั้ง `NGROK_TARGET` เป็น service URL ได้เลย เช่น `http://web:3000` หรือ `http://nginx:80`
+- ถ้า app รันบน host machine:
+  - Mac/Windows: ใช้ `http://host.docker.internal:3000`
+  - Linux: บางเครื่องต้องมี `extra_hosts: ["host.docker.internal:host-gateway"]` (ไฟล์ `docker-compose.ngrok.yml` ใส่ไว้แล้ว)
+
+คำสั่งเสริม:
+
+```bash
+yarn ngrok:up
+yarn ngrok:logs
+yarn ngrok:down
+```
+
+### Full loop (กันปัญหา frontend เรียก backend ผ่าน localhost ไม่ได้)
+
+แนวคิดคือทำให้ browser คุยกับ path เดียวกันบน ngrok domain (`/api/v1`, `/socket.io`) แล้วให้ Next dev server rewrite ไป backend ภายในเครื่อง:
+
+1) รัน backend + frontend โหมด proxy
+
+```bash
+yarn dev:public
+```
+
+2) ตั้ง target ngrok ไป frontend dev
+
+```bash
+# ใน .env.ngrok
+NGROK_TARGET=http://host.docker.internal:3000
+```
+
+3) เปิด ngrok
+
+```bash
+yarn ngrok:up
+```
+
+4) เอา public URL จาก log
+
+```bash
+docker logs --tail 50 sriwilai-ngrok-http
+```
+
+จะเห็นบรรทัด `started tunnel` พร้อม URL เช่น `https://xxxx.ngrok-free.app`
+
+5) ตรวจว่า API ผ่าน tunnel ได้จริง
+
+```bash
+curl -sS -o /dev/null -w '%{http_code}\n' https://<your-ngrok-domain>/api/v1/health
+```
+
+ควรได้ `200`
+
+หมายเหตุ:
+- ถ้า port `3000` ถูกใช้อยู่ ให้รัน frontend proxy คนละพอร์ต เช่น `yarn dev:frontend:proxy -- -p 3010` แล้วเปลี่ยน `NGROK_TARGET` เป็น `http://host.docker.internal:3010`
+- ถ้าเห็น `EMFILE` บน macOS/Linux ให้เพิ่ม file watcher limit ของเครื่อง หรือปิดโปรเซส dev อื่นที่เปิด watch จำนวนมาก
+
+### Stable mode สำหรับมือถือ (แนะนำเวลาแชร์ iPad/iPhone)
+
+ถ้าเจออาการ direct link แล้ว CSS/JS ไม่ครบใน Safari/Chrome มือถือ ให้ใช้ production frontend (`next start`) แทน dev server:
+
+1) รันโหมดเสถียร (build + backend dev + frontend production)
+
+```bash
+yarn public:start
+```
+
+2) ตรวจ `.env.ngrok` ให้ target ชี้ frontend ที่ port 3000
+
+```bash
+NGROK_TARGET=http://host.docker.internal:3000
+```
+
+3) เปิด ngrok
+
+```bash
+yarn ngrok:up
+```
+
+4) ดึง URL ล่าสุดแล้วส่งให้ทีม
+
+```bash
+docker logs --tail 50 sriwilai-ngrok-http
+```
