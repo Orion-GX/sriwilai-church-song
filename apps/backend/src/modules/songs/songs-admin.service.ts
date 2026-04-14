@@ -19,6 +19,14 @@ export class SongsAdminService {
     return this.songsService.findOneAdminSong(id);
   }
 
+  listCategories() {
+    return this.songsService.listCategoriesPublic();
+  }
+
+  listTags() {
+    return this.songsService.listTagsPublic();
+  }
+
   createSong(
     actorUserId: string,
     scopeChurchId: string | null,

@@ -67,6 +67,20 @@ export class SongsAdminController {
     return this.songsAdminService.listSongs(query);
   }
 
+  @Get('categories')
+  @Throttle(APP_THROTTLE)
+  @Permissions(SYSTEM_PERMISSION_CODES.SONG_READ)
+  listCategories() {
+    return this.songsAdminService.listCategories();
+  }
+
+  @Get('tags')
+  @Throttle(APP_THROTTLE)
+  @Permissions(SYSTEM_PERMISSION_CODES.SONG_READ)
+  listTags() {
+    return this.songsAdminService.listTags();
+  }
+
   @Get(':id')
   @Throttle(APP_THROTTLE)
   @Permissions(SYSTEM_PERMISSION_CODES.SONG_READ)

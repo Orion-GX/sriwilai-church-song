@@ -48,7 +48,7 @@ function formatShortDate(iso: string) {
 export default function AdminDashboardPage() {
   const canAccessAdmin = useCan(PERMISSIONS.SYSTEM_ADMIN);
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["adminDashboard"],
+    queryKey: ["dashboard", "adminDashboard"],
     queryFn: fetchAdminDashboard,
     enabled: canAccessAdmin,
   });

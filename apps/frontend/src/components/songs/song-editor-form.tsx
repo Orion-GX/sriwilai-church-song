@@ -27,8 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/client";
 import {
   createSong,
-  fetchSongCategories,
-  fetchSongTagsCatalog,
+  fetchSongAdminCategories,
+  fetchSongAdminTagsCatalog,
   updateSong,
 } from "@/lib/api/songs";
 import type {
@@ -200,14 +200,14 @@ export function SongEditorForm({
   const chordproTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
-    queryKey: ["songCategoriesCatalog"],
-    queryFn: fetchSongCategories,
+    queryKey: ["dashboard", "songCategoriesCatalog"],
+    queryFn: fetchSongAdminCategories,
     staleTime: 60_000,
   });
 
   const { data: tagCatalog = [] } = useQuery({
-    queryKey: ["songTagsCatalog"],
-    queryFn: fetchSongTagsCatalog,
+    queryKey: ["dashboard", "songTagsCatalog"],
+    queryFn: fetchSongAdminTagsCatalog,
     staleTime: 60_000,
   });
 

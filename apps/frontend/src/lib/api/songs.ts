@@ -53,6 +53,10 @@ export async function fetchSongById(id: string): Promise<SongDetail> {
   });
 }
 
+export async function fetchSongAdminById(id: string): Promise<SongDetail> {
+  return apiFetch<SongDetail>(`/app/admin/songs/${id}`);
+}
+
 export async function fetchSongCategories(): Promise<SongCategoryCatalogItem[]> {
   return apiFetch<SongCategoryCatalogItem[]>("/app/songs/categories", {
     auth: false,
@@ -60,11 +64,19 @@ export async function fetchSongCategories(): Promise<SongCategoryCatalogItem[]> 
   });
 }
 
+export async function fetchSongAdminCategories(): Promise<SongCategoryCatalogItem[]> {
+  return apiFetch<SongCategoryCatalogItem[]>("/app/admin/songs/categories");
+}
+
 export async function fetchSongTagsCatalog(): Promise<SongTagCatalogItem[]> {
   return apiFetch<SongTagCatalogItem[]>("/app/songs/tags", {
     auth: false,
     retryOn401: false,
   });
+}
+
+export async function fetchSongAdminTagsCatalog(): Promise<SongTagCatalogItem[]> {
+  return apiFetch<SongTagCatalogItem[]>("/app/admin/songs/tags");
 }
 
 export type CreateSongPayload = {

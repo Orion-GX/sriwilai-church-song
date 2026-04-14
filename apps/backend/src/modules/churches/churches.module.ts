@@ -5,6 +5,7 @@ import { RoleEntity } from '../rbac/entities/role.entity';
 import { UserRoleEntity } from '../rbac/entities/user-role.entity';
 import { UserEntity } from '../users/entities/user.entity';
 
+import { ChurchesAdminController } from './churches-admin.controller';
 import { ChurchesController } from './churches.controller';
 import { ChurchesService } from './churches.service';
 import { ChurchMemberEntity } from './entities/church-member.entity';
@@ -12,7 +13,7 @@ import { ChurchEntity } from './entities/church.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ChurchEntity, ChurchMemberEntity, UserRoleEntity, RoleEntity, UserEntity])],
-  controllers: [ChurchesController],
+  controllers: [ChurchesController, ChurchesAdminController],
   providers: [ChurchesService],
   exports: [ChurchesService],
 })

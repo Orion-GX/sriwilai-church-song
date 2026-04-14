@@ -10,15 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchMyChurches } from "@/lib/api/churches";
+import { fetchAdminChurches } from "@/lib/api/churches";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function ChurchSwitcher() {
   const currentChurchId = useAuthStore((s) => s.currentChurchId);
   const setCurrentChurchId = useAuthStore((s) => s.setCurrentChurchId);
   const { data } = useQuery({
-    queryKey: ["myChurches"],
-    queryFn: fetchMyChurches,
+    queryKey: ["dashboard", "myChurches"],
+    queryFn: fetchAdminChurches,
   });
 
   const churches = React.useMemo(() => data ?? [], [data]);

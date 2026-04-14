@@ -7,6 +7,7 @@ import { AppConfiguration } from '../../config/configuration';
 
 import { SongEntity } from '../songs/entities/song.entity';
 
+import { LiveAdminController } from './live-admin.controller';
 import { LiveSessionSongEntity } from './entities/live-session-song.entity';
 import { LiveSessionEntity } from './entities/live-session.entity';
 import { LiveController } from './live.controller';
@@ -25,7 +26,7 @@ import { LiveService } from './live.service';
       }),
     }),
   ],
-  controllers: [LiveController],
+  controllers: [LiveController, LiveAdminController],
   providers: [LiveService, LiveGateway],
   exports: [LiveService],
 })

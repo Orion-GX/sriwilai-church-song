@@ -7,21 +7,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FormErrorBanner } from "@/components/ui/form-error-banner";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchSongById } from "@/lib/api/songs";
+import { fetchSongAdminById } from "@/lib/api/songs";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { useCan } from "@/lib/auth/use-can";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
 export default function EditSongPage() {
   const canEditSong = useCan(PERMISSIONS.SONG_UPDATE);
   const params = useParams();
+  const pathname = usePathname();
   const id = typeof params.id === "string" ? params.id : "";
+  const isDashboardRoute = pathname.startsWith("/dashboard/");
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["song", id, "edit"],
-    queryFn: () => fetchSongById(id),
-    enabled: !!id && canEditSong,
+    queryKey: ["dashboard", "songs", id, "edit"],
+    queryFn: () => fetchSongAdminById(id),
+    enabled: !!id && canEditSong && isDashboardRoute,
   });
 
   return (
@@ -36,7 +38,7 @@ export default function EditSongPage() {
           title="แก้ไขเพลง"
           description="เนื้อ ChordPro — คอร์ดใน [วงเล็บเหลี่ยม]"
         />
-        {!canEditSong ? (
+        {!canEditSong || !isDashboardRoute ? (
           <FormErrorBanner data-testid="song-edit-forbidden">
             บัญชีนี้ไม่มีสิทธิ์แก้ไขเพลง
           </FormErrorBanner>

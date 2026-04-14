@@ -15,7 +15,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { ApiError } from "@/lib/api/client";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { useCan } from "@/lib/auth/use-can";
-import { fetchChurchById } from "@/lib/api/churches";
+import { fetchAdminChurchById } from "@/lib/api/churches";
 
 export default function ChurchManagePage() {
   const canManageChurch = useCan(PERMISSIONS.CHURCH_UPDATE);
@@ -23,8 +23,8 @@ export default function ChurchManagePage() {
   const id = typeof params.id === "string" ? params.id : "";
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["church", id, "manage"],
-    queryFn: () => fetchChurchById(id),
+    queryKey: ["dashboard", "church", id, "manage"],
+    queryFn: () => fetchAdminChurchById(id),
     enabled: !!id && canManageChurch,
     retry: false,
   });

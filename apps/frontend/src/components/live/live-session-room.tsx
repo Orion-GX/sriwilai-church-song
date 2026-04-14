@@ -23,8 +23,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { endLiveSession, fetchLiveSessionState } from "@/lib/api/live";
-import { fetchSongById } from "@/lib/api/songs";
+import {
+  endAdminLiveSession,
+  fetchAdminLiveSessionState,
+} from "@/lib/api/live";
+import { fetchSongAdminById } from "@/lib/api/songs";
 import { buildDisplayDocument } from "@/lib/songs/song-content";
 import {
   applySyncToView,
@@ -44,8 +47,8 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
   const lastVersionRef = React.useRef(0);
 
   const { data: initial, isLoading, isError, error } = useQuery({
-    queryKey: ["liveSession", sessionId],
-    queryFn: () => fetchLiveSessionState(sessionId),
+    queryKey: ["dashboard", "liveSession", sessionId],
+    queryFn: () => fetchAdminLiveSessionState(sessionId),
     enabled: !!user && !!sessionId,
   });
 
@@ -111,8 +114,8 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
   const currentSongId = currentSongMeta?.songId;
 
   const { data: songDetail } = useQuery({
-    queryKey: ["song", currentSongId],
-    queryFn: () => fetchSongById(currentSongId!),
+    queryKey: ["dashboard", "song", currentSongId],
+    queryFn: () => fetchSongAdminById(currentSongId!),
     enabled: !!currentSongId,
   });
 
@@ -212,9 +215,9 @@ export function LiveSessionRoom({ sessionId }: LiveSessionRoomProps) {
   }, [isLeader, connected, localIndex, publishSync]);
 
   const endMut = useMutation({
-    mutationFn: () => endLiveSession(sessionId),
+    mutationFn: () => endAdminLiveSession(sessionId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["liveSessions"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard", "liveSessions"] });
       router.push("/dashboard/live");
     },
   });

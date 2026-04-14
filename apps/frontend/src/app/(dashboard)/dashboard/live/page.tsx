@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createLiveSession, fetchLiveSessions } from "@/lib/api/live";
+import { createAdminLiveSession, fetchAdminLiveSessions } from "@/lib/api/live";
 import { ApiError } from "@/lib/api/client";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { useCan } from "@/lib/auth/use-can";
@@ -35,8 +35,8 @@ export default function LiveSessionsListPage() {
   const [createErr, setCreateErr] = React.useState<string | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["liveSessions", currentChurchId ?? "no-church"],
-    queryFn: () => fetchLiveSessions(),
+    queryKey: ["dashboard", "liveSessions", currentChurchId ?? "no-church"],
+    queryFn: () => fetchAdminLiveSessions(),
     enabled: !!user && canReadLive,
   });
 
@@ -46,13 +46,13 @@ export default function LiveSessionsListPage() {
       if (t.length < 2) {
         throw new Error("ชื่อห้องต้องมีอย่างน้อย 2 ตัวอักษร");
       }
-      return createLiveSession({ title: t });
+      return createAdminLiveSession({ title: t });
     },
     onSuccess: () => {
       setTitle("");
       setCreateErr(null);
       void queryClient.invalidateQueries({
-        queryKey: ["liveSessions", currentChurchId ?? "no-church"],
+        queryKey: ["dashboard", "liveSessions", currentChurchId ?? "no-church"],
       });
     },
     onError: (err: unknown) => {

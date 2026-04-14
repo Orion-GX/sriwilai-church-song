@@ -13,6 +13,7 @@ import { ApiError } from "@/lib/api/client";
 import {
   deleteSong,
   fetchSongAdminList,
+  updateSong,
   updateSongStatus,
 } from "@/lib/api/songs";
 import type { SongListItem } from "@/lib/api/types";
@@ -23,7 +24,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import * as React from "react";
 
-const PAGE_LIMIT = 20;
+const PAGE_LIMIT = 10;
 
 export default function SongManagementPage() {
   const canAccessAdmin = useCan(PERMISSIONS.SYSTEM_ADMIN);
@@ -43,8 +44,11 @@ export default function SongManagementPage() {
   const [deletePendingSongId, setDeletePendingSongId] = React.useState<
     string | null
   >(null);
-  const [confirmStatusSong, setConfirmStatusSong] = React.useState<SongListItem | null>(null);
-  const [confirmDeleteSong, setConfirmDeleteSong] = React.useState<SongListItem | null>(null);
+  const [confirmStatusSong, setConfirmStatusSong] =
+    React.useState<SongListItem | null>(null);
+  const [confirmDeleteSong, setConfirmDeleteSong] =
+    React.useState<SongListItem | null>(null);
+  const [bulkPending, setBulkPending] = React.useState(false);
 
   const queryKey = [
     "dashboard",
@@ -87,6 +91,36 @@ export default function SongManagementPage() {
     },
   });
 
+  const bulkMutation = useMutation({
+    mutationFn: async ({
+      action,
+      songs,
+    }: {
+      action: "PUBLISH" | "UNPUBLISH" | "DELETE";
+      songs: SongListItem[];
+    }) => {
+      const selectedIds = songs.map((song) => song.id);
+      if (action === "DELETE") {
+        await Promise.all(selectedIds.map((id) => deleteSong(id)));
+        return;
+      }
+
+      const nextPublished = action === "PUBLISH";
+      await Promise.all(
+        songs
+          .filter((song) => song.isPublished !== nextPublished)
+          .map((song) => updateSong(song.id, { isPublished: nextPublished })),
+      );
+    },
+    onMutate: () => setBulkPending(true),
+    onSettled: () => setBulkPending(false),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "songs", currentChurchId ?? "no-church"],
+      });
+    },
+  });
+
   const errorMessage = React.useMemo(() => {
     if (!isError) return null;
     if (error instanceof ApiError) return error.message;
@@ -117,6 +151,24 @@ export default function SongManagementPage() {
 
   function handleDelete(song: SongListItem) {
     setConfirmDeleteSong(song);
+  }
+
+  function handleBulkAction(
+    action: "PUBLISH" | "UNPUBLISH" | "DELETE",
+    songs: SongListItem[],
+  ) {
+    if (!songs.length || bulkMutation.isPending) return;
+    const actionLabel =
+      action === "PUBLISH"
+        ? "เปิดใช้งาน"
+        : action === "UNPUBLISH"
+          ? "ปิดใช้งาน"
+          : "ลบ";
+    const confirmed = window.confirm(
+      `ยืนยัน${actionLabel}เพลงที่เลือกทั้งหมด ${songs.length} รายการใช่หรือไม่?`,
+    );
+    if (!confirmed) return;
+    bulkMutation.mutate({ action, songs });
   }
 
   return (
@@ -170,40 +222,18 @@ export default function SongManagementPage() {
             <SongManagementTable
               items={items}
               isLoading={isLoading}
+              isFetching={isFetching}
               errorMessage={errorMessage}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
               statusPendingSongId={statusPendingSongId}
               deletePendingSongId={deletePendingSongId}
+              bulkPending={bulkPending}
               onToggleStatus={handleToggleStatus}
               onDelete={handleDelete}
+              onBulkAction={handleBulkAction}
             />
-
-            {!isLoading && !isError ? (
-              <div className="flex items-center justify-between border-t border-border p-4">
-                <p className="text-sm text-muted-foreground">
-                  หน้า {page} จาก {totalPages}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className={buttonClassName("outline", "sm")}
-                    disabled={page <= 1 || isFetching}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    data-testid="song-admin-pagination-prev"
-                  >
-                    ก่อนหน้า
-                  </button>
-                  <button
-                    type="button"
-                    className={buttonClassName("outline", "sm")}
-                    disabled={page >= totalPages || isFetching}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    data-testid="song-admin-pagination-next"
-                  >
-                    ถัดไป
-                  </button>
-                </div>
-              </div>
-            ) : null}
           </DataTableCard>
         ) : null}
       </PageContainer>
@@ -214,8 +244,12 @@ export default function SongManagementPage() {
         description={
           confirmStatusSong ? (
             <>
-              เปลี่ยนสถานะเพลง <strong>&quot;{confirmStatusSong.title}&quot;</strong> เป็น{" "}
-              <strong>{confirmStatusSong.isPublished ? "INACTIVE" : "ACTIVE"}</strong> ใช่หรือไม่?
+              เปลี่ยนสถานะเพลง{" "}
+              <strong>&quot;{confirmStatusSong.title}&quot;</strong> เป็น{" "}
+              <strong>
+                {confirmStatusSong.isPublished ? "INACTIVE" : "ACTIVE"}
+              </strong>{" "}
+              ใช่หรือไม่?
             </>
           ) : undefined
         }
@@ -238,7 +272,8 @@ export default function SongManagementPage() {
         description={
           confirmDeleteSong ? (
             <>
-              ยืนยันลบเพลง <strong>&quot;{confirmDeleteSong.title}&quot;</strong> ?
+              ยืนยันลบเพลง{" "}
+              <strong>&quot;{confirmDeleteSong.title}&quot;</strong> ?
               <br />
               การลบไม่สามารถย้อนกลับได้
             </>

@@ -92,6 +92,7 @@ export class SongAdminListItemDto extends SongPublicListItemDto {
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
     dto.visibility = list.visibility;
+    dto.isPublished = list.isPublished;
     dto.category = list.category;
     dto.tags = list.tags;
     dto.viewCount = list.viewCount;
@@ -120,6 +121,7 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
     dto.isPublished = list.isPublished;
+    dto.visibility = list.visibility;
     dto.category = list.category;
     dto.tags = list.tags;
     dto.viewCount = list.viewCount;
