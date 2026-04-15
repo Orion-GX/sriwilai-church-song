@@ -92,6 +92,8 @@ export type CreateSongPayload = {
   chordproBody: string;
   isPublished?: boolean;
   categoryId?: string;
+  tagCodes?: string[];
+  /** @deprecated use tagCodes */
   tagSlugs?: string[];
   contentJson?: SongContentDocument;
   originalKey?: string;
@@ -110,6 +112,7 @@ export type CreateSongPayload = {
 };
 
 export async function createSong(payload: CreateSongPayload): Promise<SongDetail> {
+  const resolvedTagCodes = payload.tagCodes ?? payload.tagSlugs;
   return apiFetch<SongDetail>("/app/admin/songs", {
     method: "POST",
     body: JSON.stringify({
@@ -117,7 +120,7 @@ export async function createSong(payload: CreateSongPayload): Promise<SongDetail
       chordproBody: payload.chordproBody,
       isPublished: payload.isPublished ?? true,
       ...(payload.categoryId ? { categoryId: payload.categoryId } : {}),
-      ...(payload.tagSlugs?.length ? { tagSlugs: payload.tagSlugs } : {}),
+      ...(resolvedTagCodes?.length ? { tagCodes: resolvedTagCodes } : {}),
       ...(payload.contentJson ? { contentJson: payload.contentJson } : {}),
       ...(payload.originalKey ? { originalKey: payload.originalKey } : {}),
       ...(payload.tempo != null ? { tempo: payload.tempo } : {}),
@@ -133,6 +136,8 @@ export type UpdateSongPayload = {
   chordproBody?: string;
   isPublished?: boolean;
   categoryId?: string | null;
+  tagCodes?: string[];
+  /** @deprecated use tagCodes */
   tagSlugs?: string[];
   contentJson?: SongContentDocument | null;
   originalKey?: string | null;
@@ -154,8 +159,13 @@ export async function updateSong(
   id: string,
   payload: UpdateSongPayload,
 ): Promise<SongDetail> {
+  const resolvedTagCodes = payload.tagCodes ?? payload.tagSlugs;
   const body = Object.fromEntries(
-    Object.entries(payload).filter(([, v]) => v !== undefined),
+    Object.entries({
+      ...payload,
+      ...(resolvedTagCodes !== undefined ? { tagCodes: resolvedTagCodes } : {}),
+      tagSlugs: undefined,
+    }).filter(([, v]) => v !== undefined),
   );
   return apiFetch<SongDetail>(`/app/admin/songs/${id}`, {
     method: "PATCH",

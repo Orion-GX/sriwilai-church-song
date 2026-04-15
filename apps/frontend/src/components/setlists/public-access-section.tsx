@@ -8,6 +8,7 @@ import { PublicLinkCard } from "./public-link-card";
 type PublicAccessSectionProps = {
   isPublic: boolean;
   publicUrl: string | null;
+  requiresLogin: boolean;
   onTogglePublic: (next: boolean) => void;
   onGenerateLink: () => void;
 };
@@ -15,6 +16,7 @@ type PublicAccessSectionProps = {
 export function PublicAccessSection({
   isPublic,
   publicUrl,
+  requiresLogin,
   onTogglePublic,
   onGenerateLink,
 }: PublicAccessSectionProps) {
@@ -33,6 +35,7 @@ export function PublicAccessSection({
         <p className="text-sm font-semibold">Public access</p>
         <button
           type="button"
+          disabled={requiresLogin}
           onClick={() => onTogglePublic(!isPublic)}
           className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
             isPublic
@@ -44,12 +47,17 @@ export function PublicAccessSection({
           {isPublic ? "Public" : "Private"}
         </button>
       </div>
-      <PublicLinkCard publicUrl={publicUrl} isPublic={isPublic} />
+      <PublicLinkCard
+        publicUrl={publicUrl}
+        isPublic={isPublic}
+        requiresLogin={requiresLogin}
+      />
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
           className="h-9 flex-1 rounded-xl"
+          disabled={requiresLogin}
           onClick={onGenerateLink}
         >
           Generate Link

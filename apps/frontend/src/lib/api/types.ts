@@ -70,6 +70,8 @@ export type SongListItem = {
   originalKey: string | null;
   coverImageUrl: string | null;
   isPublished: boolean;
+  tempo: number | null;
+  timeSignature: string | null;
   category: SongCategorySnippet | null;
   tags: SongTagSnippet[];
   viewCount: number;

@@ -123,7 +123,7 @@ export default function SongAdminDetailPage() {
             initialChordpro={data.chordproBody}
             initialVersions={data.versions}
             initialCategory={data.category}
-            initialTagSlugs={data.tags.map((t) => t.code)}
+            initialTagCodes={data.tags.map((t) => t.code)}
             initialOriginalKey={data.originalKey}
             initialTempo={data.tempo}
             initialTimeSignature={data.timeSignature}

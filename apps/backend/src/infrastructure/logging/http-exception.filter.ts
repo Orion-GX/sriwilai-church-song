@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 
+import { ERROR_LOGGED_BY_INTERCEPTOR } from './error-logging.interceptor';
+
 /**
  * จับ HTTP error ทั้งหมด — log ด้วย Pino (แยก 4xx เป็น warn, 5xx เป็น error)
  * ไม่ใส่ body ลูกค้าใน log โดยไม่จำเป็น
@@ -40,8 +42,12 @@ export class HttpExceptionLoggingFilter implements ExceptionFilter {
       requestId: request.requestId,
       userId: request.user?.sub,
     };
+    const alreadyLogged =
+      typeof exception === 'object' &&
+      exception !== null &&
+      ERROR_LOGGED_BY_INTERCEPTOR in exception;
 
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (!alreadyLogged && status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
         {
           ...base,
@@ -56,7 +62,7 @@ export class HttpExceptionLoggingFilter implements ExceptionFilter {
         },
         'HTTP 5xx',
       );
-    } else if (status >= HttpStatus.BAD_REQUEST) {
+    } else if (!alreadyLogged && status >= HttpStatus.BAD_REQUEST) {
       const responseMessage =
         typeof body === 'string' ? body : (body as { message?: unknown })?.message;
       this.logger.warn(

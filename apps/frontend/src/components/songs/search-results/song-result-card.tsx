@@ -14,7 +14,7 @@ type SongResultCardProps = {
 
 export function SongResultCard({ song, handleClick }: SongResultCardProps) {
   return (
-    <Card className="bg-card transition-colors hover:bg-muted/80">
+    <Card className="bg-card transition-colors hover:bg-muted/80 shadow-card">
       <CardContent
         className="relative p-4 md:p-5"
         data-testid="song-result-card"
@@ -51,7 +51,7 @@ export function SongResultCard({ song, handleClick }: SongResultCardProps) {
                 >
                   Views: {song.viewCount}
                 </Badge> */}
-                {/* {song.category ? (
+                {song.category ? (
                   <Badge
                     variant="secondary"
                     className="text-[10px] uppercase tracking-normal md:text-xs"
@@ -67,13 +67,13 @@ export function SongResultCard({ song, handleClick }: SongResultCardProps) {
                   >
                     {tag.name}
                   </Badge>
-                ))} */}
+                ))}
               </div>
             </div>
           </div>
 
           <div
-            className="absolute right-4 top-4 flex items-center gap-2 md:static shadow-card"
+            className="absolute right-4 top-4 flex items-center gap-2 md:static"
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
           >

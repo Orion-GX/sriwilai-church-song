@@ -1,14 +1,29 @@
 "use client";
 
+import { AppBottomNavigation } from "@/components/layout/app-bottom-navigation";
 import { cn } from "@/lib/utils";
-import { BookOpen, ListMusic } from "lucide-react";
+import { ListMusic, LucideIcon, Music2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
-const nav = [
-  { href: "/songs", label: "เพลง" },
-  { href: "/dashboard/setlists", label: "เซ็ตลิสต์เพลง" },
+export type BottomNavigationItem = {
+  key: string;
+  label: string;
+  href: string;
+  icon: LucideIcon;
+};
+
+const bottomItems: BottomNavigationItem[] = [
+  { key: "songs", label: "Songs", href: "/songs", icon: Music2 },
+  { key: "setlists", label: "Setlists", href: "/setlists", icon: ListMusic },
+  // { key: "team", label: "Team", href: "/churches", icon: UsersRound },
+  // {
+  //   key: "schedule",
+  //   label: "Schedule",
+  //   href: "/dashboard",
+  //   icon: CalendarDays,
+  // },
 ];
 
 export function SiteHeader() {
@@ -25,7 +40,9 @@ export function SiteHeader() {
   }, []);
 
   const isActive = React.useCallback(
-    (href: string) => pathname === href || pathname.startsWith(`${href}/`),
+    (href: string) => {
+      return pathname === href || pathname.startsWith(`${href}/`);
+    },
     [pathname],
   );
 
@@ -49,9 +66,9 @@ export function SiteHeader() {
           </Link>
 
           <nav className="hidden items-center gap-7 md:flex">
-            {nav.map((item) => (
+            {bottomItems.map((item) => (
               <Link
-                key={item.href}
+                key={item.key}
                 href={item.href}
                 className={cn(
                   "relative pb-1 text-sm font-medium text-[#475653] transition-colors hover:text-[#1f2a28]",
@@ -77,7 +94,9 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dce1de] bg-[#f6f7f5]/95 px-3 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur md:hidden">
+      <AppBottomNavigation items={bottomItems} />
+
+      {/* <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dce1de] bg-[#f6f7f5]/95 px-3 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur md:hidden">
         <ul className="grid grid-cols-2 gap-2">
           <li>
             <Link
@@ -93,7 +112,7 @@ export function SiteHeader() {
           </li>
           <li>
             <Link
-              href="/dashboard/setlists"
+              href="/setlists"
               className={cn(
                 "flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-2 text-xs font-medium text-[#556460] transition-colors",
                 isActive("/dashboard/setlists") &&
@@ -101,11 +120,11 @@ export function SiteHeader() {
               )}
             >
               <ListMusic className="h-4 w-4" aria-hidden />
-              <span>เซ็ตลิสต์</span>
+              <span>เซ็ตลิสต์เพลง</span>
             </Link>
           </li>
         </ul>
-      </nav>
+      </nav> */}
     </>
   );
 }

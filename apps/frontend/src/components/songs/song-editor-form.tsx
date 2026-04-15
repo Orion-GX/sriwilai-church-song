@@ -43,7 +43,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 
 const CATEGORY_NONE = "__none__";
-const EMPTY_TAG_SLUGS: string[] = [];
+const EMPTY_TAG_CODES: string[] = [];
 const PASTEL_TAG_BUTTON_CLASSES = [
   "bg-primary-input text-foreground ring-1 ring-outline-variant/20 hover:bg-accent/70",
   "bg-accent/70 text-foreground ring-1 ring-outline-variant/20 hover:bg-accent",
@@ -114,7 +114,7 @@ type SongEditorFormProps = {
   initialVersions?: SongVersion[];
   /** หมวดปัจจุบันจาก API (ใช้แสดงชื่อเมื่อไม่มีในรายการหมวด) */
   initialCategory?: SongCategorySnippet | null;
-  initialTagSlugs?: string[];
+  initialTagCodes?: string[];
   initialOriginalKey?: string | null;
   initialTempo?: number | null;
   initialTimeSignature?: string | null;
@@ -142,7 +142,7 @@ export function SongEditorForm({
   initialTitle = "",
   initialChordpro = "",
   initialCategory = null,
-  initialTagSlugs = EMPTY_TAG_SLUGS,
+  initialTagCodes = EMPTY_TAG_CODES,
   initialOriginalKey = null,
   initialTempo = null,
   initialTimeSignature = null,
@@ -194,7 +194,7 @@ export function SongEditorForm({
   const [coverFieldError, setCoverFieldError] = React.useState<string | null>(
     null,
   );
-  const [tagSlugs, setTagSlugs] = React.useState<string[]>(initialTagSlugs);
+  const [tagCodes, setTagCodes] = React.useState<string[]>(initialTagCodes);
   const [tagDraft, setTagDraft] = React.useState("");
   const [tagFieldError, setTagFieldError] = React.useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
@@ -226,14 +226,14 @@ export function SongEditorForm({
   }, [tagCatalog]);
 
   const suggestedTags = React.useMemo(
-    () => tagCatalog.filter((t) => !tagSlugs.includes(t.code)),
-    [tagCatalog, tagSlugs],
+    () => tagCatalog.filter((t) => !tagCodes.includes(t.code)),
+    [tagCatalog, tagCodes],
   );
 
   React.useEffect(() => {
     setTitle(initialTitle);
     setCategoryId(initialCategory?.id ?? null);
-    setTagSlugs(initialTagSlugs ?? []);
+    setTagCodes(initialTagCodes ?? []);
     setOriginalKey(initialOriginalKey ?? "");
     setTempo(initialTempo != null ? String(initialTempo) : "");
     setTimeSignature(initialTimeSignature ?? "");
@@ -243,7 +243,7 @@ export function SongEditorForm({
     initialTitle,
     initialChordpro,
     initialCategory,
-    initialTagSlugs,
+    initialTagCodes,
     initialOriginalKey,
     initialTempo,
     initialTimeSignature,
@@ -292,13 +292,13 @@ export function SongEditorForm({
     reader.readAsDataURL(file);
   }
 
-  function addTagSlug(slug: string) {
+  function addTagCode(code: string) {
     setTagFieldError(null);
-    if (tagSlugs.includes(slug)) {
+    if (tagCodes.includes(code)) {
       setTagFieldError("มีแท็กนี้แล้ว");
       return;
     }
-    setTagSlugs((prev) => [...prev, slug]);
+    setTagCodes((prev) => [...prev, code]);
   }
 
   function addTagFromDraft() {
@@ -308,19 +308,19 @@ export function SongEditorForm({
       setTagFieldError("กรุณาใส่ชื่อแท็ก");
       return;
     }
-    const slug = slugifySongTag(raw);
-    if (slug === "tag") {
+    const code = slugifySongTag(raw);
+    if (code === "tag") {
       setTagFieldError(
         "แท็กต้องมีตัวอักษร a–z หรือตัวเลข (เช่น praise, worship)",
       );
       return;
     }
-    addTagSlug(slug);
+    addTagCode(code);
     setTagDraft("");
   }
 
   function removeTag(slug: string) {
-    setTagSlugs((prev) => prev.filter((s) => s !== slug));
+    setTagCodes((prev) => prev.filter((s) => s !== slug));
   }
 
   const insertIntoChordEditor = React.useCallback((text: string) => {
@@ -364,7 +364,7 @@ export function SongEditorForm({
           chordproBody,
           isPublished: true,
           ...(categoryId ? { categoryId } : {}),
-          ...(tagSlugs.length ? { tagSlugs } : {}),
+          ...(tagCodes.length ? { tagCodes } : {}),
           ...(originalKey ? { originalKey } : {}),
           ...(parsedTempo != null ? { tempo: parsedTempo } : {}),
           ...(timeSignature ? { timeSignature } : {}),
@@ -378,7 +378,7 @@ export function SongEditorForm({
           title,
           chordproBody,
           categoryId: categoryId ?? null,
-          tagSlugs,
+          tagCodes,
           originalKey: originalKey || null,
           tempo: parsedTempo,
           timeSignature: timeSignature || null,
@@ -622,19 +622,19 @@ export function SongEditorForm({
                       ป้ายกำกับ
                     </Label>
                     <div className="flex flex-wrap gap-2">
-                      {tagSlugs.map((slug) => (
+                      {tagCodes.map((code) => (
                         <span
-                          key={slug}
+                          key={code}
                           className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-sm ${getPastelTagButtonClass(
-                            slug,
+                            code,
                           )}`}
                         >
-                          <span>{tagCatalogBySlug.get(slug) ?? slug}</span>
+                          <span>{tagCatalogBySlug.get(code) ?? code}</span>
                           <button
                             type="button"
                             className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
-                            aria-label={`ลบแท็ก ${slug}`}
-                            onClick={() => removeTag(slug)}
+                            aria-label={`ลบแท็ก ${code}`}
+                            onClick={() => removeTag(code)}
                           >
                             <X className="h-3.5 w-3.5" aria-hidden />
                           </button>
@@ -683,7 +683,7 @@ export function SongEditorForm({
                             size="sm"
                             variant="outline"
                             className={`h-8 text-xs ${getPastelTagButtonClass(t.code)}`}
-                            onClick={() => addTagSlug(t.code)}
+                            onClick={() => addTagCode(t.code)}
                             data-testid={`song-suggest-tag-${t.code}`}
                           >
                             + {t.name}

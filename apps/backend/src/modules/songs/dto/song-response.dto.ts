@@ -22,6 +22,8 @@ export class SongPublicListItemDto {
   coverImageUrl!: string | null;
   visibility!: SongEntity['visibility'];
   isPublished!: boolean;
+  tempo!: number | null;
+  timeSignature!: string | null;
   category!: SongCategorySnippetDto | null;
   tags!: SongTagSnippetDto[];
   viewCount!: number;
@@ -35,6 +37,8 @@ export class SongPublicListItemDto {
     dto.code = row.code;
     dto.churchId = row.churchId;
     dto.originalKey = row.originalKey ?? null;
+    dto.tempo = row.tempo ?? null;
+    dto.timeSignature = row.timeSignature ?? null;
     dto.coverImageUrl = row.coverImageUrl ?? null;
     dto.visibility = row.visibility;
     dto.isPublished = row.isPublished;
@@ -65,6 +69,8 @@ export class SongPublicDetailDto extends SongPublicListItemDto {
     dto.code = list.code;
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
+    dto.tempo = list.tempo;
+    dto.timeSignature = list.timeSignature;
     dto.visibility = list.visibility;
     dto.isPublished = list.isPublished;
     dto.category = list.category;
@@ -91,6 +97,8 @@ export class SongAdminListItemDto extends SongPublicListItemDto {
     dto.code = list.code;
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
+    dto.tempo = list.tempo;
+    dto.timeSignature = list.timeSignature;
     dto.visibility = list.visibility;
     dto.isPublished = list.isPublished;
     dto.category = list.category;
@@ -121,6 +129,8 @@ export class SongAdminDetailDto extends SongAdminListItemDto {
     dto.churchId = list.churchId;
     dto.originalKey = list.originalKey;
     dto.isPublished = list.isPublished;
+    dto.tempo = list.tempo;
+    dto.timeSignature = list.timeSignature;
     dto.visibility = list.visibility;
     dto.category = list.category;
     dto.tags = list.tags;

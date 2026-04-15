@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
+import { ErrorLoggingInterceptor } from './infrastructure/logging/error-logging.interceptor';
 import { HttpExceptionLoggingFilter } from './infrastructure/logging/http-exception.filter';
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
@@ -40,6 +41,7 @@ import { UsersModule } from './modules/users/users.module';
     SetlistsModule,
   ],
   providers: [
+    { provide: APP_INTERCEPTOR, useClass: ErrorLoggingInterceptor },
     { provide: APP_FILTER, useClass: HttpExceptionLoggingFilter },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },

@@ -10,6 +10,7 @@ type GuestSetlistsState = {
   createGuestSetlist: (payload?: Partial<SetlistDetail>) => SetlistDetail | null;
   saveGuestSetlist: (setlist: SetlistDetail) => SetlistDetail;
   removeGuestSetlist: (setlistId: string) => void;
+  clearGuestSetlists: () => void;
   findById: (setlistId: string) => SetlistDetail | null;
 };
 
@@ -81,6 +82,7 @@ export const useGuestSetlistsStore = create<GuestSetlistsState>()(
         set((state) => ({
           guestSetlists: state.guestSetlists.filter((row) => row.id !== setlistId),
         })),
+      clearGuestSetlists: () => set({ guestSetlists: [] }),
       findById: (setlistId) =>
         get().guestSetlists.find((row) => row.id === setlistId) ?? null,
     }),

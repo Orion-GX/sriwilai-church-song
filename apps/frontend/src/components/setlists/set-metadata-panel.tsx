@@ -8,12 +8,14 @@ import { PublicAccessSection } from "./public-access-section";
 
 type SetMetadataPanelProps = {
   setlist: SetlistDetail;
+  requiresLoginForPublic: boolean;
   onTogglePublic: (next: boolean) => void;
   onGeneratePublicLink: () => void;
 };
 
 export function SetMetadataPanel({
   setlist,
+  requiresLoginForPublic,
   onTogglePublic,
   onGeneratePublicLink,
 }: SetMetadataPanelProps) {
@@ -44,6 +46,7 @@ export function SetMetadataPanel({
         <PublicAccessSection
           isPublic={setlist.isPublic}
           publicUrl={setlist.publicUrl}
+          requiresLogin={requiresLoginForPublic}
           onTogglePublic={onTogglePublic}
           onGenerateLink={onGeneratePublicLink}
         />

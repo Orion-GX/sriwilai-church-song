@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 
 import { SongSection } from "@/components/songs/viewer/song-section";
 import { fetchSongById } from "@/lib/api/songs";
 import type { SetlistSongItem } from "@/lib/api/types";
 import { transposeChordSymbol } from "@/lib/chordpro/transpose";
-import { buildDisplayDocument, transposeContentDocument } from "@/lib/songs/song-content";
+import {
+  buildDisplayDocument,
+  transposeContentDocument,
+} from "@/lib/songs/song-content";
 
 const KEY_TO_INDEX: Record<string, number> = {
   C: 0,
@@ -85,15 +88,22 @@ export function PresentationSongPanel({
     const sourceDocument = buildDisplayDocument(songDetail);
     const sourceKey = song.originalKey ?? songDetail.originalKey;
     const targetKey = song.selectedKey ?? sourceKey;
-    const semitoneDelta = getSemitoneDelta(sourceKey, targetKey) + localTranspose;
+    const semitoneDelta =
+      getSemitoneDelta(sourceKey, targetKey) + localTranspose;
     return transposeContentDocument(sourceDocument, semitoneDelta);
   }, [localTranspose, song.originalKey, song.selectedKey, songDetail]);
 
   const displayKey = useMemo(() => {
-    const baseKey = song.selectedKey ?? song.originalKey ?? songDetail?.originalKey ?? null;
+    const baseKey =
+      song.selectedKey ?? song.originalKey ?? songDetail?.originalKey ?? null;
     if (!baseKey) return "-";
     return transposeChordSymbol(baseKey, localTranspose);
-  }, [localTranspose, song.originalKey, song.selectedKey, songDetail?.originalKey]);
+  }, [
+    localTranspose,
+    song.originalKey,
+    song.selectedKey,
+    songDetail?.originalKey,
+  ]);
 
   return (
     <section
@@ -131,12 +141,15 @@ export function PresentationSongPanel({
       </div>
       {showMetadata ? (
         <p className="mt-1 text-sm text-muted-foreground">
-          {song.artist ?? "Unknown Artist"} • Key {displayKey} • {song.bpm ?? "--"} BPM
+          {song.artist ?? "Unknown Artist"} • Key {displayKey} •{" "}
+          {song.tempo ?? "--"} BPM
         </p>
       ) : null}
       <div className="mt-4 rounded-2xl bg-muted p-4">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading song content...</p>
+          <p className="text-sm text-muted-foreground">
+            Loading song content...
+          </p>
         ) : null}
         {isError ? (
           <p className="text-sm text-destructive">

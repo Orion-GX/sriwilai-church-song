@@ -42,18 +42,36 @@ function normalizeOrders(songs: SetlistSongItem[]): SetlistSongItem[] {
   return sortSongs(songs).map((song, idx) => ({ ...song, order: idx }));
 }
 
-function isGuestContext(accessToken: string | null, setlistId?: string) {
-  return !accessToken || (setlistId ? setlistId.startsWith("guest-") : false);
+function isGuestContext(accessToken: string | null) {
+  return !accessToken;
 }
 
 export function useSetlistDetail(setlistId: string) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const guestSetlist = useGuestSetlistsStore((s) => s.findById(setlistId));
-  const isGuest = isGuestContext(accessToken, setlistId);
+  const isGuest = isGuestContext(accessToken);
+  const [guestStoreHydrated, setGuestStoreHydrated] = useState(() =>
+    useGuestSetlistsStore.persist.hasHydrated(),
+  );
+
+  useEffect(() => {
+    const unsubscribeHydrate = useGuestSetlistsStore.persist.onHydrate(() => {
+      setGuestStoreHydrated(false);
+    });
+    const unsubscribeFinishHydration =
+      useGuestSetlistsStore.persist.onFinishHydration(() => {
+        setGuestStoreHydrated(true);
+      });
+    setGuestStoreHydrated(useGuestSetlistsStore.persist.hasHydrated());
+    return () => {
+      unsubscribeHydrate();
+      unsubscribeFinishHydration();
+    };
+  }, []);
 
   return useQuery({
     queryKey: setlistQueryKeys.detail(setlistId),
-    enabled: Boolean(setlistId),
+    enabled: Boolean(setlistId) && (!isGuest || guestStoreHydrated),
     queryFn: async () => {
       if (isGuest) {
         if (!guestSetlist) {
@@ -80,7 +98,7 @@ export function useSongReorder(setlistId: string) {
 
   return useMutation({
     mutationFn: async (orderedSongIds: string[]) => {
-      if (isGuestContext(accessToken, setlistId)) {
+      if (isGuestContext(accessToken)) {
         const current = findById(setlistId);
         if (!current) throw new Error("Guest setlist not found");
         const orderMap = new Map(orderedSongIds.map((id, idx) => [id, idx]));
@@ -112,7 +130,7 @@ export function useSongKeyChange(setlistId: string) {
 
   return useMutation({
     mutationFn: async (input: { itemId: string; selectedKey: string }) => {
-      if (isGuestContext(accessToken, setlistId)) {
+      if (isGuestContext(accessToken)) {
         const current = findById(setlistId);
         if (!current) throw new Error("Guest setlist not found");
         return saveGuestSetlist({
@@ -173,19 +191,8 @@ export function usePublicSetlistAccess(setlistId: string) {
   return {
     setVisibility: useMutation({
       mutationFn: async (isPublic: boolean) => {
-        if (isGuestContext(accessToken, setlistId)) {
-          const current = findById(setlistId);
-          if (!current) throw new Error("Guest setlist not found");
-          return saveGuestSetlist({
-            ...current,
-            isPublic,
-            publicSlug: isPublic
-              ? current.publicSlug ?? current.id.replace("guest-", "")
-              : null,
-            publicUrl: isPublic
-              ? `/public/setlists/${current.publicSlug ?? current.id.replace("guest-", "")}`
-              : null,
-          });
+        if (isGuestContext(accessToken)) {
+          throw new Error("Login required to enable public setlist");
         }
         return updateSetlistVisibility(setlistId, isPublic);
       },
@@ -193,16 +200,8 @@ export function usePublicSetlistAccess(setlistId: string) {
     }),
     generatePublicLink: useMutation({
       mutationFn: async () => {
-        if (isGuestContext(accessToken, setlistId)) {
-          const current = findById(setlistId);
-          if (!current) throw new Error("Guest setlist not found");
-          const slug = !current.publicSlug ? crypto.randomUUID() : current.publicSlug;
-          return saveGuestSetlist({
-            ...current,
-            isPublic: true,
-            publicSlug: slug,
-            publicUrl: `/public/setlists/${slug}`,
-          });
+        if (isGuestContext(accessToken)) {
+          throw new Error("Login required to generate public setlist link");
         }
         return generatePublicSetlistLink(setlistId, false);
       },
@@ -210,7 +209,7 @@ export function usePublicSetlistAccess(setlistId: string) {
     }),
     setPresentationLayout: useMutation({
       mutationFn: async (layout: SetlistPresentationLayout) => {
-        if (isGuestContext(accessToken, setlistId)) {
+        if (isGuestContext(accessToken)) {
           const current = findById(setlistId);
           if (!current) throw new Error("Guest setlist not found");
           return saveGuestSetlist({ ...current, presentationLayout: layout });
@@ -230,7 +229,7 @@ export function useSetlistsRepository() {
   const queryClient = useQueryClient();
 
   const listQuery = useQuery({
-    queryKey: setlistQueryKeys.list(),
+    queryKey: [...setlistQueryKeys.list(), accessToken ? "auth" : "guest"],
     queryFn: async () => {
       if (!accessToken) {
         return guestSetlists;
@@ -284,7 +283,7 @@ export function useSetlistsRepository() {
 
   const updateMutation = useMutation({
     mutationFn: async (input: { setlistId: string; payload: PatchSetlistInput }) => {
-      if (isGuestContext(accessToken, input.setlistId)) {
+      if (isGuestContext(accessToken)) {
         const current = guestSetlists.find((row) => row.id === input.setlistId);
         if (!current) throw new Error("Guest setlist not found");
         const next = {

@@ -1,6 +1,7 @@
 import { HomepageFooter } from "@/components/homepage/homepage-footer";
 import { FavoritesBootstrap } from "@/components/providers/favorites-bootstrap";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { SetlistsBootstrap } from "@/components/providers/setlists-bootstrap";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import type { Metadata } from "next";
 import { Bai_Jamjuree } from "next/font/google";
@@ -35,6 +36,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             <FavoritesBootstrap />
+            <SetlistsBootstrap />
             {children}
             <HomepageFooter />
           </QueryProvider>

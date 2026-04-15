@@ -22,6 +22,7 @@ type SetlistSongListProps = {
   songs: SetlistSongItem[];
   onReorder: (orderedSongIds: string[]) => void;
   onChangeKey: (itemId: string, key: string) => void;
+  onChangeTempo: (itemId: string, tempo: number | null) => void;
   onSaveTransitionNotes: (itemId: string, notes: string) => void;
   onDeleteSong: (itemId: string) => void;
 };
@@ -30,6 +31,7 @@ export function SetlistSongList({
   songs,
   onReorder,
   onChangeKey,
+  onChangeTempo,
   onSaveTransitionNotes,
   onDeleteSong,
 }: SetlistSongListProps) {
@@ -54,7 +56,11 @@ export function SetlistSongList({
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={onDragEnd}
+    >
       <SortableContext
         items={orderedSongs.map((song) => song.id)}
         strategy={verticalListSortingStrategy}
@@ -65,6 +71,7 @@ export function SetlistSongList({
               key={song.id}
               song={song}
               onChangeKey={onChangeKey}
+              onChangeBpm={onChangeTempo}
               onSaveTransitionNotes={onSaveTransitionNotes}
               onDeleteSong={onDeleteSong}
             />

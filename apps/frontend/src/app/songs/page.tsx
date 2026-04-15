@@ -331,7 +331,7 @@ export default function SongsListPage() {
                 </p>
               ) : (
                 <>
-                  <ul className="space-y-6" data-testid="song-list">
+                  <ul className="space-y-2" data-testid="song-list">
                     {items.map((song) => (
                       <li key={song.id} data-testid={`song-row-${song.id}`}>
                         <SongResultCard

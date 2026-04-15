@@ -1,16 +1,15 @@
 "use client";
 
-import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import * as React from "react";
 
 import {
   addSetlistSong,
   deleteSetlistSong,
+  updateSetlist,
   updateSetlistSong,
 } from "@/lib/api/setlists";
-import { useAuthStore } from "@/lib/stores/auth-store";
-import { useGuestSetlistsStore } from "@/lib/stores/setlists-guest-store";
 import {
   setlistQueryKeys,
   usePresentationMode,
@@ -19,13 +18,14 @@ import {
   useSongKeyChange,
   useSongReorder,
 } from "@/lib/setlists";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useGuestSetlistsStore } from "@/lib/stores/setlists-guest-store";
 
+import { Skeleton } from "../ui";
 import { AddSongToSetCard } from "./add-song-to-set-card";
 import { PresentationModeButton } from "./presentation-mode-button";
 import { PresentationModeScreen } from "./presentation-mode-screen";
 import { SetMetadataPanel } from "./set-metadata-panel";
-import { SetlistBottomNavigation } from "./setlist-bottom-navigation";
-import { SetlistHeader } from "./setlist-header";
 import { SetlistHero } from "./setlist-hero";
 import { SetlistSongList } from "./setlist-song-list";
 
@@ -45,6 +45,27 @@ export function SetlistBuilderScreen({ setlistId }: SetlistBuilderScreenProps) {
   const detailQuery = useSetlistDetail(setlistId);
   const reorderMutation = useSongReorder(setlistId);
   const keyMutation = useSongKeyChange(setlistId);
+  const bpmMutation = useMutation({
+    mutationFn: async (input: { itemId: string; bpm: number | null }) => {
+      if (!detailQuery.data) {
+        throw new Error("Setlist not found");
+      }
+      if (!accessToken || setlistId.startsWith("guest-")) {
+        return saveGuestSetlist({
+          ...detailQuery.data,
+          songs: detailQuery.data.songs.map((song) =>
+            song.id === input.itemId ? { ...song, bpm: input.bpm } : song,
+          ),
+        });
+      }
+      return updateSetlistSong(setlistId, input.itemId, {
+        bpm: input.bpm ?? undefined,
+      });
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData(setlistQueryKeys.detail(setlistId), next);
+    },
+  });
   const publicAccess = usePublicSetlistAccess(setlistId);
   const presentation = usePresentationMode(
     detailQuery.data?.presentationLayout ?? "vertical",
@@ -114,7 +135,9 @@ export function SetlistBuilderScreen({ setlistId }: SetlistBuilderScreenProps) {
   }, [deleteFeedback]);
 
   const addSongMutation = useMutation({
-    mutationFn: async (song: (NonNullable<typeof detailQuery.data>)["songs"][number]) => {
+    mutationFn: async (
+      song: NonNullable<typeof detailQuery.data>["songs"][number],
+    ) => {
       if (!detailQuery.data) throw new Error("Setlist not found");
       if (accessToken && !setlistId.startsWith("guest-")) {
         return addSetlistSong(setlistId, {
@@ -147,18 +170,36 @@ export function SetlistBuilderScreen({ setlistId }: SetlistBuilderScreenProps) {
     },
   });
 
+  const titleMutation = useMutation({
+    mutationFn: async (title: string) => {
+      if (!detailQuery.data) throw new Error("Setlist not found");
+      if (!accessToken || setlistId.startsWith("guest-")) {
+        return saveGuestSetlist({
+          ...detailQuery.data,
+          title,
+        });
+      }
+      return updateSetlist(setlistId, { title });
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData(setlistQueryKeys.detail(setlistId), next);
+      queryClient.invalidateQueries({ queryKey: setlistQueryKeys.list() });
+    },
+  });
+
   if (detailQuery.isLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Loading setlist...
+        โหลดเซ็ตลิสต์...
+        <Skeleton className="h-4 w-4 animate-spin" />
       </div>
     );
   }
   if (detailQuery.isError || !detailQuery.data) {
     return (
       <div className="rounded-2xl bg-card p-6 text-sm text-muted-foreground">
-        Unable to load this setlist.
+        ไม่สามารถโหลดเซ็ตลิสต์นี้ได้
       </div>
     );
   }
@@ -167,8 +208,13 @@ export function SetlistBuilderScreen({ setlistId }: SetlistBuilderScreenProps) {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24 lg:max-w-5xl lg:px-6">
-      <SetlistHeader />
-      <SetlistHero setlist={setlist} />
+      <SetlistHero
+        setlist={setlist}
+        onSaveTitle={async (title) => {
+          await titleMutation.mutateAsync(title);
+        }}
+        isSavingTitle={titleMutation.isPending}
+      />
       <PresentationModeButton onClick={presentation.open} />
 
       <SetlistSongList
@@ -177,6 +223,7 @@ export function SetlistBuilderScreen({ setlistId }: SetlistBuilderScreenProps) {
         onChangeKey={(itemId, key) =>
           keyMutation.mutate({ itemId, selectedKey: key })
         }
+        onChangeTempo={(itemId, bpm) => bpmMutation.mutate({ itemId, bpm })}
         onSaveTransitionNotes={(itemId, notes) =>
           transitionMutation.mutate({ itemId, notes })
         }
@@ -192,11 +239,10 @@ export function SetlistBuilderScreen({ setlistId }: SetlistBuilderScreenProps) {
 
       <SetMetadataPanel
         setlist={setlist}
+        requiresLoginForPublic={!accessToken}
         onTogglePublic={(next) => publicAccess.setVisibility.mutate(next)}
         onGeneratePublicLink={() => publicAccess.generatePublicLink.mutate()}
       />
-
-      <SetlistBottomNavigation active="setlists" />
 
       <PresentationModeScreen
         open={presentation.isOpen}
