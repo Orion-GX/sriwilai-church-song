@@ -52,7 +52,7 @@ export function SongFilterSidebar({
   onClearFilters,
 }: SongFilterSidebarProps) {
   return (
-    <aside className={cn("rounded-lg bg-muted p-4 md:p-5", className)}>
+    <aside className={cn("rounded-lg bg-card p-4 md:p-5", className)}>
       <div className="mb-5 flex items-center gap-2">
         <Filter className="h-4 w-4 text-primary-fixed-dim" aria-hidden />
         <h2 className="text-base font-semibold tracking-tight">ตัวกรอง</h2>

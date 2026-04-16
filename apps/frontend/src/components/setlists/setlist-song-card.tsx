@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
@@ -95,11 +95,10 @@ export function SetlistSongCard({
               </h3>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {song.artist ?? "Unknown Artist"} • Key:{" "}
-                {song.selectedKey ?? song.originalKey ?? "-"} •{" "}
               </p>
             </div>
             <div className="mt-1 flex items-center gap-1">
-              <Pencil className="h-4 w-4 text-muted-foreground" />
+              {/* <Pencil className="h-4 w-4 text-muted-foreground" /> */}
               <button
                 type="button"
                 className="rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
@@ -144,9 +143,9 @@ export function SetlistSongCard({
                     Number.isNaN(parsed) || parsed <= 0 ? null : parsed,
                   );
                 }}
-                placeholder="BPM"
+                placeholder="Tempo"
                 className="h-8 rounded-xl bg-muted text-xs"
-                aria-label={`BPM ของเพลง ${song.title}`}
+                aria-label={`Tempo ของเพลง ${song.title}`}
               />
             </div>
           </div>

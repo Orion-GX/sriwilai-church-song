@@ -46,28 +46,34 @@ function isGuestContext(accessToken: string | null) {
   return !accessToken;
 }
 
-export function useSetlistDetail(setlistId: string) {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const guestSetlist = useGuestSetlistsStore((s) => s.findById(setlistId));
-  const isGuest = isGuestContext(accessToken);
-  const [guestStoreHydrated, setGuestStoreHydrated] = useState(() =>
+function useGuestSetlistsHydrated() {
+  const [hydrated, setHydrated] = useState(() =>
     useGuestSetlistsStore.persist.hasHydrated(),
   );
 
   useEffect(() => {
     const unsubscribeHydrate = useGuestSetlistsStore.persist.onHydrate(() => {
-      setGuestStoreHydrated(false);
+      setHydrated(false);
     });
     const unsubscribeFinishHydration =
       useGuestSetlistsStore.persist.onFinishHydration(() => {
-        setGuestStoreHydrated(true);
+        setHydrated(true);
       });
-    setGuestStoreHydrated(useGuestSetlistsStore.persist.hasHydrated());
+    setHydrated(useGuestSetlistsStore.persist.hasHydrated());
     return () => {
       unsubscribeHydrate();
       unsubscribeFinishHydration();
     };
   }, []);
+
+  return hydrated;
+}
+
+export function useSetlistDetail(setlistId: string) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const guestSetlist = useGuestSetlistsStore((s) => s.findById(setlistId));
+  const isGuest = isGuestContext(accessToken);
+  const guestStoreHydrated = useGuestSetlistsHydrated();
 
   return useQuery({
     queryKey: setlistQueryKeys.detail(setlistId),
@@ -226,10 +232,12 @@ export function useSetlistsRepository() {
   const guestSetlists = useGuestSetlistsStore((s) => s.guestSetlists);
   const createGuestSetlist = useGuestSetlistsStore((s) => s.createGuestSetlist);
   const removeGuestSetlist = useGuestSetlistsStore((s) => s.removeGuestSetlist);
+  const guestStoreHydrated = useGuestSetlistsHydrated();
   const queryClient = useQueryClient();
 
   const listQuery = useQuery({
     queryKey: [...setlistQueryKeys.list(), accessToken ? "auth" : "guest"],
+    enabled: Boolean(accessToken) || guestStoreHydrated,
     queryFn: async () => {
       if (!accessToken) {
         return guestSetlists;

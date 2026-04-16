@@ -84,9 +84,26 @@ export function AddSongToSetCard({ onAddSong }: AddSongToSetCardProps) {
                   className="w-full rounded-xl bg-muted p-3 text-left transition hover:bg-secondary-container"
                 >
                   <p className="font-semibold">{song.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Key {song.originalKey ?? "-"}
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs text-muted-foreground">
+                      Key:{" "}
+                      <span className="font-semibold text-foreground">
+                        {song.originalKey ?? "-"}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tempo:{" "}
+                      <span className="font-semibold text-foreground">
+                        {song.tempo ?? "-"}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Time:{" "}
+                      <span className="font-semibold text-foreground">
+                        {song.timeSignature ?? "-"}
+                      </span>
+                    </p>
+                  </div>
                 </button>
               ))}
               {songsQuery.isLoading ? (

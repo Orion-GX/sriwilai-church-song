@@ -16,8 +16,8 @@ const baiJamjuree = Bai_Jamjuree({
 });
 
 export const metadata: Metadata = {
-  title: "Sriwilai Church",
-  description: "Sriwilai Church and song app",
+  title: "Worship Chord",
+  description: "Worship Chord and song app",
 };
 
 export default function RootLayout({

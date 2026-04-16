@@ -15,8 +15,13 @@ export type BottomNavigationItem = {
 };
 
 const bottomItems: BottomNavigationItem[] = [
-  { key: "songs", label: "Songs", href: "/songs", icon: Music2 },
-  { key: "setlists", label: "Setlists", href: "/setlists", icon: ListMusic },
+  { key: "songs", label: "เพลง", href: "/songs", icon: Music2 },
+  {
+    key: "setlists",
+    label: "เซ็ตลิสต์เพลง",
+    href: "/setlists",
+    icon: ListMusic,
+  },
   // { key: "team", label: "Team", href: "/churches", icon: UsersRound },
   // {
   //   key: "schedule",
@@ -71,8 +76,8 @@ export function SiteHeader() {
                 key={item.key}
                 href={item.href}
                 className={cn(
-                  "relative pb-1 text-sm font-medium text-[#475653] transition-colors hover:text-[#1f2a28]",
-                  isActive(item.href) && "text-[#1f2a28]",
+                  "relative pb-1 text-sm font-semibold text-primary transition-colors hover:text-[#1f2a28] focus:text-primary",
+                  isActive(item.href) && "text-primary",
                 )}
               >
                 {item.label}
@@ -86,9 +91,9 @@ export function SiteHeader() {
           <div className="hidden items-center gap-3 md:flex">
             <Link
               href="/login"
-              className="rounded-full bg-[#4f6863] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#435a56]"
+              className="rounded-full bg-[#4f6863] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors"
             >
-              Login
+              เข้าสู่ระบบ
             </Link>
           </div>
         </div>
